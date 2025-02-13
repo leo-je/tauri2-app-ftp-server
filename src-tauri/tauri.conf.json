@@ -16,7 +16,8 @@
         "resizable": false,
         "title": "ftp-server",
         "width": 480,
-        "height": 330
+        "height": 330,
+        "maximizable": false
       }
     ],
     "security": {

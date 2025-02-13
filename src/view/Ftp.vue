@@ -1,6 +1,6 @@
 <template>
     <div style="height: 100%; border: 1px;">
-        <div style="width: 80%;margin: auto;text-align: left;">
+        <div style="width: 90%;margin: auto;text-align: left;">
             <div style="margin-top: 10px;height: 20px;"><span> </span></div>
             <div style="margin-top: 10px;">
                 <div style="margin: 0px;"><span>目录：</span></div>
