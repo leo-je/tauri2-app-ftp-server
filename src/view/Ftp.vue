@@ -14,7 +14,7 @@
             <div style="margin-top: 10px;">
                 <div style="margin: 0px;"><span>端口：</span></div>
                 <div>
-                    <el-input v-model="port" placeholder="21" />
+                    <el-input :disabled="isStart" v-model="port" placeholder="21" />
                 </div>
             </div>
             <div style="margin-top: 30px;margin-bottom: 10px;text-align: center;">
