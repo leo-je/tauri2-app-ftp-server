@@ -7,35 +7,78 @@ use tauri_plugin_log::{Target, TargetKind};
 pub mod ftpworker;
 use crate::ftpworker::FtpWorker;
 
+
+// 添加输入验证函数
+fn validate_path(path: &str) -> bool {
+    // 实现路径验证逻辑
+    !path.is_empty()
+}
+
+fn validate_port(port: &str) -> bool {
+    // 实现端口验证逻辑
+    port.parse::<u16>().is_ok()
+}
+
 #[tauri::command]
 fn start_ftp_server(
     state: tauri::State<'_, Arc<Mutex<FtpWorker>>>,
     path: String,
     port: String,
 ) -> Result<String, String> {
-    // 检查是否已经有子线程在运行
-    let mut worker = state.lock().unwrap();
-    let is_start: bool = worker.is_running();
-    if is_start {
-        println!("Thread is already running");
+    // 验证输入参数
+    if !validate_path(&path) || !validate_port(&port) {
+        return Err("无效的路径或端口".to_string());
+    }
+
+    let mut worker = match state.lock() {
+        Ok(guard) => guard,
+        Err(e) => {
+            // error!("无法获取锁: {}", e);
+            return Err(format!("无法获取锁: {}", e));
+        }
+    };
+
+    if worker.is_running() {
+        // info!("FTP 服务已启动");
         return Ok("服务已启动".to_string());
     }
-    let p = path.clone();
-    let p2 = port.clone();
-    // let mut worker = worker.lock().unwrap();
-    worker.set(p, p2);
-    let _ = worker.start();
-    // 等待子线程完成
-    // handle.join().unwrap();
-    println!("start_ftp_server-3");
-    Ok(format!("服务已启动"))
+
+    // 设置路径和端口
+    worker.set(path.clone(), port.clone());
+
+    // 启动 FTP 服务
+    match worker.start() {
+        Ok(_) => {
+            // info!("FTP 服务启动成功");
+            Ok("服务已启动".to_string())
+        }
+        Err(e) => {
+            // error!("FTP 服务启动失败: {}", e);
+            Err(format!("服务启动失败: {}", e))
+        }
+    }
 }
 
 #[tauri::command]
-fn stop_ftp_server(state: tauri::State<'_, Arc<Mutex<FtpWorker>>>) -> Result<String, ()> {
-    let mut worker = state.lock().unwrap();
-    worker.stop();
-    Ok(format!("服务已停止"))
+fn stop_ftp_server(state: tauri::State<'_, Arc<Mutex<FtpWorker>>>) -> Result<String, String> {
+    let mut worker = match state.lock() {
+        Ok(guard) => guard,
+        Err(e) => {
+            // error!("无法获取锁: {}", e);
+          return Err(format!("无法获取锁: {}", e));
+        }
+    };
+
+    match worker.stop() {
+        Ok(_) => {
+            // info!("FTP 服务已停止");
+            Ok("服务已停止".to_string())
+        },
+        Err(e) => {
+            // error!("FTP 服务停止失败: {}", e);
+            Err(format!("FTP 服务停止失败: {}", e))
+        }
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

@@ -88,12 +88,13 @@ impl FtpWorker {
         Ok(())
     }
 
-    pub fn stop(&mut self) {
+    pub fn stop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         println!("stop");
         self.running.store(false, Ordering::Relaxed);
         if let Some(handle) = self.handle.take() {
             handle.join().expect("Thread failed to join");
         }
+        Ok(())
     }
 
     pub fn is_running(&self) -> bool {
