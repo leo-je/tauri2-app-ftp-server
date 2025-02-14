@@ -24,7 +24,7 @@ fn start_ftp_server(
     let p2 = port.clone();
     // let mut worker = worker.lock().unwrap();
     worker.set(p, p2);
-    worker.start();
+    let _ = worker.start();
     // 等待子线程完成
     // handle.join().unwrap();
     println!("start_ftp_server-3");
