@@ -106,5 +106,5 @@ pub fn run() {
                 .build(),
         )
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .expect("error while running ftp Server application");
 }
