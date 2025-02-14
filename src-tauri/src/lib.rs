@@ -1,21 +1,20 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
-use std::sync::{atomic::AtomicBool, Arc, Mutex};
+use std::sync::{Arc, Mutex};
 use tauri::Manager;
 use tauri_plugin_log::{Target, TargetKind};
 
 pub mod ftpworker;
 use crate::ftpworker::FtpWorker;
 
-
 #[tauri::command]
 fn start_ftp_server(
-    worker: tauri::State<'_, Arc<Mutex<FtpWorker>>>,
+    state: tauri::State<'_, Arc<Mutex<FtpWorker>>>,
     path: String,
     port: String,
 ) -> Result<String, String> {
     // 检查是否已经有子线程在运行
-    let mut worker = worker.lock().unwrap();
+    let mut worker = state.lock().unwrap();
     let is_start: bool = worker.is_running();
     if is_start {
         println!("Thread is already running");
@@ -33,8 +32,8 @@ fn start_ftp_server(
 }
 
 #[tauri::command]
-fn stop_ftp_server(worker: tauri::State<'_, Arc<Mutex<FtpWorker>>>) -> Result<String, ()> {
-    let mut worker = worker.lock().unwrap();
+fn stop_ftp_server(state: tauri::State<'_, Arc<Mutex<FtpWorker>>>) -> Result<String, ()> {
+    let mut worker = state.lock().unwrap();
     worker.stop();
     Ok(format!("服务已停止"))
 }
@@ -45,9 +44,7 @@ pub fn run() {
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_store::Builder::new().build())
         .setup(move |app| {
-            let stop_flag = Arc::new(AtomicBool::new(false));
             let worker = Arc::new(Mutex::new(FtpWorker::new()));
-            app.manage(stop_flag);
             app.manage(worker);
             Ok(())
         })
