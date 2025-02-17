@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use tauri::Manager;
 use tauri_plugin_log::{Target, TargetKind};
 
-pub mod command;
+pub mod invoke_command;
 pub mod ftpworker;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -22,8 +22,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
-            command::start_ftp_server,
-            command::stop_ftp_server,
+            invoke_command::start_ftp_server,
+            invoke_command::stop_ftp_server,
         ])
         .plugin(
             tauri_plugin_log::Builder::new()
