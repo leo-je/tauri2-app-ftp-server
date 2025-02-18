@@ -8,19 +8,15 @@
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import { ElMain,ElContainer } from 'element-plus';
+import { ElMain, ElContainer } from 'element-plus';
 function disableContextMenu(event: any) {
   event.preventDefault();
 }
 </script>
 
 <style lang="scss" scoped>
-
 * {
-  moz-user-select: -moz-none;
   -moz-user-select: none;
-  -o-user-select: none;
-  -khtml-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
