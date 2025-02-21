@@ -1,7 +1,7 @@
 <template>
     <div style="height: 100%; border: 1px;">
         <div style="width: 90%;margin: auto;text-align: left;">
-            <div style="margin-top: 10px;height: 20px;"><span> </span></div>
+            <!-- <div style="margin-top: 10px;height: 20px;"><span> </span></div> -->
             <div style="margin-top: 10px;">
                 <div style="margin: 0px;"><span>目录：</span></div>
                 <div>
@@ -42,7 +42,7 @@ import { info, error, attachConsole } from '@tauri-apps/plugin-log';
 
 //import { appDataDir } from '@tauri-apps/api/path';
 
-let store: Store ;//await Store.load('store.json');
+let store: Store;//await Store.load('store.json');
 
 const dirPath = ref('')
 const port = ref(21)
@@ -55,8 +55,8 @@ async function init() {
     store = await Store.load('store.json');
     var selected = await store.get('selected');// localStorage.getItem('selected');
     if (selected) {
-        info(selected+'')
-        dirPath.value = selected+''
+        info(selected + '')
+        dirPath.value = selected + ''
     }
 }
 
@@ -67,17 +67,17 @@ const logl = (msg: string) => {
 }
 
 const checkPlatform = () => {
-  let currentPlatform = platform();
-  if (currentPlatform === 'windows') {
-    logl('当前操作系统是 Windows');
-  } else if (currentPlatform === 'macos') {
-    logl('当前操作系统是 macOS');
-  } else if (currentPlatform === 'linux') {
-    logl('当前操作系统是 Linux');
-  } else {
-    logl('未知操作系统：' + currentPlatform);
-  }
-  return currentPlatform;
+    let currentPlatform = platform();
+    if (currentPlatform === 'windows') {
+        logl('当前操作系统是 Windows');
+    } else if (currentPlatform === 'macos') {
+        logl('当前操作系统是 macOS');
+    } else if (currentPlatform === 'linux') {
+        logl('当前操作系统是 Linux');
+    } else {
+        logl('未知操作系统：' + currentPlatform);
+    }
+    return currentPlatform;
 }
 
 async function openDir() {
@@ -87,27 +87,27 @@ async function openDir() {
         return;
     }
     let osType = checkPlatform()
-  new Command(osType === 'windows' ? 'explorer' : 'open', [path]).execute()
+    new Command(osType === 'windows' ? 'explorer' : 'open', [path]).execute()
 }
 
 async function selectDir() {
-    try{
-    //console.log(appDataDir())
-    const selected = await open({
-        directory: true,
-        multiple: false,
-        // defaultPath: await appDataDir(),
-    }) as string;
-    console.log(selected)
-    if (selected && selected != '') {
-        dirPath.value = selected
-        // 存储数据到localStorage
-        // localStorage.setItem('selected', selected);
-        store.set('selected', selected);
-    }
-    }catch(e){
-        error(e+'');
-        ElMessage(e+'')
+    try {
+        //console.log(appDataDir())
+        const selected = await open({
+            directory: true,
+            multiple: false,
+            // defaultPath: await appDataDir(),
+        }) as string;
+        console.log(selected)
+        if (selected && selected != '') {
+            dirPath.value = selected
+            // 存储数据到localStorage
+            // localStorage.setItem('selected', selected);
+            store.set('selected', selected);
+        }
+    } catch (e) {
+        error(e + '');
+        ElMessage(e + '')
     }
 
 }
@@ -141,7 +141,14 @@ async function startFtpServer() {
             return;
         }
         info("invoke-'start_ftp_server'")
-        const result = await invoke('start_ftp_server', { path: dirPath.value, port: port.value + "" });
+        let users = await store.get('tableData')
+        console.log(users)
+        let isAnonymous = await store.get('isAnonymous')
+        console.log(isAnonymous)
+        const result = await invoke('start_ftp_server', {
+            path: dirPath.value, port: port.value + "",
+            users: JSON.stringify(users), isAnonymous
+        });
         ElMessage({ type: "success", message: result + "" }); // 处理返回结果
         isStart.value = true
     } catch (error) {

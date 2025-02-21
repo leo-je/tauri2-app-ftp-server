@@ -1,12 +1,13 @@
 // src/router.js
 import { createRouter, createWebHistory } from 'vue-router';
 import ftp from '../view/Ftp.vue';
+import ftpTabs from '../view/FtpTabs.vue';
 
 const routes = [
   {
     path: '/',
-    name: 'ftp',
-    component: ftp
+    name: 'ftpTabs',
+    component: ftpTabs
   }
 ];
 

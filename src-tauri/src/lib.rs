@@ -6,6 +6,8 @@ use tauri_plugin_log::{Target, TargetKind};
 
 pub mod invoke_command;
 pub mod ftpworker;
+pub mod ftpuser;
+pub mod ftp_user_authenticator;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

@@ -18,6 +18,8 @@ pub fn start_ftp_server(
     state: tauri::State<'_, Arc<Mutex<FtpWorker>>>,
     path: String,
     port: String,
+    users:String,
+    is_anonymous:bool,
 ) -> Result<String, String> {
     // 验证输入参数
     if !validate_path(&path) || !validate_port(&port) {
@@ -38,7 +40,7 @@ pub fn start_ftp_server(
     }
 
     // 设置路径和端口
-    worker.set(path.clone(), port.clone());
+    worker.set(path.clone(), port.clone(),users.clone(),is_anonymous);
 
     // 启动 FTP 服务
     match worker.start() {
