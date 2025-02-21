@@ -147,7 +147,7 @@ async function startFtpServer() {
         console.log(isAnonymous)
         const result = await invoke('start_ftp_server', {
             path: dirPath.value, port: port.value + "",
-            users: JSON.stringify(users), isAnonymous
+            users: JSON.stringify(users), isAnonymous: isAnonymous ? isAnonymous : false
         });
         ElMessage({ type: "success", message: result + "" }); // 处理返回结果
         isStart.value = true
