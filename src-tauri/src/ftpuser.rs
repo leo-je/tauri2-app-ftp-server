@@ -8,6 +8,7 @@ use unftp_sbe_restrict::{UserWithPermissions, VfsOperations};
 pub struct UserInfo {
     pub username: String,
     pub password: String,
+    pub fileauth: String,
 }
 
 #[derive(Debug, PartialEq, Eq)]

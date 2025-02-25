@@ -1,7 +1,7 @@
-use libunftp::auth::{AuthenticationError, Authenticator, Credentials};
-use unftp_sbe_restrict::VfsOperations;
 use async_trait::async_trait;
+use libunftp::auth::{AuthenticationError, Authenticator, Credentials};
 use subtle::ConstantTimeEq;
+use unftp_sbe_restrict::VfsOperations;
 
 use crate::ftpuser::{User, UserInfo};
 
@@ -31,9 +31,11 @@ impl Authenticator<User> for FtpUserAuthenticator {
                 println!("Authenticating user: {}-{}", u.username, "[REDACTED]");
                 if let Some(password) = &_creds.password {
                     if password.as_bytes().ct_eq(u.password.as_bytes()).unwrap_u8() == 1 {
+                        // 根据u.file_auth设置权限
+                        let permissions= get_permissions(&u.fileauth);
                         return Ok(User {
                             username: _username.to_string(),
-                            permissions: VfsOperations::all(),
+                            permissions,
                         });
                     } else {
                         self.log_auth_failure(_username);
@@ -53,5 +55,14 @@ impl Authenticator<User> for FtpUserAuthenticator {
 impl FtpUserAuthenticator {
     fn log_auth_failure(&self, username: &str) {
         println!("username:{}用户不存在或者密码错误", username);
+    }
+}
+
+fn get_permissions(file_auth: &str) -> VfsOperations {
+    println!("file_auth:{}", file_auth);
+    let all_permissions = VfsOperations::all();
+    match file_auth {
+        "W" => all_permissions,
+        _ => all_permissions - VfsOperations::WRITE_OPS,
     }
 }

@@ -9,6 +9,13 @@
             <ElTable :data="tableData" height="140" border style="width: 100%;">
                 <ElTableColumn label="用户名" prop="username" />
                 <ElTableColumn label="密码" prop="password" />
+                <ElTableColumn label="权限" prop="fileauth">
+                    <template #default="scope">
+                        <div style="display: flex; align-items: center">
+                            <span style="margin-left: 10px">{{ scope.row.fileauth == 'W' ? '读写' : '只读' }}</span>
+                        </div>
+                    </template>
+                </ElTableColumn>
                 <el-table-column fixed="right" label="操作" min-width="120">
                     <template #default="scope">
                         <el-button link type="primary" size="small" @click="_e => {
@@ -16,6 +23,7 @@
                             form.index = scope.$index
                             form.username = scope.row.username
                             form.password = scope.row.password
+                            form.fileauth = scope.row.fileAuth
                             drawer = !drawer
                         }">修改</el-button>
                         <el-button link type="primary" size="small" @click="deleteRow(scope)">删除</el-button>
@@ -28,18 +36,25 @@
                     form.password = ''
                     form.username = ''
                     form.index = null
+                    form.fileauth = 'R'
                 }" style="width: 100px;margin-top: 5px;">添加
                 </ElButton>
             </div>
         </div>
         <div>
-            <el-drawer v-model="drawer" title="I am the title" :with-header="false" :direction="direction" size="80%">
-                <el-form style="margin-top: 60px;" :model="form">
+            <el-drawer v-model="drawer" title="I am the title" :with-header="false" :direction="direction" size="90%">
+                <el-form style="margin-top: 30px;" :model="form">
                     <el-form-item label="用户名" label-width="80px">
                         <el-input autocomplete="off" v-model="form.username" />
                     </el-form-item>
                     <el-form-item label="密码" label-width="80px">
                         <el-input autocomplete="off" v-model="form.password" />
+                    </el-form-item>
+                    <el-form-item label="密码" label-width="80px">
+                        <el-radio-group v-model="form.fileauth" size="large">
+                            <el-radio-button label="只读" value="R" />
+                            <el-radio-button label="读写" value="W" />
+                        </el-radio-group>
                     </el-form-item>
                 </el-form>
                 <div style="text-align: right;">
@@ -55,7 +70,8 @@
 import { onMounted, reactive, ref } from 'vue'
 import {
     ElSwitch, ElForm, ElFormItem, ElTable, ElTableColumn,
-    ElButton, ElDrawer, DrawerProps, ElInput, ElMessage
+    ElButton, ElDrawer, DrawerProps, ElInput, ElMessage,
+    ElRadioGroup, ElRadioButton
 } from 'element-plus'
 import { Store } from '@tauri-apps/plugin-store';
 let store: Store;//await Store.load('store.json');
@@ -87,7 +103,7 @@ const init = async () => {
 onMounted(() => {
     init()
 })
-const form = reactive({ username: '', password: '', index: null })
+const form = reactive({ username: '', password: '', index: null, fileauth: 'R' })
 const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('btt')
 
@@ -114,6 +130,4 @@ const saveForm = () => {
 
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
