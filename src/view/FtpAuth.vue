@@ -94,6 +94,9 @@ const init = async () => {
     let a = await store.get('isAnonymous');
     isAnonymous.value = a ? true : false
 
+    let fa = await store.get('fileauth');
+    fileauth.value = fa ? fa+'' : 'R'
+
     let t: any = await store.get('tableData');
     console.log("tableData:" + t)
     try {
