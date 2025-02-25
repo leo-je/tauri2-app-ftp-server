@@ -142,6 +142,9 @@ async function startFtpServer() {
         }
         info("invoke-'start_ftp_server'")
         let users = await store.get('tableData')
+        if(!users){
+            users = []
+        }
         console.log('user:' + JSON.stringify(users))
         let isAnonymous = await store.get('isAnonymous')
         console.log(isAnonymous)
