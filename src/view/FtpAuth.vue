@@ -4,6 +4,14 @@
             <el-form-item label="是否匿名访问">
                 <el-switch v-model="isAnonymous" @change="() => store.set('isAnonymous', isAnonymous)" />
             </el-form-item>
+            <el-form-item v-if="isAnonymous" label="权限" label-width="80px"
+                @change="() => store.set('fileauth', fileauth)"
+            >
+                <el-radio-group v-model="fileauth" size="large" >
+                    <el-radio-button label="只读" value="R" />
+                    <el-radio-button label="读写" value="W" />
+                </el-radio-group>
+            </el-form-item>
         </ElForm>
         <div v-if="!isAnonymous">
             <ElTable :data="tableData" height="140" border style="width: 100%;">
@@ -23,7 +31,7 @@
                             form.index = scope.$index
                             form.username = scope.row.username
                             form.password = scope.row.password
-                            form.fileauth = scope.row.fileAuth
+                            form.fileauth = scope.row.fileauth
                             drawer = !drawer
                         }">修改</el-button>
                         <el-button link type="primary" size="small" @click="deleteRow(scope)">删除</el-button>
@@ -50,7 +58,7 @@
                     <el-form-item label="密码" label-width="80px">
                         <el-input autocomplete="off" v-model="form.password" />
                     </el-form-item>
-                    <el-form-item label="密码" label-width="80px">
+                    <el-form-item label="权限" label-width="80px">
                         <el-radio-group v-model="form.fileauth" size="large">
                             <el-radio-button label="只读" value="R" />
                             <el-radio-button label="读写" value="W" />
@@ -78,6 +86,7 @@ let store: Store;//await Store.load('store.json');
 const isAnonymous = ref(true)
 const tableData = ref([{}])
 tableData.value = []
+const fileauth = ref('R')
 const init = async () => {
     if (!store) {
         store = await Store.load('store.json');

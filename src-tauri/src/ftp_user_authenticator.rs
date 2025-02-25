@@ -9,6 +9,7 @@ use crate::ftpuser::{User, UserInfo};
 pub struct FtpUserAuthenticator {
     pub is_anonymous: bool,
     pub users: Vec<UserInfo>,
+    pub fileauth:String,
 }
 
 #[async_trait]
@@ -22,7 +23,7 @@ impl Authenticator<User> for FtpUserAuthenticator {
         if self.is_anonymous {
             return Ok(User {
                 username: _username.to_string(),
-                permissions: VfsOperations::all(),
+                permissions: get_permissions(&self.fileauth),
             });
         }
 

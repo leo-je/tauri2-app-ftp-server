@@ -16,6 +16,7 @@ pub struct FtpWorker {
     pub port: String,
     pub users: String,
     pub is_anonymous:bool,
+    pub fileauth:String,
     pub handle: Option<thread::JoinHandle<()>>,
     running: Arc<AtomicBool>,
 }
@@ -30,15 +31,18 @@ impl FtpWorker {
             running,
             users: "".to_string(),
             is_anonymous:true,
+            fileauth: "R".to_string(),
 
         }
     }
 
-    pub fn set(&mut self, path: String, port: String,users:String,is_anonymous:bool) {
+    pub fn set(&mut self, path: String, port: String,users:String,is_anonymous:bool,fileauth:String) {
         self.path = path;
         self.port = port;
         self.users = users;
         self.is_anonymous = is_anonymous;
+        self.fileauth = fileauth;
+
     }
 
     pub fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
@@ -48,6 +52,7 @@ impl FtpWorker {
             let running_clone = Arc::clone(&self.running);
             let users = self.users.clone();
             let is_anonymous = self.is_anonymous.clone();
+            let fileauth = self.fileauth.clone();
             // 创建一个线程
             let handle = thread::spawn(move || {
                 println!("thread start");
@@ -71,7 +76,7 @@ impl FtpWorker {
                         Box::new(move || { 
                             unftp_sbe_restrict::RestrictingVfs::<Filesystem, ftpuser::User, Meta>::new(Filesystem::new(ftp_home.clone()))
                         }),
-                        std::sync::Arc::new(FtpUserAuthenticator {is_anonymous,users}),
+                        std::sync::Arc::new(FtpUserAuthenticator {is_anonymous,users,fileauth}),
                     )
                     .greeting("Welcome to my FTP server")
                     .passive_ports(50000..65535)

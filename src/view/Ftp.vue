@@ -142,12 +142,18 @@ async function startFtpServer() {
         }
         info("invoke-'start_ftp_server'")
         let users = await store.get('tableData')
-        console.log('user:'+JSON.stringify(users))
+        console.log('user:' + JSON.stringify(users))
         let isAnonymous = await store.get('isAnonymous')
         console.log(isAnonymous)
+
+        let fileauth = await store.get('fileauth')
+        console.log('fileauth:' + fileauth)
+        if (!fileauth) fileauth = 'R'
+
         const result = await invoke('start_ftp_server', {
             path: dirPath.value, port: port.value + "",
-            users: JSON.stringify(users), isAnonymous: isAnonymous ? isAnonymous : false
+            users: JSON.stringify(users), isAnonymous: isAnonymous ? isAnonymous : false,
+            fileauth
         });
         ElMessage({ type: "success", message: result + "" }); // 处理返回结果
         isStart.value = true

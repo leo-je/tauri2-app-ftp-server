@@ -20,6 +20,7 @@ pub fn start_ftp_server(
     port: String,
     users:String,
     is_anonymous:bool,
+    fileauth:String,
 ) -> Result<String, String> {
     // 验证输入参数
     if !validate_path(&path) || !validate_port(&port) {
@@ -40,7 +41,7 @@ pub fn start_ftp_server(
     }
 
     // 设置路径和端口
-    worker.set(path.clone(), port.clone(),users.clone(),is_anonymous);
+    worker.set(path.clone(), port.clone(),users.clone(),is_anonymous,fileauth);
 
     // 启动 FTP 服务
     match worker.start() {
