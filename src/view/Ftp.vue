@@ -40,128 +40,98 @@ import { platform } from '@tauri-apps/plugin-os';
 import { Store } from '@tauri-apps/plugin-store';
 import { info, error, attachConsole } from '@tauri-apps/plugin-log';
 
-//import { appDataDir } from '@tauri-apps/api/path';
-
-let store: Store;//await Store.load('store.json');
-
-const dirPath = ref('')
-const port = ref(21)
-const isStart = ref(false)
+let store: Store;
+const dirPath = ref('');
+const port = ref(21);
+const isStart = ref(false);
 
 async function init() {
     const detach = await attachConsole();
-    detach()
-    // 从localStorage中检索数据
+    detach();
     store = await Store.load('store.json');
-    var selected = await store.get('selected');// localStorage.getItem('selected');
+    const selected = await store.get('selected');
     if (selected) {
-        info(selected + '')
-        dirPath.value = selected + ''
+        info(selected.toString());
+        dirPath.value = selected.toString();
     }
 }
 
+onMounted(init);
 
-onMounted(init)
-const logl = (msg: string) => {
-    info(msg + '/n')
-}
+const logl = (msg: string) => info(msg);
 
 const checkPlatform = () => {
-    let currentPlatform = platform();
-    if (currentPlatform === 'windows') {
-        logl('当前操作系统是 Windows');
-    } else if (currentPlatform === 'macos') {
-        logl('当前操作系统是 macOS');
-    } else if (currentPlatform === 'linux') {
-        logl('当前操作系统是 Linux');
-    } else {
-        logl('未知操作系统：' + currentPlatform);
-    }
+    const currentPlatform = platform();
+    const platformMap: Record<string, string> = {
+        windows: 'Windows',
+        macos: 'macOS',
+        linux: 'Linux',
+        ios: 'iOS', 
+        android: 'Android',
+    };
+    const platformName = platformMap[currentPlatform] || `未知操作系统：${currentPlatform}`;
+    logl(`当前操作系统是 ${platformName}`);
     return currentPlatform;
-}
+};
 
 async function openDir() {
-    let path = dirPath.value
-    if (!path || path == '') {
-        ElMessage({ type: "warning", message: "未选择目录" })
+    if (!dirPath.value) {
+        ElMessage({ type: "warning", message: "未选择目录" });
         return;
     }
-    let osType = checkPlatform()
-    new Command(osType === 'windows' ? 'explorer' : 'open', [path]).execute()
+    const osType = checkPlatform();
+    new Command(osType === 'windows' ? 'explorer' : 'open', [dirPath.value]).execute();
 }
 
 async function selectDir() {
     try {
-        //console.log(appDataDir())
-        const selected = await open({
-            directory: true,
-            multiple: false,
-            // defaultPath: await appDataDir(),
-        }) as string;
-        console.log(selected)
-        if (selected && selected != '') {
-            dirPath.value = selected
-            // 存储数据到localStorage
-            // localStorage.setItem('selected', selected);
-            store.set('selected', selected);
+        const selected = await open({ directory: true, multiple: false });
+        if (selected) {
+            dirPath.value = selected;
+            await store.set('selected', selected);
         }
     } catch (e) {
-        error(e + '');
-        ElMessage(e + '')
+        error(e ? e.toString() : '读取目录失败');
+        ElMessage(e ? e.toString() : '读取目录失败');
     }
-
 }
 
-
 function startOrStopServer() {
-    let b = isStart.value
-    console.log(b)
-    if (b) {
-        stopFtpServer()
-    } else {
-        startFtpServer()
-    }
+    isStart.value ? stopFtpServer() : startFtpServer();
 }
 
 async function stopFtpServer() {
     try {
-        const result = await invoke('stop_ftp_server', {});
-        ElMessage({ type: "success", message: result + "" }); // 处理返回结果
-        isStart.value = false
-    } catch (error) {
-        ElMessage({ type: "error", message: error + "" }); // 处理错误
+        const result = await invoke('stop_ftp_server', {}) || '';
+        ElMessage({ type: "success", message: result.toString() });
+        isStart.value = false;
+    } catch (e) {
+        ElMessage({ type: "error", message: e ? e.toString() : "未知错误" });
     }
 }
 
 async function startFtpServer() {
     try {
-        let path = dirPath.value
-        if (path == null || path == '') {
-            ElMessage("请选择路径")
+        if (!dirPath.value) {
+            ElMessage("请选择路径");
             return;
         }
-        info("invoke-'start_ftp_server'")
-        let users = await store.get('tableData')
-        if(!users){
-            users = []
-        }
-        console.log('user:' + JSON.stringify(users))
-        let isAnonymous = await store.get('isAnonymous')
-        console.log(isAnonymous)
-
-        let fileauth = await store.get('fileauth')
-        console.log('fileauth:' + fileauth)
-        if (!fileauth) fileauth = 'R'
+        logl("invoke-'start_ftp_server'");
+        const users = (await store.get('tableData')) || [];
+        const isAnonymous = await store.get('isAnonymous') || false;
+        let fileauth = await store.get('fileauth') || 'R';
 
         const result = await invoke('start_ftp_server', {
-            path: dirPath.value, port: port.value + "",
-            users: JSON.stringify(users), isAnonymous: isAnonymous ? isAnonymous : false,
-            fileauth
-        });
-        ElMessage({ type: "success", message: result + "" }); // 处理返回结果
-        isStart.value = true
-    } catch (error) {
-        ElMessage({ type: "error", message: error + "" }); // 处理错误
+            path: dirPath.value,
+            port: port.value.toString(),
+            users: JSON.stringify(users),
+            isAnonymous,
+            fileauth,
+        }) || '';
+        ElMessage({ type: "success", message: result.toString() });
+        isStart.value = true;
+    } catch (e) {
+        ElMessage({ type: "error", message: e ? e.toString() : "未知错误" });
     }
 }
 
