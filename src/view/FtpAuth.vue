@@ -5,9 +5,8 @@
                 <el-switch v-model="isAnonymous" @change="() => store.set('isAnonymous', isAnonymous)" />
             </el-form-item>
             <el-form-item v-if="isAnonymous" label="权限" label-width="80px"
-                @change="() => store.set('fileauth', fileauth)"
-            >
-                <el-radio-group v-model="fileauth" size="large" >
+                @change="() => store.set('fileauth', fileauth)">
+                <el-radio-group v-model="fileauth" size="large">
                     <el-radio-button label="只读" value="R" />
                     <el-radio-button label="读写" value="W" />
                 </el-radio-group>
@@ -43,7 +42,7 @@
                     drawer = true;
                     form.password = ''
                     form.username = ''
-                    form.index = null
+                    form.index = undefined
                     form.fileauth = 'R'
                 }" style="width: 100px;margin-top: 5px;">添加
                 </ElButton>
@@ -82,29 +81,31 @@ import {
     ElRadioGroup, ElRadioButton
 } from 'element-plus'
 
-import  store  from '../store';
+import store from '../store';
+
+interface TableDataItem {
+    username: string;
+    password: string;
+    fileauth: string;
+    index: number | undefined;
+}
 
 const isAnonymous = ref(true)
-const tableData = ref([{}])
-tableData.value = []
+const tableData = ref<TableDataItem[]>([])
 const fileauth = ref('R')
 const init = async () => {
-    let a = await store.get('isAnonymous');
-    isAnonymous.value = a ? true : false
-
-    let fa = await store.get('fileauth');
-    fileauth.value = fa ? fa+'' : 'R'
-
-    let t: any = await store.get('tableData');
-    console.log("tableData:" + t)
     try {
-        if (t && t.length > 0 && typeof t != 'string') {
-            tableData.value = t
-        } else {
-            tableData.value = []
-        }
+        let a = await store.get('isAnonymous');
+        isAnonymous.value = !!a
+
+        let fa = await store.get('fileauth');
+        fileauth.value = fa ? fa + '' : 'R'
+
+        let t: any = await store.get('tableData');
+        console.log("tableData:" + t)
+        tableData.value = t && t.length > 0 && typeof t !== 'string' ? t : []
     } catch (e) {
-        console.log(e)
+        console.error(e)
         tableData.value = []
         store.set('tableData', []);
     }
@@ -114,7 +115,7 @@ onBeforeMount(() => {
     init()
 })
 
-const form = reactive({ username: '', password: '', index: null, fileauth: 'R' })
+const form = reactive<TableDataItem>({ username: '', password: '', index: undefined, fileauth: 'R' })
 const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('btt')
 
@@ -124,16 +125,18 @@ const deleteRow = (scope: any) => {
 }
 const saveForm = () => {
     if (form.password && form.password.length > 0 && form.username && form.username.length > 0) {
-        drawer.value = !drawer
-        console.log(form)
-        console.log(tableData.value)
+        drawer.value = !drawer.value
         if (form.index != null) {
             tableData.value[form.index] = Object.assign({}, form)
         } else {
-            tableData.value[tableData.value.length] = Object.assign({}, form)
+            tableData.value.push(Object.assign({}, form))
         }
-        console.log(tableData.value)
-        store.set('tableData', tableData.value)
+        try {
+            store.set('tableData', tableData.value)
+        } catch (e) {
+            console.error('保存数据失败:', e)
+            ElMessage.error('保存数据失败')
+        }
     } else {
         ElMessage.error('请输入用户名和密码')
     }
