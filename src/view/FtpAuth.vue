@@ -75,22 +75,20 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onBeforeMount, reactive, ref } from 'vue'
 import {
     ElSwitch, ElForm, ElFormItem, ElTable, ElTableColumn,
     ElButton, ElDrawer, DrawerProps, ElInput, ElMessage,
     ElRadioGroup, ElRadioButton
 } from 'element-plus'
-import { Store } from '@tauri-apps/plugin-store';
-let store: Store;//await Store.load('store.json');
+
+import  store  from '../store';
+
 const isAnonymous = ref(true)
 const tableData = ref([{}])
 tableData.value = []
 const fileauth = ref('R')
 const init = async () => {
-    if (!store) {
-        store = await Store.load('store.json');
-    }
     let a = await store.get('isAnonymous');
     isAnonymous.value = a ? true : false
 
@@ -112,9 +110,10 @@ const init = async () => {
     }
 }
 
-onMounted(() => {
+onBeforeMount(() => {
     init()
 })
+
 const form = reactive({ username: '', password: '', index: null, fileauth: 'R' })
 const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('btt')

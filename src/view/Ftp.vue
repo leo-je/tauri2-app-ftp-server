@@ -31,16 +31,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onBeforeMount, ref } from "vue";
 import { ElButton, ElMessage, ElInput } from "element-plus";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from '@tauri-apps/plugin-dialog';
 import { Command } from 'tauri-plugin-shellx-api';
 import { platform } from '@tauri-apps/plugin-os';
-import { Store } from '@tauri-apps/plugin-store';
+import  store  from '../store';
 import { info, error, attachConsole } from '@tauri-apps/plugin-log';
 
-let store: Store;
 const dirPath = ref('');
 const port = ref(21);
 const isStart = ref(false);
@@ -48,7 +47,6 @@ const isStart = ref(false);
 async function init() {
     const detach = await attachConsole();
     detach();
-    store = await Store.load('store.json');
     const selected = await store.get('selected');
     if (selected) {
         info(selected.toString());
@@ -56,7 +54,9 @@ async function init() {
     }
 }
 
-onMounted(init);
+onBeforeMount(() => {
+    init()
+})
 
 const logl = (msg: string) => info(msg);
 
