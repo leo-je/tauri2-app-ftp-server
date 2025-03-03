@@ -16,8 +16,8 @@ pub struct FtpWorkerConfig {
     pub path: String,
     pub port: String,
     pub users: String,
-    pub is_anonymous:bool,
-    pub fileauth:String,
+    pub is_anonymous: bool,
+    pub fileauth: String,
 }
 
 pub struct FtpWorker {
@@ -35,7 +35,7 @@ impl FtpWorker {
                 path: "/default/path".to_string(),
                 port: "2121".to_owned(),
                 users: "".to_string(),
-                is_anonymous:true,
+                is_anonymous: true,
                 fileauth: "R".to_string(),
             },
             running,
@@ -44,7 +44,6 @@ impl FtpWorker {
 
     pub fn set(&mut self, config: FtpWorkerConfig) {
         self.config = config;
-
     }
 
     pub fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
@@ -71,10 +70,16 @@ impl FtpWorker {
 
                     let new_server = match libunftp::ServerBuilder::with_authenticator(
                         // Box::new(move || unftp_sbe_fs::Filesystem::new(ftp_home.clone())),
-                        Box::new(move || { 
-                            unftp_sbe_restrict::RestrictingVfs::<Filesystem, UserInfo, Meta>::new(Filesystem::new(ftp_home.clone()))
+                        Box::new(move || {
+                            unftp_sbe_restrict::RestrictingVfs::<Filesystem, UserInfo, Meta>::new(
+                                Filesystem::new(ftp_home.clone()),
+                            )
                         }),
-                        std::sync::Arc::new(FtpUserAuthenticator {is_anonymous:config.is_anonymous,users,fileauth:config.fileauth}),
+                        std::sync::Arc::new(FtpUserAuthenticator {
+                            is_anonymous: config.is_anonymous,
+                            users,
+                            fileauth: config.fileauth,
+                        }),
                     )
                     .greeting("Welcome to my FTP server")
                     .passive_ports(50000..65535)
