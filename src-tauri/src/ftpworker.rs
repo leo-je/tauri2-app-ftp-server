@@ -11,12 +11,17 @@ use std::{
 use tokio::runtime::Runtime;
 use unftp_sbe_fs::{Filesystem, Meta};
 
-pub struct FtpWorker {
+#[derive(Clone, Debug)]
+pub struct FtpWorkerConfig {
     pub path: String,
     pub port: String,
     pub users: String,
     pub is_anonymous:bool,
     pub fileauth:String,
+}
+
+pub struct FtpWorker {
+    pub config: FtpWorkerConfig,
     pub handle: Option<thread::JoinHandle<()>>,
     running: Arc<AtomicBool>,
 }
@@ -26,33 +31,26 @@ impl FtpWorker {
         let running = Arc::new(AtomicBool::new(false));
         FtpWorker {
             handle: None,
-            path: "/default/path".to_string(), // 提供默认路径
-            port: "2121".to_owned(),           // 提供默认端口
+            config: FtpWorkerConfig {
+                path: "/default/path".to_string(),
+                port: "2121".to_owned(),
+                users: "".to_string(),
+                is_anonymous:true,
+                fileauth: "R".to_string(),
+            },
             running,
-            users: "".to_string(),
-            is_anonymous:true,
-            fileauth: "R".to_string(),
-
         }
     }
 
-    pub fn set(&mut self, path: String, port: String,users:String,is_anonymous:bool,fileauth:String) {
-        self.path = path;
-        self.port = port;
-        self.users = users;
-        self.is_anonymous = is_anonymous;
-        self.fileauth = fileauth;
+    pub fn set(&mut self, config: FtpWorkerConfig) {
+        self.config = config;
 
     }
 
     pub fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         if self.handle.is_none() {
-            let path = self.path.clone();
-            let port = self.port.clone();
             let running_clone = Arc::clone(&self.running);
-            let users = self.users.clone();
-            let is_anonymous = self.is_anonymous.clone();
-            let fileauth = self.fileauth.clone();
+            let config = self.config.clone();
             // 创建一个线程
             let handle = thread::spawn(move || {
                 println!("thread start");
@@ -66,17 +64,17 @@ impl FtpWorker {
 
                 rt.block_on(async {
                     println!("Before calling async method");
-                    let ftp_home: PathBuf = PathBuf::from(path);
+                    let ftp_home: PathBuf = PathBuf::from(config.path);
                     println!("start_ftp_server-1");
                     // 将users转换为Vec<User>,users的格式为:[{"username":"admin","password":"111111"}]
-                    let users: Vec<UserInfo> = serde_json::from_str(&users).unwrap();
+                    let users: Vec<UserInfo> = serde_json::from_str(&config.users).unwrap();
 
                     let new_server = match libunftp::ServerBuilder::with_authenticator(
                         // Box::new(move || unftp_sbe_fs::Filesystem::new(ftp_home.clone())),
                         Box::new(move || { 
-                            unftp_sbe_restrict::RestrictingVfs::<Filesystem, ftpuser::AuthUser, Meta>::new(Filesystem::new(ftp_home.clone()))
+                            unftp_sbe_restrict::RestrictingVfs::<Filesystem, ftpuser::UserInfo, Meta>::new(Filesystem::new(ftp_home.clone()))
                         }),
-                        std::sync::Arc::new(FtpUserAuthenticator {is_anonymous,users,fileauth}),
+                        std::sync::Arc::new(FtpUserAuthenticator {is_anonymous:config.is_anonymous,users,fileauth:config.fileauth}),
                     )
                     .greeting("Welcome to my FTP server")
                     .passive_ports(50000..65535)
@@ -98,7 +96,7 @@ impl FtpWorker {
                         }
                     };
 
-                    match new_server.listen(format!("0.0.0.0:{}", port)).await {
+                    match new_server.listen(format!("0.0.0.0:{}", config.port)).await {
                         Ok(_) => println!("FTP server started successfully"),
                         Err(e) => eprintln!("Failed to start FTP server: {}", e),
                     }

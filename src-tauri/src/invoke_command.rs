@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use crate::ftpworker::FtpWorker;
+use crate::ftpworker::{FtpWorker, FtpWorkerConfig};
 
 // 添加输入验证函数
 pub fn validate_path(path: &str) -> bool {
@@ -18,9 +18,9 @@ pub fn start_ftp_server(
     state: tauri::State<'_, Arc<Mutex<FtpWorker>>>,
     path: String,
     port: String,
-    users:String,
-    is_anonymous:bool,
-    fileauth:String,
+    users: String,
+    is_anonymous: bool,
+    fileauth: String,
 ) -> Result<String, String> {
     // 验证输入参数
     if !validate_path(&path) || !validate_port(&port) {
@@ -40,8 +40,13 @@ pub fn start_ftp_server(
         return Ok("服务已启动".to_string());
     }
 
-    // 设置路径和端口
-    worker.set(path.clone(), port.clone(),users.clone(),is_anonymous,fileauth);
+    worker.set(FtpWorkerConfig {
+        path,
+        port,
+        users,
+        is_anonymous,
+        fileauth,
+    });
 
     // 启动 FTP 服务
     match worker.start() {

@@ -3,26 +3,28 @@ use libunftp::auth::{AuthenticationError, Authenticator, Credentials};
 use subtle::ConstantTimeEq;
 use unftp_sbe_restrict::VfsOperations;
 
-use crate::ftpuser::{AuthUser, UserInfo};
+use crate::ftpuser::UserInfo;
 
 #[derive(Debug)]
 pub struct FtpUserAuthenticator {
     pub is_anonymous: bool,
     pub users: Vec<UserInfo>,
-    pub fileauth:String,
+    pub fileauth: String,
 }
 
 #[async_trait]
-impl Authenticator<AuthUser> for FtpUserAuthenticator {
+impl Authenticator<UserInfo> for FtpUserAuthenticator {
     async fn authenticate(
         &self,
         _username: &str,
         _creds: &Credentials,
-    ) -> Result<AuthUser, AuthenticationError> {
+    ) -> Result<UserInfo, AuthenticationError> {
         println!("Authenticating user {}\n", _username);
         if self.is_anonymous {
-            return Ok(AuthUser {
+            return Ok(UserInfo {
                 username: _username.to_string(),
+                password: "".to_string(),
+                fileauth: "".to_string(),
                 permissions: get_permissions(&self.fileauth),
             });
         }
@@ -33,9 +35,11 @@ impl Authenticator<AuthUser> for FtpUserAuthenticator {
                 if let Some(password) = &_creds.password {
                     if password.as_bytes().ct_eq(u.password.as_bytes()).unwrap_u8() == 1 {
                         // 根据u.file_auth设置权限
-                        let permissions= get_permissions(&u.fileauth);
-                        return Ok(AuthUser {
+                        let permissions = get_permissions(&u.fileauth);
+                        return Ok(UserInfo {
                             username: _username.to_string(),
+                            password: "".to_string(),
+                            fileauth: "".to_string(),
                             permissions,
                         });
                     } else {
