@@ -1,4 +1,4 @@
-use crate::{ftp_user_authenticator::FtpUserAuthenticator, ftpuser::{self, UserInfo}};
+use crate::ftp::{ftp_user_authenticator::FtpUserAuthenticator, ftpuser::{self, UserInfo}};
 use std::{
     path::PathBuf,
     sync::{

@@ -5,9 +5,7 @@ use tauri::Manager;
 use tauri_plugin_log::{Target, TargetKind};
 
 pub mod invoke_command;
-pub mod ftpworker;
-pub mod ftpuser;
-pub mod ftp_user_authenticator;
+pub mod ftp;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -15,7 +13,7 @@ pub fn run() {
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_store::Builder::new().build())
         .setup(move |app| {
-            let worker = Arc::new(Mutex::new(ftpworker::FtpWorker::new()));
+            let worker = Arc::new(Mutex::new(ftp::ftpworker::FtpWorker::new()));
             app.manage(worker);
             Ok(())
         })

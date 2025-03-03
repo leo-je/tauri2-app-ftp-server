@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use crate::ftpworker::{FtpWorker, FtpWorkerConfig};
+use crate::ftp::ftpworker::{FtpWorker, FtpWorkerConfig};
 
 // 添加输入验证函数
 pub fn validate_path(path: &str) -> bool {

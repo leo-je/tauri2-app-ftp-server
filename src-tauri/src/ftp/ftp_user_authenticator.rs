@@ -3,7 +3,7 @@ use libunftp::auth::{AuthenticationError, Authenticator, Credentials};
 use subtle::ConstantTimeEq;
 use unftp_sbe_restrict::VfsOperations;
 
-use crate::ftpuser::UserInfo;
+use crate::ftp::ftpuser::UserInfo;
 
 #[derive(Debug)]
 pub struct FtpUserAuthenticator {
