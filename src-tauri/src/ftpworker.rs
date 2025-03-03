@@ -74,7 +74,7 @@ impl FtpWorker {
                     let new_server = match libunftp::ServerBuilder::with_authenticator(
                         // Box::new(move || unftp_sbe_fs::Filesystem::new(ftp_home.clone())),
                         Box::new(move || { 
-                            unftp_sbe_restrict::RestrictingVfs::<Filesystem, ftpuser::User, Meta>::new(Filesystem::new(ftp_home.clone()))
+                            unftp_sbe_restrict::RestrictingVfs::<Filesystem, ftpuser::AuthUser, Meta>::new(Filesystem::new(ftp_home.clone()))
                         }),
                         std::sync::Arc::new(FtpUserAuthenticator {is_anonymous,users,fileauth}),
                     )

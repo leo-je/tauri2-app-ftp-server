@@ -12,26 +12,26 @@ pub struct UserInfo {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct User {
+pub struct AuthUser {
     pub username: String,
     // e.g. this can be something like
     // `VfsOperations::all() - VfsOperations::PUT - VfsOperations::DEL`
     pub permissions: VfsOperations,
 }
 
-impl UserDetail for User {
+impl UserDetail for AuthUser {
     fn account_enabled(&self) -> bool {
         true
     }
 }
 
-impl std::fmt::Display for User {
+impl std::fmt::Display for AuthUser {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "User(username: {:?}", self.username,)
     }
 }
 
-impl UserWithPermissions for User {
+impl UserWithPermissions for AuthUser {
     fn permissions(&self) -> VfsOperations {
         self.permissions
     }
@@ -43,13 +43,13 @@ pub fn create_restricted_storage_backend(
 ) -> Box<
     dyn Fn() -> unftp_sbe_restrict::RestrictingVfs<
         unftp_sbe_fs::Filesystem,
-        User,
+        AuthUser,
         unftp_sbe_fs::Meta,
     >,
 > {
     use unftp_sbe_fs::{Filesystem, Meta};
     let backend = Box::new(move || {
-        unftp_sbe_restrict::RestrictingVfs::<Filesystem, User, Meta>::new(Filesystem::new(
+        unftp_sbe_restrict::RestrictingVfs::<Filesystem, AuthUser, Meta>::new(Filesystem::new(
             ftp_home.clone(),
         ))
     });
