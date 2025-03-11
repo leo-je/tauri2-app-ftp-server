@@ -92,14 +92,14 @@ interface TableDataItem {
 
 const isAnonymous = ref(true)
 const tableData = ref<TableDataItem[]>([])
-const fileauth = ref('R')
+const fileauth = ref('W')
 const init = async () => {
     try {
         let a = await store.get('isAnonymous');
         isAnonymous.value = !!a
 
         let fa = await store.get('fileauth');
-        fileauth.value = fa ? fa + '' : 'R'
+        fileauth.value = fa ? fa + '' : 'W'
 
         let t: any = await store.get('tableData');
         console.log("tableData:" + t)
