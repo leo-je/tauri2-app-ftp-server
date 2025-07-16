@@ -17,6 +17,8 @@
     "shellx:allow-where-is-command",
     "os:default",
     "store:default",
-    "log:default"
+    "log:default",
+    "clipboard:allow-write-text", 
+    "clipboard:write-all"
   ]
 }

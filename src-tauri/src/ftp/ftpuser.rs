@@ -2,14 +2,12 @@ use libunftp::auth::UserDetail;
 use std::fmt::Formatter;
 use unftp_sbe_restrict::{UserWithPermissions, VfsOperations};
 
-
-
 #[derive(Debug, PartialEq, Eq, serde::Deserialize)]
 pub struct UserInfo {
     pub username: String,
     pub password: String,
     pub fileauth: String,
-    #[serde(skip,default = "VfsOperations::all")]
+    #[serde(skip, default = "VfsOperations::all")]
     pub permissions: VfsOperations,
 }
 

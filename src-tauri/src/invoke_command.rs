@@ -1,6 +1,10 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    sync::{Arc, Mutex},
+};
 
 use crate::ftp::ftpworker::{FtpWorker, FtpWorkerConfig};
+use get_if_addrs::get_if_addrs;
+use std::net::IpAddr;
 
 // 添加输入验证函数
 pub fn validate_path(path: &str) -> bool {
@@ -81,4 +85,21 @@ pub fn stop_ftp_server(state: tauri::State<'_, Arc<Mutex<FtpWorker>>>) -> Result
             Err(format!("FTP 服务停止失败: {}", e))
         }
     }
+}
+
+#[tauri::command]
+pub fn get_primary_ipv4() -> Vec<String> {
+    let mut result = vec![];
+
+    if let Ok(ifaces) = get_if_addrs() {
+        for iface in ifaces {
+            if let IpAddr::V4(ipv4) = iface.ip() {
+                if !ipv4.is_loopback() {
+                    result.push(ipv4.to_string());
+                }
+            }
+        }
+    }
+
+    result
 }

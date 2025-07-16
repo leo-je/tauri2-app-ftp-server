@@ -4,12 +4,13 @@ use std::sync::{Arc, Mutex};
 use tauri::Manager;
 use tauri_plugin_log::{Target, TargetKind};
 
-pub mod invoke_command;
 pub mod ftp;
+pub mod invoke_command;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_clipboard::init())
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_store::Builder::new().build())
         .setup(move |app| {
@@ -24,6 +25,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             invoke_command::start_ftp_server,
             invoke_command::stop_ftp_server,
+            invoke_command::get_primary_ipv4,
         ])
         .plugin(
             tauri_plugin_log::Builder::new()

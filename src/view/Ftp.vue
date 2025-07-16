@@ -23,9 +23,14 @@
                 </el-button>
             </div>
 
-            <!-- <div style="margin-top: 10px;margin-bottom: 10px;">
-                <span>log:</span><span>xxxxxx</span>
-            </div> -->
+            <div style="margin-top: 20px;margin-bottom: 10px;">
+                <template v-if="isStart">
+                    <span>link: </span>
+                    <span v-for="ip in ips" style="color: blue;cursor: pointer; margin-left: 10px;" @click="copy(ip)">
+                        {{ 'ftp://' + ip + ':' + port }}
+                    </span>
+                </template>
+            </div>
         </div>
     </div>
 </template>
@@ -37,10 +42,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from '@tauri-apps/plugin-dialog';
 import { Command } from 'tauri-plugin-shellx-api';
 import { platform } from '@tauri-apps/plugin-os';
-import  store  from '../store';
+import store from '../store';
 import { info, error, attachConsole } from '@tauri-apps/plugin-log';
 
 const dirPath = ref('');
+const ips = ref(['127.0.0.1']);
 const port = ref(21);
 const isStart = ref(false);
 
@@ -66,12 +72,20 @@ const checkPlatform = () => {
         windows: 'Windows',
         macos: 'macOS',
         linux: 'Linux',
-        ios: 'iOS', 
+        ios: 'iOS',
         android: 'Android',
     };
     const platformName = platformMap[currentPlatform] || `未知操作系统：${currentPlatform}`;
     logl(`当前操作系统是 ${platformName}`);
     return currentPlatform;
+};
+import clipboard from "tauri-plugin-clipboard-api";
+
+const copy = async (ip: string) => {
+    // 拼装地址放入剪贴板
+    let address = `ftp://${ip}:${port.value}`;
+    await clipboard.writeText(address);
+    ElMessage({ type: "success", message: '已复制到剪贴板' });
 };
 
 async function openDir() {
@@ -110,8 +124,21 @@ async function stopFtpServer() {
     }
 }
 
+const getIps = async () => {
+    const ipList = await invoke<string[]>('get_primary_ipv4');
+    console.log('当前IP:', ipList);
+    // 判断数组长度,大于2则保留2
+    if (ipList.length > 2) {
+        ipList.splice(2, ipList.length - 2)
+    } else if (ipList.length == 0) {
+        ipList.push('127.0.0.1')
+    }
+    ips.value = ipList
+};
+
 async function startFtpServer() {
     try {
+        await getIps()
         if (!dirPath.value) {
             ElMessage("请选择路径");
             return;
