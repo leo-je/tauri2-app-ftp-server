@@ -23,7 +23,7 @@
                         </div>
                     </template>
                 </ElTableColumn>
-                <el-table-column fixed="right" label="操作" min-width="120">
+                <el-table-column fixed="right" label="操作" min-width="70">
                     <template #default="scope">
                         <el-button link type="primary" size="small" @click="_e => {
                             console.log(scope)
