@@ -94,10 +94,10 @@
             </div>
 
             <!-- 控制按钮 -->
-            <div :class="['control-section', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.3s;' : ''">
-                <el-button 
+            <div :class="['control-section', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.3s;' : ''" style="display: none;">
+                <el-button
                     :type="isStart ? 'danger' : 'success'"
-                    @click="startOrStopServer" 
+                    @click="startOrStopServer"
                     class="control-button"
                     :class="{ 'is-running': isStart }"
                 >
@@ -107,6 +107,17 @@
                     </svg>
                     {{ isStart ? '停止服务' : '启动服务' }}
                 </el-button>
+            </div>
+
+            <!-- 悬浮按钮 -->
+            <div
+                :class="['floating-btn', { 'is-running': isStart }]"
+                @click="startOrStopServer"
+                :title="isStart ? '停止服务' : '启动服务'"
+            >
+                <svg class="plane-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 16V14L13 9V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9L2 14V16L10 13.5V19L8 20.5V22L11.5 21L15 22V20.5L13 19V13.5L21 16Z"/>
+                </svg>
             </div>
 
             <!-- 连接信息 -->
@@ -432,6 +443,68 @@ html.dark .form-label {
     margin: 32px 0;
 }
 
+/* 悬浮按钮 */
+.floating-btn {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--gradient-success);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(72, 198, 239, 0.4);
+    transition: all 0.3s ease;
+    z-index: 100;
+
+    .plane-icon {
+        width: 28px;
+        height: 28px;
+        transform: rotate(-45deg);
+        transition: transform 0.3s ease;
+    }
+
+    &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 28px rgba(72, 198, 239, 0.5);
+
+        .plane-icon {
+            transform: rotate(-45deg) translateX(2px);
+        }
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+
+    &.is-running {
+        background: linear-gradient(135deg, #f56565 0%, #ed8936 100%);
+        box-shadow: 0 4px 20px rgba(245, 101, 101, 0.4);
+
+        .plane-icon {
+            transform: rotate(135deg);
+        }
+
+        &:hover {
+            box-shadow: 0 6px 28px rgba(245, 101, 101, 0.5);
+        }
+    }
+}
+
+html.dark .floating-btn {
+    &:not(.is-running) {
+        box-shadow: 0 4px 20px rgba(72, 198, 239, 0.3);
+    }
+
+    &.is-running {
+        box-shadow: 0 4px 20px rgba(245, 101, 101, 0.3);
+    }
+}
+
 .control-button {
     min-width: 160px;
     height: 48px;
@@ -441,27 +514,27 @@ html.dark .form-label {
     border: none;
     box-shadow: var(--shadow-lg);
     transition: all 0.3s ease;
-    
+
     &:not(.is-running) {
         background: var(--gradient-success);
         color: white;
-        
+
         &:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 24px rgba(72, 198, 239, 0.3);
         }
     }
-    
+
     &.is-running {
         background: linear-gradient(135deg, #f56565 0%, #ed8936 100%);
         color: white;
-        
+
         &:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 24px rgba(245, 101, 101, 0.3);
         }
     }
-    
+
     .button-icon {
         width: 20px;
         height: 20px;
