@@ -4,6 +4,7 @@ import router from './router';
 
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
+import './styles/global.scss'
 
 
 const app = createApp(App);
