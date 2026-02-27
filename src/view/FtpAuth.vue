@@ -204,7 +204,7 @@
 import { onBeforeMount, onMounted, reactive, ref, nextTick } from 'vue'
 import {
     ElSwitch, ElTable, ElTableColumn,
-    ElButton, ElDrawer, DrawerProps, ElInput, ElMessage,
+    ElButton, ElDrawer, DrawerProps, ElInput, ElMessage, ElMessageBox,
     ElRadioGroup, ElRadioButton
 } from 'element-plus'
 
@@ -274,9 +274,21 @@ const editUser = (scope: any) => {
 }
 
 const deleteRow = (scope: any) => {
-    tableData.value.splice(scope.$index, 1)
-    store.set('tableData', tableData.value)
-    ElMessage.success('用户已删除')
+    ElMessageBox.confirm(
+        `确定要删除用户 "${scope.row.username}" 吗？`,
+        '删除确认',
+        {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+        }
+    ).then(() => {
+        tableData.value.splice(scope.$index, 1)
+        store.set('tableData', tableData.value)
+        ElMessage.success('用户已删除')
+    }).catch(() => {
+        // 用户取消删除
+    })
 }
 
 const getRowClassName = ({ row }: { row: TableDataItem }) => {
