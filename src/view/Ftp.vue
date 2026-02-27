@@ -119,8 +119,8 @@
                         <span>连接地址</span>
                     </div>
                     <div class="connection-links">
-                        <div 
-                            v-for="ip in ips" 
+                        <div
+                            v-for="ip in ips"
                             :key="ip"
                             class="connection-link"
                             @click="copy(ip)"
@@ -135,6 +135,16 @@
                             </svg>
                         </div>
                     </div>
+
+                    <!-- 运行时间 -->
+                    <div class="run-time-section">
+                        <svg class="time-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span class="run-time-label">运行时间</span>
+                        <span class="run-time-value">{{ runTime }}</span>
+                    </div>
                 </div>
             </transition>
         </div>
@@ -142,7 +152,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, onMounted, ref, nextTick } from "vue";
+import { onBeforeMount, onMounted, onUnmounted, ref, nextTick } from "vue";
 import { ElButton, ElMessage, ElInput } from "element-plus";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from '@tauri-apps/plugin-dialog';
@@ -156,6 +166,9 @@ const ips = ref(['127.0.0.1']);
 const port = ref(21);
 const isStart = ref(false);
 const isFirstLoad = ref(true);
+const startTime = ref<Date | null>(null);
+const runTime = ref('00:00:00');
+let runTimer: ReturnType<typeof setInterval> | null = null;
 
 async function init() {
     const detach = await attachConsole();
@@ -179,6 +192,39 @@ onMounted(() => {
         }, 600); // 等待动画完成
     });
 })
+
+onUnmounted(() => {
+    if (runTimer) {
+        clearInterval(runTimer);
+        runTimer = null;
+    }
+})
+
+const formatRunTime = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+const startRunTimer = () => {
+    startTime.value = new Date();
+    runTimer = setInterval(() => {
+        if (startTime.value) {
+            const elapsed = Math.floor((Date.now() - startTime.value.getTime()) / 1000);
+            runTime.value = formatRunTime(elapsed);
+        }
+    }, 1000);
+}
+
+const stopRunTimer = () => {
+    if (runTimer) {
+        clearInterval(runTimer);
+        runTimer = null;
+    }
+    startTime.value = null;
+    runTime.value = '00:00:00';
+}
 
 const logl = (msg: string) => info(msg);
 
@@ -235,6 +281,7 @@ async function stopFtpServer() {
         const result = await invoke('stop_ftp_server', {}) || '';
         ElMessage({ type: "success", message: result.toString() });
         isStart.value = false;
+        stopRunTimer();
     } catch (e) {
         ElMessage({ type: "error", message: e ? e.toString() : "未知错误" });
     }
@@ -273,6 +320,7 @@ async function startFtpServer() {
         }) || '';
         ElMessage({ type: "success", message: result.toString() });
         isStart.value = true;
+        startRunTimer();
     } catch (e) {
         ElMessage({ type: "error", message: e ? e.toString() : "未知错误" });
     }
@@ -475,9 +523,48 @@ html.dark .form-label {
 html.dark .connection-link {
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
     border-color: rgba(102, 126, 234, 0.2);
-    
+
     .link-text {
         color: #e0e0e0;
+    }
+}
+
+/* 运行时间 */
+.run-time-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(102, 126, 234, 0.1);
+
+    .time-icon {
+        width: 18px;
+        height: 18px;
+        color: var(--primary-color);
+    }
+
+    .run-time-label {
+        font-size: 14px;
+        color: #606266;
+    }
+
+    .run-time-value {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--primary-color);
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        padding: 4px 12px;
+        border-radius: var(--radius-sm);
+    }
+}
+
+html.dark .run-time-section {
+    border-top-color: rgba(102, 126, 234, 0.2);
+
+    .run-time-label {
+        color: #b0b0b0;
     }
 }
 
