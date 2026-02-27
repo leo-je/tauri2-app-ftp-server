@@ -14,10 +14,11 @@
       {
         "fullscreen": false,
         "resizable": false,
-        "title": "ftp-server",
+        "title": "FTP Server",
         "width": 480,
         "height": 820,
-        "maximizable": false
+        "maximizable": false,
+        "decorations": false
       }
     ],
     "security": {
