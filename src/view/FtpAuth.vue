@@ -175,19 +175,9 @@
                         </el-input>
                     </el-form-item>
                     <el-form-item label="权限" class="drawer-form-item">
-                        <el-radio-group v-model="form.fileauth" size="large" class="permission-radio">
-                            <el-radio-button value="R" class="radio-item">
-                                <svg class="radio-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M15 12H9M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                                只读
-                            </el-radio-button>
-                            <el-radio-button value="W" class="radio-item">
-                                <svg class="radio-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M11 11V5H13V11M11 11H13M11 11V13H13V11M11 13V19H13V13M11 13H13M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                                读写
-                            </el-radio-button>
+                        <el-radio-group v-model="form.fileauth" size="large" class="drawer-permission-radio">
+                            <el-radio-button value="R">只读</el-radio-button>
+                            <el-radio-button value="W">读写</el-radio-button>
                         </el-radio-group>
                     </el-form-item>
                 </el-form>
@@ -656,18 +646,61 @@ html.dark :deep(.user-drawer) {
 
 .drawer-form {
     .drawer-form-item {
-        margin-bottom: 24px;
-        
+        margin-bottom: 28px;
+
         :deep(.el-form-item__label) {
             font-weight: 500;
             color: #606266;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        :deep(.el-form-item__content) {
+            display: block;
         }
     }
 }
 
 html.dark .drawer-form {
     :deep(.el-form-item__label) {
+        color: #b0b0b0;
+    }
+}
+
+.drawer-permission-radio {
+    width: 100%;
+
+    :deep(.el-radio-button__inner) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px 24px;
+        border-radius: var(--radius-md);
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        background: rgba(255, 255, 255, 0.8);
+        color: #606266;
+        font-weight: 500;
+        transition: all 0.3s ease;
+
+        &:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+    }
+
+    :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
+        background: var(--gradient-primary);
+        border-color: var(--primary-color);
+        color: white;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+}
+
+html.dark .drawer-permission-radio {
+    :deep(.el-radio-button__inner) {
+        background: rgba(30, 30, 40, 0.8);
+        border-color: rgba(102, 126, 234, 0.3);
         color: #b0b0b0;
     }
 }
