@@ -1,7 +1,13 @@
 <template>
   <el-container class="app-container">
     <!-- 自定义标题栏 -->
-    <div class="title-bar" data-tauri-drag-region>
+    <div class="title-bar" data-tauri-drag-region :class="{ 'is-macos': isMacos }">
+      <!-- macOS 风格控制按钮 -->
+      <div v-if="isMacos" class="window-controls macos-controls">
+        <div class="macos-btn close" @click="closeWindow" title="关闭"></div>
+        <div class="macos-btn minimize" @click="minimizeWindow" title="最小化"></div>
+      </div>
+
       <div class="title-bar-content" data-tauri-drag-region>
         <div class="app-logo" data-tauri-drag-region>
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -12,7 +18,9 @@
         </div>
         <span class="app-title" data-tauri-drag-region>FTP Server</span>
       </div>
-      <div class="window-controls">
+
+      <!-- Windows/Linux 风格控制按钮 -->
+      <div v-if="!isMacos" class="window-controls">
         <div class="control-btn minimize" @click="minimizeWindow" title="最小化">
           <svg viewBox="0 0 24 24" fill="none">
             <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -36,8 +44,15 @@
 import { RouterView } from 'vue-router'
 import { ElMain, ElContainer } from 'element-plus';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { platform } from '@tauri-apps/plugin-os';
+import { ref, onMounted } from 'vue';
 
 const appWindow = getCurrentWindow();
+const isMacos = ref(false);
+
+onMounted(async () => {
+  isMacos.value = await platform() === 'macos';
+});
 
 function disableContextMenu(event: any) {
    event.preventDefault();
@@ -79,27 +94,38 @@ const closeWindow = () => {
 
 /* 自定义标题栏 */
 .title-bar {
-  height: 36px;
+  height: 40px;
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 8px 0 12px;
+  padding: 0 10px 0 14px;
   flex-shrink: 0;
   z-index: 1000;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  /* macOS 风格 */
+  &.is-macos {
+    padding: 0 14px;
+
+    .title-bar-content {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
 }
 
 .title-bar-content {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .app-logo {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   color: white;
   display: flex;
   align-items: center;
@@ -112,32 +138,86 @@ const closeWindow = () => {
 }
 
 .app-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: white;
   letter-spacing: 0.5px;
 }
 
+/* macOS 风格控制按钮 */
+.macos-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+}
+
+.macos-btn {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  &.close {
+    background: #ff5f57;
+    border: 1px solid #e0443e;
+
+    &:hover::after {
+      content: '×';
+      font-size: 12px;
+      font-weight: bold;
+      color: #4d0000;
+      opacity: 1;
+    }
+  }
+
+  &.minimize {
+    background: #febc2e;
+    border: 1px solid #dea123;
+
+    &:hover::after {
+      content: '−';
+      font-size: 12px;
+      font-weight: bold;
+      color: #995700;
+      opacity: 1;
+    }
+  }
+}
+
+/* Windows/Linux 风格控制按钮 */
 .window-controls {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
 }
 
 .control-btn {
-  width: 36px;
-  height: 28px;
+  width: 40px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   color: rgba(255, 255, 255, 0.9);
 
   svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
   }
 
   &:hover {
