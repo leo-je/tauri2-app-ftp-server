@@ -31,7 +31,7 @@ impl Authenticator<UserInfo> for FtpUserAuthenticator {
 
         for u in &self.users {
             if u.username == _username {
-                println!("Authenticating user: {}-{}", u.username, "[REDACTED]");
+                println!("Authenticating user: {}-[REDACTED]", u.username);
                 if let Some(password) = &_creds.password {
                     if password.as_bytes().ct_eq(u.password.as_bytes()).unwrap_u8() == 1 {
                         // 根据u.file_auth设置权限

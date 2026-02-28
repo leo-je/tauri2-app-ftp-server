@@ -1,6 +1,4 @@
-use std::{
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 use crate::ftp::ftpworker::{FtpWorker, FtpWorkerConfig};
 use get_if_addrs::get_if_addrs;

@@ -11,7 +11,6 @@ pub mod invoke_command;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard::init())
-        .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_store::Builder::new().build())
         .setup(move |app| {
             let worker = Arc::new(Mutex::new(ftp::ftpworker::FtpWorker::new()));

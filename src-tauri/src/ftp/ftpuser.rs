@@ -40,10 +40,10 @@ pub fn create_restricted_storage_backend(
     >,
 > {
     use unftp_sbe_fs::{Filesystem, Meta};
-    let backend = Box::new(move || {
+
+    (Box::new(move || {
         unftp_sbe_restrict::RestrictingVfs::<Filesystem, UserInfo, Meta>::new(Filesystem::new(
             ftp_home.clone(),
         ))
-    });
-    backend
+    })) as _
 }

@@ -26,6 +26,12 @@ pub struct FtpWorker {
     running: Arc<AtomicBool>,
 }
 
+impl Default for FtpWorker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FtpWorker {
     pub fn new() -> Self {
         let running = Arc::new(AtomicBool::new(false));
@@ -66,7 +72,13 @@ impl FtpWorker {
                     let ftp_home: PathBuf = PathBuf::from(config.path);
                     println!("start_ftp_server-1");
                     // 将users转换为Vec<User>,users的格式为:[{"username":"admin","password":"111111"}]
-                    let users: Vec<UserInfo> = serde_json::from_str(&config.users).unwrap();
+                    let users: Vec<UserInfo> = match serde_json::from_str(&config.users) {
+                        Ok(u) => u,
+                        Err(e) => {
+                            eprintln!("Failed to parse users JSON: {}", e);
+                            return;
+                        }
+                    };
 
                     let new_server = match libunftp::ServerBuilder::with_authenticator(
                         // Box::new(move || unftp_sbe_fs::Filesystem::new(ftp_home.clone())),
@@ -126,8 +138,7 @@ impl FtpWorker {
     }
 
     pub fn is_running(&self) -> bool {
-        let b = self.running.load(Ordering::Relaxed);
         // println!("is running:{}", b); // 移除不必要的日志输出
-        b
+        self.running.load(Ordering::Relaxed)
     }
 }
