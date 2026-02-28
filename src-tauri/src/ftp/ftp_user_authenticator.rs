@@ -22,7 +22,7 @@ pub struct FtpUserAuthenticator {
     /// 用户列表
     pub users: Vec<UserInfo>,
     /// 默认文件权限
-    pub fileauth: String,
+    pub file_auth: String,
 }
 
 #[async_trait]
@@ -53,8 +53,8 @@ impl Authenticator<UserInfo> for FtpUserAuthenticator {
             return Ok(UserInfo {
                 username: _username.to_string(),
                 password: "".to_string(),
-                fileauth: "".to_string(),
-                permissions: get_permissions(&self.fileauth),
+                file_auth: "".to_string(),
+                permissions: get_permissions(&self.file_auth),
             });
         }
 
@@ -65,12 +65,12 @@ impl Authenticator<UserInfo> for FtpUserAuthenticator {
                 if let Some(password) = &_creds.password {
                     // 使用常量时间比较防止时序攻击
                     if password.as_bytes().ct_eq(u.password.as_bytes()).unwrap_u8() == 1 {
-                        // 根据 fileauth 设置权限
-                        let permissions = get_permissions(&u.fileauth);
+                        // 根据 file_auth 设置权限
+                        let permissions = get_permissions(&u.file_auth);
                         return Ok(UserInfo {
                             username: _username.to_string(),
                             password: "".to_string(),
-                            fileauth: "".to_string(),
+                            file_auth: "".to_string(),
                             permissions,
                         });
                     } else {

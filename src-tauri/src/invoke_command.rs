@@ -10,6 +10,7 @@ use std::sync::{Arc, Mutex};
 use crate::ftp::ftpworker::{FtpWorker, FtpWorkerConfig};
 use get_if_addrs::get_if_addrs;
 use std::net::IpAddr;
+use std::path::Path;
 
 /// 验证路径是否有效
 ///
@@ -17,10 +18,10 @@ use std::net::IpAddr;
 /// * `path` - 待验证的路径字符串
 ///
 /// # 返回值
-/// * `true` - 路径有效（非空）
+/// * `true` - 路径有效（非空且存在）
 /// * `false` - 路径无效
 pub fn validate_path(path: &str) -> bool {
-    !path.is_empty()
+    !path.is_empty() && Path::new(path).exists()
 }
 
 /// 验证端口号是否有效
@@ -43,7 +44,7 @@ pub fn validate_port(port: &str) -> bool {
 /// * `port` - FTP 服务监听端口
 /// * `users` - 用户列表（JSON 格式字符串）
 /// * `is_anonymous` - 是否允许匿名访问
-/// * `fileauth` - 默认文件权限
+/// * `file_auth` - 默认文件权限
 ///
 /// # 返回值
 /// * `Ok(String)` - 启动成功，返回 "服务已启动"
@@ -57,7 +58,7 @@ pub fn validate_port(port: &str) -> bool {
 ///   port: '2121',
 ///   users: '[{"username":"admin","password":"123"}]',
 ///   is_anonymous: false,
-///   fileauth: 'W'
+///   file_auth: 'W'
 /// });
 /// ```
 #[tauri::command]
@@ -67,17 +68,23 @@ pub fn start_ftp_server(
     port: String,
     users: String,
     is_anonymous: bool,
-    fileauth: String,
+    file_auth: String,
 ) -> Result<String, String> {
     // 验证输入参数
-    if !validate_path(&path) || !validate_port(&port) {
-        return Err("无效的路径或端口".to_string());
+    if !validate_path(&path) {
+        return Err("路径无效或不存在".to_string());
+    }
+    if !validate_port(&port) {
+        return Err("端口号无效".to_string());
     }
 
+    // 获取锁，如果锁中毒则尝试恢复
     let mut worker = match state.lock() {
         Ok(guard) => guard,
-        Err(e) => {
-            return Err(format!("无法获取锁: {}", e));
+        Err(poisoned) => {
+            // 锁中毒时，记录警告并使用毒锁中的数据
+            eprintln!("警告: Mutex 锁中毒，尝试恢复: {}", poisoned);
+            poisoned.into_inner()
         }
     };
 
@@ -92,7 +99,8 @@ pub fn start_ftp_server(
         port,
         users,
         is_anonymous,
-        fileauth,
+        file_auth,
+        ..Default::default()
     });
 
     match worker.start() {
@@ -111,10 +119,13 @@ pub fn start_ftp_server(
 /// * `Err(String)` - 停止失败，返回错误信息
 #[tauri::command]
 pub fn stop_ftp_server(state: tauri::State<'_, Arc<Mutex<FtpWorker>>>) -> Result<String, String> {
+    // 获取锁，如果锁中毒则尝试恢复
     let mut worker = match state.lock() {
         Ok(guard) => guard,
-        Err(e) => {
-            return Err(format!("无法获取锁: {}", e));
+        Err(poisoned) => {
+            // 锁中毒时，记录警告并使用毒锁中的数据
+            eprintln!("警告: Mutex 锁中毒，尝试恢复: {}", poisoned);
+            poisoned.into_inner()
         }
     };
 

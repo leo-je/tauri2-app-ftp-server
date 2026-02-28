@@ -17,7 +17,7 @@ pub struct UserInfo {
     /// 密码（明文存储，生产环境建议使用哈希）
     pub password: String,
     /// 文件权限标识（"W"=读写，其他=只读）
-    pub fileauth: String,
+    pub file_auth: String,
     /// 虚拟文件系统操作权限
     #[serde(skip, default = "VfsOperations::all")]
     pub permissions: VfsOperations,
