@@ -320,14 +320,14 @@ async function startFtpServer() {
         logl("invoke-'start_ftp_server'");
         const users = (await store.get('tableData')) || [];
         const isAnonymous = await store.get('isAnonymous') || false;
-        let fileauth = await store.get('fileauth') || 'R';
+        let fileAuth = await store.get('fileauth') || 'R';
 
         const result = await invoke('start_ftp_server', {
             path: dirPath.value,
             port: port.value.toString(),
             users: JSON.stringify(users),
             isAnonymous,
-            fileauth,
+            fileAuth
         }) || '';
         ElMessage({ type: "success", message: result.toString() });
         isStart.value = true;

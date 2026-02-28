@@ -27,9 +27,9 @@
                     <transition name="slide-fade">
                         <el-radio-group
                             v-if="isAnonymous"
-                            v-model="fileauth"
+                            v-model="fileAuth"
                             size="small"
-                            @change="() => store.set('fileauth', fileauth)"
+                            @change="() => store.set('fileauth', fileAuth)"
                             class="inline-permission-radio"
                         >
                             <el-radio-button value="R">只读</el-radio-button>
@@ -175,7 +175,7 @@
                         </el-input>
                     </el-form-item>
                     <el-form-item label="权限" class="drawer-form-item">
-                        <el-radio-group v-model="form.fileauth" size="large" class="drawer-permission-radio">
+                        <el-radio-group v-model="form.fileAuth" size="large" class="drawer-permission-radio">
                             <el-radio-button value="R">只读</el-radio-button>
                             <el-radio-button value="W">读写</el-radio-button>
                         </el-radio-group>
@@ -203,13 +203,13 @@ import store from '../store';
 interface TableDataItem {
     username: string;
     password: string;
-    fileauth: string;
+    fileAuth: string;
     index: number | undefined;
 }
 
 const isAnonymous = ref(true)
 const tableData = ref<TableDataItem[]>([])
-const fileauth = ref('W')
+const fileAuth = ref('W')
 const isFirstLoad = ref(true)
 
 const init = async () => {
@@ -218,7 +218,7 @@ const init = async () => {
         isAnonymous.value = !!a
 
         let fa = await store.get('fileauth');
-        fileauth.value = fa ? fa + '' : 'W'
+        fileAuth.value = fa ? fa + '' : 'W'
 
         let t: any = await store.get('tableData');
         console.log("tableData:" + t)
@@ -243,7 +243,7 @@ onMounted(() => {
     });
 })
 
-const form = reactive<TableDataItem>({ username: '', password: '', index: undefined, fileauth: 'R' })
+const form = reactive<TableDataItem>({ username: '', password: '', index: undefined, fileAuth: 'R' })
 const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('rtl')
 
@@ -251,7 +251,7 @@ const openAddUser = () => {
     form.password = ''
     form.username = ''
     form.index = undefined
-    form.fileauth = 'R'
+    form.fileAuth = 'R'
     drawer.value = true
 }
 
@@ -259,7 +259,7 @@ const editUser = (scope: any) => {
     form.index = scope.$index
     form.username = scope.row.username
     form.password = scope.row.password
-    form.fileauth = scope.row.fileauth
+    form.fileAuth = scope.row.fileAuth
     drawer.value = true
 }
 
@@ -282,7 +282,7 @@ const deleteRow = (scope: any) => {
 }
 
 const getRowClassName = ({ row }: { row: TableDataItem }) => {
-    return row.fileauth === 'W' ? 'write-row' : 'read-row'
+    return row.fileAuth === 'W' ? 'write-row' : 'read-row'
 }
 
 const saveForm = () => {
