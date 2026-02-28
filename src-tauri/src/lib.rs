@@ -6,7 +6,7 @@
 //! - 设置 FTP 工作线程状态管理
 //! - 注册前端可调用的命令
 //!
-//! 了解更多关于 Tauri 命令：https://tauri.app/develop/calling-rust/
+//! 了解更多关于 Tauri 命令：<https://tauri.app/develop/calling-rust/>
 
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
