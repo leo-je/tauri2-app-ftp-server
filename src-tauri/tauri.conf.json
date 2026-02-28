@@ -18,7 +18,9 @@
         "width": 480,
         "height": 820,
         "maximizable": false,
-        "decorations": false
+        "decorations": false,
+        "transparent": true,
+        "shadow": true
       }
     ],
     "security": {
