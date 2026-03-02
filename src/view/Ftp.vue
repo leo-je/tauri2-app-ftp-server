@@ -4,10 +4,7 @@
             <!-- 标题区域 -->
             <div class="header-section fade-in" style="display: none;">
                 <div class="icon-wrapper">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2"/>
-                        <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <SvgIcon name="checkCircle" :size="24" />
                 </div>
                 <h1 class="ftp-title">FTP 服务器</h1>
                 <p class="ftp-subtitle">快速启动您的文件传输服务</p>
@@ -24,18 +21,14 @@
             <!-- 配置卡片 -->
             <div :class="['config-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.2s;' : ''">
                 <div class="card-header">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 15V17M6 21H18C19.1046 21 20 20.1046 20 19V13C20 11.8954 19.1046 11 18 11H6C4.89543 11 4 11.8954 4 13V19C4 20.1046 4.89543 21 6 21ZM16 11V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V11H16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <SvgIcon name="lock" :size="20" class="card-icon" />
                     <span>服务器配置</span>
                 </div>
                 
                 <div class="form-section">
                     <div class="form-item">
                         <label class="form-label">
-                            <svg class="label-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M3 7V17C3 18.1046 3.89543 19 5 19H19C20.1046 19 21 18.1046 21 17V9C21 7.89543 20.1046 7 19 7H13L11 5H5C3.89543 5 3 5.89543 3 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <SvgIcon name="folder" :size="16" class="label-icon" />
                             共享目录
                         </label>
                         <div class="input-group">
@@ -46,9 +39,7 @@
                                 class="ftp-input"
                             >
                                 <template #prefix>
-                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;">
-                                        <path d="M3 7V17C3 18.1046 3.89543 19 5 19H19C20.1046 19 21 18.1046 21 17V9C21 7.89543 20.1046 7 19 7H13L11 5H5C3.89543 5 3 5.89543 3 7Z" stroke="currentColor" stroke-width="2"/>
-                                    </svg>
+                                    <SvgIcon name="folder" :size="16" />
                                 </template>
                             </el-input>
                             <el-button 
@@ -69,10 +60,7 @@
 
                     <div class="form-item">
                         <label class="form-label">
-                            <svg class="label-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M8 9L11 12L8 15M13 9L16 12L13 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
-                            </svg>
+                            <SvgIcon name="terminal" :size="16" class="label-icon" />
                             服务端口
                         </label>
                         <el-input 
@@ -83,10 +71,7 @@
                             type="number"
                         >
                             <template #prefix>
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;">
-                                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                                    <path d="M12 2V6M12 18V22M2 12H6M18 12H22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
+                                <SvgIcon name="target" :size="16" />
                             </template>
                         </el-input>
                     </div>
@@ -101,10 +86,7 @@
                     class="control-button"
                     :class="{ 'is-running': isStart }"
                 >
-                    <svg class="button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path v-if="!isStart" d="M8 5V19L19 12L8 5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path v-else d="M6 6H18M6 12H18M6 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
+                    <SvgIcon :name="isStart ? 'stop' : 'play'" :size="20" class="button-icon" />
                     {{ isStart ? '停止服务' : '启动服务' }}
                 </el-button>
             </div>
@@ -115,18 +97,14 @@
                 @click="startOrStopServer"
                 :title="isStart ? '停止服务' : '启动服务'"
             >
-                <svg class="plane-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M21 16V14L13 9V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9L2 14V16L10 13.5V19L8 20.5V22L11.5 21L15 22V20.5L13 19V13.5L21 16Z"/>
-                </svg>
+                <SvgIcon name="plane" :size="28" class="plane-icon" />
             </div>
 
             <!-- 连接信息 -->
             <transition name="slide-fade">
                 <div v-if="isStart" :class="['connection-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.4s;' : ''">
                     <div class="card-header">
-                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M13.8284 10.1716C12.2663 8.60948 9.73367 8.60948 8.17157 10.1716L6.75736 11.5858M17.2426 11.5858L18.6569 10.1716C20.219 8.60948 20.219 6.07683 18.6569 4.51473C17.0948 2.95263 14.5621 2.95263 13 4.51473L11.5858 5.92894M10.1716 13.8284C11.7337 15.3905 14.2663 15.3905 15.8284 13.8284L17.2426 12.4142M6.75736 12.4142L5.34315 13.8284C3.78105 15.3905 3.78105 17.9232 5.34315 19.4853C6.90524 21.0474 9.4379 21.0474 11 19.4853L12.4142 18.0711" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                        <SvgIcon name="link" :size="20" class="card-icon" />
                         <span>连接地址</span>
                     </div>
                     <div class="connection-links">
@@ -136,23 +114,15 @@
                             class="connection-link"
                             @click="copy(ip)"
                         >
-                            <svg class="link-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
-                                <path d="M16 8V6C16 4.89543 15.1046 4 14 4H6C4.89543 4 4 4.89543 4 6V14C4 15.1046 4.89543 16 6 16H8" stroke="currentColor" stroke-width="2"/>
-                            </svg>
+                            <SvgIcon name="copyOutline" :size="20" class="link-icon" />
                             <span class="link-text">{{ 'ftp://' + ip + ':' + port }}</span>
-                            <svg class="copy-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
-                            </svg>
+                            <SvgIcon name="copy" :size="16" class="copy-icon" />
                         </div>
                     </div>
 
                     <!-- 运行时间 -->
                     <div class="run-time-section">
-                        <svg class="time-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                            <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
+                        <SvgIcon name="clock" :size="18" class="time-icon" />
                         <span class="run-time-label">运行时间</span>
                         <span class="run-time-value">{{ runTime }}</span>
                     </div>
@@ -171,6 +141,8 @@ import { Command } from 'tauri-plugin-shellx-api';
 import { platform } from '@tauri-apps/plugin-os';
 import store from '../store';
 import { info, error, attachConsole } from '@tauri-apps/plugin-log';
+import { SvgIcon } from '../components/icons';
+import clipboard from "tauri-plugin-clipboard-api";
 
 const dirPath = ref('');
 const ips = ref(['127.0.0.1']);
@@ -252,7 +224,6 @@ const checkPlatform = () => {
     logl(`当前操作系统是 ${platformName}`);
     return currentPlatform;
 };
-import clipboard from "tauri-plugin-clipboard-api";
 
 const copy = async (ip: string) => {
     // 拼装地址放入剪贴板

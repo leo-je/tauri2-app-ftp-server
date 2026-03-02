@@ -10,11 +10,7 @@
 
       <div class="title-bar-content" data-tauri-drag-region>
         <div class="app-logo" data-tauri-drag-region>
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <SvgIcon name="server" :size="20" />
         </div>
         <span class="app-title" data-tauri-drag-region>FTP Server</span>
       </div>
@@ -22,14 +18,10 @@
       <!-- Windows/Linux 风格控制按钮 -->
       <div v-if="!isMacos" class="window-controls">
         <div class="control-btn minimize" @click="minimizeWindow" title="最小化">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+          <SvgIcon name="minimize" :size="16" />
         </div>
         <div class="control-btn close" @click="closeWindow" title="关闭">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+          <SvgIcon name="close" :size="16" />
         </div>
       </div>
     </div>
@@ -46,6 +38,7 @@ import { ElMain, ElContainer } from 'element-plus';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { platform } from '@tauri-apps/plugin-os';
 import { ref, onMounted } from 'vue';
+import { SvgIcon } from './components/icons';
 
 const appWindow = getCurrentWindow();
 const isMacos = ref(false);
@@ -55,7 +48,7 @@ onMounted(async () => {
 });
 
 function disableContextMenu(event: any) {
-   event.preventDefault();
+  //  event.preventDefault();
 }
 
 const minimizeWindow = () => {
