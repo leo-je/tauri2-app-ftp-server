@@ -4,9 +4,7 @@
             <!-- 标题区域 -->
             <div class="header-section fade-in" style="display: none;">
                 <div class="icon-wrapper">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 15V17M6 21H18C19.1046 21 20 20.1046 20 19V13C20 11.8954 19.1046 11 18 11H6C4.89543 11 4 11.8954 4 13V19C4 20.1046 4.89543 21 6 21ZM16 11V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V11H16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <SvgIcon name="lock" :size="24" />
                 </div>
                 <h1 class="ftp-title">权限管理</h1>
                 <p class="ftp-subtitle">配置 FTP 服务器的访问权限</p>
@@ -43,18 +41,14 @@
             <transition name="slide-fade">
                 <div v-if="!isAnonymous" :class="['users-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.2s;' : ''">
                     <div class="card-header">
-                        <svg class="card-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M17 21V19C17 16.7909 15.2091 15 13 15H5C2.79086 15 1 16.7909 1 19V21M23 21V19C22.9998 17.1771 22.265 15.4378 20.9551 14.1643C19.6452 12.8908 17.8668 12.1742 16.021 12.165M16 3C17.0609 3 18.0783 3.42143 18.8284 4.17157C19.5786 4.92172 20 5.93913 20 7C20 8.06087 19.5786 9.07828 18.8284 9.82843C18.0783 10.5786 17.0609 11 16 11C14.9391 11 13.9217 10.5786 13.1716 9.82843C12.4214 9.07828 12 8.06087 12 7C12 5.93913 12.4214 4.92172 13.1716 4.17157C13.9217 3.42143 14.9391 3 16 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                        <SvgIcon name="users" :size="20" class="card-icon" />
                         <span>用户列表</span>
-                        <el-button 
-                            type="primary" 
+                        <el-button
+                            type="primary"
                             class="add-user-btn"
                             @click="openAddUser"
                         >
-                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
+                            <SvgIcon name="plus" :size="16" class="btn-icon" />
                             添加用户
                         </el-button>
                     </div>
@@ -92,9 +86,7 @@
                                             @click="editUser(scope)"
                                             class="action-btn edit-btn"
                                         >
-                                            <svg class="action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13M18.5 2.5C18.8978 2.10217 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10217 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10217 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
+                                            <SvgIcon name="edit" :size="14" class="action-icon" />
                                             编辑
                                         </el-button>
                                         <el-button
@@ -104,9 +96,7 @@
                                             @click="deleteRow(scope)"
                                             class="action-btn delete-btn"
                                         >
-                                            <svg class="action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M3 6H5H21M19 6V20C19 21.1046 18.1046 22 17 22H7C5.89543 22 5 21.1046 5 20V6M8 6V4C8 2.89543 8.89543 2 10 2H14C15.1046 2 16 2.89543 16 4V6M10 11V17M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
+                                            <SvgIcon name="delete" :size="14" class="action-icon" />
                                             删除
                                         </el-button>
                                     </div>
@@ -127,9 +117,7 @@
                         </div>
 
                         <div v-if="tableData.length === 0" class="empty-state">
-                            <svg class="empty-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M17 21V19C17 16.7909 15.2091 15 13 15H5C2.79086 15 1 16.7909 1 19V21M23 21V19C22.9998 17.1771 22.265 15.4378 20.9551 14.1643C19.6452 12.8908 17.8668 12.1742 16.021 12.165M16 3C17.0609 3 18.0783 3.42143 18.8284 4.17157C19.5786 4.92172 20 5.93913 20 7C20 8.06087 19.5786 9.07828 18.8284 9.82843C18.0783 10.5786 17.0609 11 16 11C14.9391 11 13.9217 10.5786 13.1716 9.82843C12.4214 9.07828 12 8.06087 12 7C12 5.93913 12.4214 4.92172 13.1716 4.17157C13.9217 3.42143 14.9391 3 16 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                            <SvgIcon name="users" :size="64" class="empty-icon" />
                             <p class="empty-text">暂无用户数据</p>
                             <p class="empty-hint">点击上方"添加用户"按钮创建新用户</p>
                         </div>
@@ -147,30 +135,26 @@
             >
                 <el-form :model="form" class="drawer-form">
                     <el-form-item label="用户名" class="drawer-form-item">
-                        <el-input 
-                            v-model="form.username" 
+                        <el-input
+                            v-model="form.username"
                             placeholder="请输入用户名"
                             class="ftp-input"
                         >
                             <template #prefix>
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;">
-                                    <path d="M20 21V19C20 16.7909 18.2091 15 16 15H8C5.79086 15 4 16.7909 4 19V21M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
+                                <SvgIcon name="user" :size="16" />
                             </template>
                         </el-input>
                     </el-form-item>
                     <el-form-item label="密码" class="drawer-form-item">
-                        <el-input 
-                            v-model="form.password" 
+                        <el-input
+                            v-model="form.password"
                             type="password"
                             placeholder="请输入密码"
                             class="ftp-input"
                             show-password
                         >
                             <template #prefix>
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;">
-                                    <path d="M12 15V17M6 21H18C19.1046 21 20 20.1046 20 19V13C20 11.8954 19.1046 11 18 11H6C4.89543 11 4 11.8954 4 13V19C4 20.1046 4.89543 21 6 21ZM16 11V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V11H16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
+                                <SvgIcon name="lock" :size="16" />
                             </template>
                         </el-input>
                     </el-form-item>
@@ -199,6 +183,7 @@ import {
 } from 'element-plus'
 
 import store from '../store';
+import { SvgIcon } from '../components/icons';
 
 interface TableDataItem {
     username: string;
