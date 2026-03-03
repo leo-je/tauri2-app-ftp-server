@@ -179,8 +179,9 @@ import { onBeforeMount, onMounted, reactive, ref, nextTick } from 'vue'
 import {
     ElSwitch, ElTable, ElTableColumn,
     ElButton, ElDrawer, DrawerProps, ElInput, ElMessage, ElMessageBox,
-    ElRadioGroup, ElRadioButton
+    ElRadioGroup, ElRadioButton, ElForm, ElFormItem
 } from 'element-plus'
+import type { TableColumnCtx } from 'element-plus'
 
 import store from '../store';
 import { SvgIcon } from '../components/icons';
@@ -190,6 +191,13 @@ interface TableDataItem {
     password: string;
     fileAuth: string;
     index: number | undefined;
+}
+
+// Element Plus 表格行 scope 类型
+interface TableScope {
+    $index: number;
+    row: TableDataItem;
+    column: TableColumnCtx<TableDataItem>;
 }
 
 const isAnonymous = ref(true)
@@ -205,9 +213,9 @@ const init = async () => {
         let fa = await store.get('fileauth');
         fileAuth.value = fa ? fa + '' : 'W'
 
-        let t: any = await store.get('tableData');
+        let t: unknown = await store.get('tableData');
         console.log("tableData:" + t)
-        tableData.value = t && t.length > 0 && typeof t !== 'string' ? t : []
+        tableData.value = (t && Array.isArray(t) && t.length > 0) ? t as TableDataItem[] : []
     } catch (e) {
         console.error(e)
         tableData.value = []
@@ -240,7 +248,7 @@ const openAddUser = () => {
     drawer.value = true
 }
 
-const editUser = (scope: any) => {
+const editUser = (scope: TableScope) => {
     form.index = scope.$index
     form.username = scope.row.username
     form.password = scope.row.password
@@ -248,7 +256,7 @@ const editUser = (scope: any) => {
     drawer.value = true
 }
 
-const deleteRow = (scope: any) => {
+const deleteRow = (scope: TableScope) => {
     ElMessageBox.confirm(
         `确定要删除用户 "${scope.row.username}" 吗？`,
         '删除确认',

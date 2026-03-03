@@ -47,7 +47,7 @@ onMounted(async () => {
   isMacos.value = await platform() === 'macos';
 });
 
-function disableContextMenu(event: any) {
+function disableContextMenu(_event: MouseEvent) {
   //  event.preventDefault();
 }
 

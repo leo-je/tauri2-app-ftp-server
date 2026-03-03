@@ -14,7 +14,7 @@ export const get = async (key: string) => {
     return store.get(key);
 }
 
-export const set = async (key: string, value: any) => {
+export const set = async (key: string, value: unknown) => {
     const store = await getStore();
     await store.set(key, value);
     await store.save();
