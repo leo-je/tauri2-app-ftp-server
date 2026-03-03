@@ -1,4 +1,5 @@
 <template>
+  <SplashScreen v-if="!appReady" @complete="appReady = true" />
   <el-container class="app-container">
     <!-- 自定义标题栏 -->
     <div class="title-bar" data-tauri-drag-region :class="{ 'is-macos': isMacos }">
@@ -39,9 +40,11 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { platform } from '@tauri-apps/plugin-os';
 import { ref, onMounted } from 'vue';
 import { SvgIcon } from './components/icons';
+import SplashScreen from './components/SplashScreen.vue';
 
 const appWindow = getCurrentWindow();
 const isMacos = ref(false);
+const appReady = ref(false);
 
 onMounted(async () => {
   isMacos.value = await platform() === 'macos';
