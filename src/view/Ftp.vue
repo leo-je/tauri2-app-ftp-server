@@ -143,6 +143,7 @@ import store from '../store';
 import { info, error, attachConsole } from '@tauri-apps/plugin-log';
 import { SvgIcon } from '../components/icons';
 import clipboard from "tauri-plugin-clipboard-api";
+import { runtimeState } from '../store';
 
 const dirPath = ref('');
 const ips = ref(['127.0.0.1']);
@@ -263,6 +264,7 @@ async function stopFtpServer() {
         const result = await invoke('stop_ftp_server', {}) || '';
         ElMessage({ type: "success", message: result.toString() });
         isStart.value = false;
+        runtimeState.isServerRunning.value = false;
         stopRunTimer();
     } catch (e) {
         ElMessage({ type: "error", message: e ? e.toString() : "未知错误" });
@@ -302,6 +304,7 @@ async function startFtpServer() {
         }) || '';
         ElMessage({ type: "success", message: result.toString() });
         isStart.value = true;
+        runtimeState.isServerRunning.value = true;
         startRunTimer();
     } catch (e) {
         ElMessage({ type: "error", message: e ? e.toString() : "未知错误" });

@@ -12,6 +12,10 @@
 
             <!-- 匿名访问设置卡片 -->
             <div :class="['auth-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.1s;' : ''">
+                <div v-if="isServerRunning" class="readonly-banner">
+                    <SvgIcon name="lock" :size="16" />
+                    <span>服务运行中，权限设置已锁定</span>
+                </div>
                 <div class="access-mode-row">
                     <div class="mode-info">
                         <span class="mode-label">匿名访问</span>
@@ -21,6 +25,7 @@
                         v-model="isAnonymous"
                         @change="() => store.set('isAnonymous', isAnonymous)"
                         class="auth-switch"
+                        :disabled="isServerRunning"
                     />
                     <transition name="slide-fade">
                         <el-radio-group
@@ -29,6 +34,7 @@
                             size="small"
                             @change="() => store.set('fileauth', fileAuth)"
                             class="inline-permission-radio"
+                            :disabled="isServerRunning"
                         >
                             <el-radio-button value="R">只读</el-radio-button>
                             <el-radio-button value="W">读写</el-radio-button>
@@ -47,6 +53,7 @@
                             type="primary"
                             class="add-user-btn"
                             @click="openAddUser"
+                            :disabled="isServerRunning"
                         >
                             <SvgIcon name="plus" :size="16" class="btn-icon" />
                             添加用户
@@ -85,6 +92,7 @@
                                             size="small"
                                             @click="editUser(scope)"
                                             class="action-btn edit-btn"
+                                            :disabled="isServerRunning"
                                         >
                                             <SvgIcon name="edit" :size="14" class="action-icon" />
                                             编辑
@@ -95,6 +103,7 @@
                                             size="small"
                                             @click="deleteRow(scope)"
                                             class="action-btn delete-btn"
+                                            :disabled="isServerRunning"
                                         >
                                             <SvgIcon name="delete" :size="14" class="action-icon" />
                                             删除
@@ -148,10 +157,8 @@
                     <el-form-item label="密码" class="drawer-form-item">
                         <el-input
                             v-model="form.password"
-                            type="password"
                             placeholder="请输入密码"
                             class="ftp-input"
-                            show-password
                         >
                             <template #prefix>
                                 <SvgIcon name="lock" :size="16" />
@@ -175,7 +182,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onBeforeMount, onMounted, reactive, ref, nextTick } from 'vue'
+import { onBeforeMount, onMounted, reactive, ref, nextTick, computed } from 'vue'
 import {
     ElSwitch, ElTable, ElTableColumn,
     ElButton, ElDrawer, DrawerProps, ElInput, ElMessage, ElMessageBox,
@@ -183,7 +190,7 @@ import {
 } from 'element-plus'
 import type { TableColumnCtx } from 'element-plus'
 
-import store from '../store';
+import store, { runtimeState } from '../store';
 import { SvgIcon } from '../components/icons';
 
 interface TableDataItem {
@@ -204,6 +211,9 @@ const isAnonymous = ref(true)
 const tableData = ref<TableDataItem[]>([])
 const fileAuth = ref('W')
 const isFirstLoad = ref(true)
+
+// 服务运行状态
+const isServerRunning = computed(() => runtimeState.isServerRunning.value)
 
 const init = async () => {
     try {
@@ -364,6 +374,26 @@ const saveForm = () => {
             border-radius: var(--radius-sm);
             font-size: 13px;
         }
+    }
+}
+
+/* 只读状态提示横幅 */
+.readonly-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, rgba(245, 101, 101, 0.1) 0%, rgba(237, 137, 54, 0.1) 100%);
+    border: 1px solid rgba(245, 101, 101, 0.2);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: #e53e3e;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        color: #e53e3e;
     }
 }
 

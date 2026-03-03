@@ -1,4 +1,6 @@
 import { Store } from '@tauri-apps/plugin-store';
+import { ref } from 'vue';
+
 let store: Store;//await Store.load('store.json');
 
 const getStore = async () => {
@@ -20,9 +22,15 @@ export const set = async (key: string, value: unknown) => {
     await store.save();
 }
 
+// 运行时状态（不持久化）
+export const runtimeState = {
+    isServerRunning: ref(false)
+};
+
 const appStore = {
     get,
-    set
+    set,
+    runtimeState
 }
 
 export default appStore;
