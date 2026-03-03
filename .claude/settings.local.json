@@ -9,7 +9,16 @@
       "Bash(npm run:*)",
       "Bash(npx vue-tsc:*)",
       "Bash(export:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "WebSearch",
+      "WebFetch(domain:docs.rs)",
+      "WebFetch(domain:crates.io)",
+      "Bash(cargo check:*)",
+      "Bash(lsof +D:*)",
+      "Bash(pkill:*)",
+      "Bash(rustc:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(cargo search:*)"
     ]
   }
 }
