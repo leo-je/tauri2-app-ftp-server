@@ -10,6 +10,7 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
         "fullscreen": false,
@@ -20,7 +21,7 @@
         "maximizable": false,
         "decorations": false,
         "transparent": true,
-        "shadow": true
+        "shadow": false
       }
     ],
     "security": {

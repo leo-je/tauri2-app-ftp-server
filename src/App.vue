@@ -71,6 +71,8 @@ const closeWindow = () => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 20px 40px rgba(0, 0, 0, 0.15);
 
   &::before {
     content: '';
