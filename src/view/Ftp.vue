@@ -144,6 +144,7 @@ import { info, error, attachConsole } from '@tauri-apps/plugin-log';
 import { SvgIcon } from '../components/icons';
 import clipboard from "tauri-plugin-clipboard-api";
 import { runtimeState } from '../store';
+import { validatePath, validatePort } from '../utils/validation';
 
 const dirPath = ref('');
 const ips = ref(['127.0.0.1']);
@@ -286,10 +287,31 @@ const getIps = async () => {
 async function startFtpServer() {
     try {
         await getIps()
+
+        // 验证路径
         if (!dirPath.value) {
-            ElMessage("请选择路径");
+            ElMessage({ type: "warning", message: "请选择路径" });
             return;
         }
+
+        const pathValidation = validatePath(dirPath.value);
+        if (!pathValidation.valid) {
+            ElMessage({ type: "error", message: pathValidation.error || "路径无效" });
+            return;
+        }
+
+        // 验证端口
+        const portValidation = validatePort(port.value);
+        if (!portValidation.valid) {
+            ElMessage({ type: "error", message: portValidation.error || "端口无效" });
+            return;
+        }
+
+        // 显示端口警告
+        if (portValidation.warning) {
+            ElMessage({ type: "warning", message: portValidation.warning, duration: 5000 });
+        }
+
         logl("invoke-'start_ftp_server'");
         const users = (await store.get('tableData')) || [];
         const isAnonymous = await store.get('isAnonymous') || false;

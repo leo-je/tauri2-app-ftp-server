@@ -192,6 +192,7 @@ import type { TableColumnCtx } from 'element-plus'
 
 import store, { runtimeState } from '../store';
 import { SvgIcon } from '../components/icons';
+import { validateUser } from '../utils/validation';
 
 interface TableDataItem {
     username: string;
@@ -289,22 +290,39 @@ const getRowClassName = ({ row }: { row: TableDataItem }) => {
 }
 
 const saveForm = () => {
-    if (form.password && form.password.length > 0 && form.username && form.username.length > 0) {
-        drawer.value = false
-        if (form.index != null) {
-            tableData.value[form.index] = Object.assign({}, form)
-        } else {
-            tableData.value.push(Object.assign({}, form))
-        }
-        try {
-            store.set('tableData', tableData.value)
-            ElMessage.success(form.index !== undefined ? '用户已更新' : '用户已添加')
-        } catch (e) {
-            console.error('保存数据失败:', e)
-            ElMessage.error('保存数据失败')
-        }
+    // 验证用户数据
+    const validation = validateUser({
+        username: form.username,
+        password: form.password,
+        fileAuth: form.fileAuth
+    });
+
+    // 显示错误
+    if (validation.errors.length > 0) {
+        ElMessage({ type: 'error', message: validation.errors.join('；') });
+        return;
+    }
+
+    // 显示警告（但允许继续）
+    if (validation.warnings.length > 0) {
+        validation.warnings.forEach(warn => {
+            ElMessage({ type: 'warning', message: warn, duration: 5000 });
+        });
+    }
+
+    // 保存数据
+    drawer.value = false;
+    if (form.index != null) {
+        tableData.value[form.index] = Object.assign({}, form)
     } else {
-        ElMessage.error('请输入用户名和密码')
+        tableData.value.push(Object.assign({}, form))
+    }
+    try {
+        store.set('tableData', tableData.value)
+        ElMessage.success(form.index !== undefined ? '用户已更新' : '用户已添加')
+    } catch (e) {
+        console.error('保存数据失败:', e)
+        ElMessage.error('保存数据失败')
     }
 }
 

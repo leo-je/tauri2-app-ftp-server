@@ -19,7 +19,9 @@
       "Bash(rustc:*)",
       "WebFetch(domain:github.com)",
       "Bash(cargo search:*)",
-      "Bash(yarn build:*)"
+      "Bash(yarn build:*)",
+      "Bash(wc:*)",
+      "Bash(cargo build:*)"
     ]
   }
 }
