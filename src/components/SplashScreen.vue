@@ -7,7 +7,7 @@
     <div class="splash-content">
       <!-- Logo -->
       <div class="splash-logo">
-        <SvgIcon name="server" :size="64" />
+        <AppLogo :size="64" />
       </div>
 
       <!-- 应用名称 -->
@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { SvgIcon } from './icons';
+import AppLogo from './AppLogo.vue';
 import { getVersion } from '@tauri-apps/api/app';
 
 const visible = ref(true);
@@ -107,10 +107,14 @@ onMounted(async () => {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  padding: 8px;
 
-  svg {
-    width: 48px;
-    height: 48px;
+  :deep(.app-logo-img) {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 12px;
   }
 }
 

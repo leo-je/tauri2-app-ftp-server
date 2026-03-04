@@ -11,7 +11,7 @@
 
       <div class="title-bar-content" data-tauri-drag-region>
         <div class="app-logo" data-tauri-drag-region>
-          <SvgIcon name="server" :size="20" />
+          <AppLogo :size="20" />
         </div>
         <span class="app-title" data-tauri-drag-region>FTP Server</span>
       </div>
@@ -40,6 +40,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { platform } from '@tauri-apps/plugin-os';
 import { ref, onMounted } from 'vue';
 import { SvgIcon } from './components/icons';
+import AppLogo from './components/AppLogo.vue';
 import SplashScreen from './components/SplashScreen.vue';
 
 const appWindow = getCurrentWindow();
@@ -128,10 +129,13 @@ const closeWindow = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  border-radius: 4px;
 
-  svg {
+  :deep(.app-logo-img) {
     width: 100%;
     height: 100%;
+    object-fit: contain;
   }
 }
 
