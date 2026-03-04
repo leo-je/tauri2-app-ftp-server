@@ -36,8 +36,8 @@
                             class="inline-permission-radio"
                             :disabled="isServerRunning"
                         >
-                            <el-radio-button value="R">只读</el-radio-button>
-                            <el-radio-button value="W">读写</el-radio-button>
+                            <el-radio-button label="R">只读</el-radio-button>
+                            <el-radio-button label="W">读写</el-radio-button>
                         </el-radio-group>
                     </transition>
                 </div>
@@ -142,7 +142,7 @@
                 size="400px"
                 class="user-drawer"
             >
-                <el-form :model="form" class="drawer-form">
+                <el-form :model="form" class="drawer-form" label-width="80px">
                     <el-form-item label="用户名" class="drawer-form-item">
                         <el-input
                             v-model="form.username"
@@ -167,8 +167,8 @@
                     </el-form-item>
                     <el-form-item label="权限" class="drawer-form-item">
                         <el-radio-group v-model="form.fileAuth" size="large" class="drawer-permission-radio">
-                            <el-radio-button value="R">只读</el-radio-button>
-                            <el-radio-button value="W">读写</el-radio-button>
+                            <el-radio-button label="R">只读</el-radio-button>
+                            <el-radio-button label="W">读写</el-radio-button>
                         </el-radio-group>
                     </el-form-item>
                 </el-form>
@@ -209,7 +209,7 @@ interface TableScope {
 
 const isAnonymous = ref(true)
 const tableData = ref<TableDataItem[]>([])
-const fileAuth = ref('W')
+const fileAuth = ref('R')
 const isFirstLoad = ref(true)
 
 // 服务运行状态
@@ -221,7 +221,7 @@ const init = async () => {
         isAnonymous.value = !!a
 
         let fa = await store.get('fileauth');
-        fileAuth.value = fa ? fa + '' : 'W'
+        fileAuth.value = fa ? fa + '' : 'R'
 
         let t: unknown = await store.get('tableData');
         console.log("tableData:" + t)
