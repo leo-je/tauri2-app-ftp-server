@@ -47,35 +47,3 @@ impl UserWithPermissions for UserInfo {
         self.permissions
     }
 }
-
-/// 创建带权限限制的存储后端
-///
-/// 返回一个闭包，用于创建具有权限控制功能的虚拟文件系统
-///
-/// # 参数
-/// * `ftp_home` - FTP 根目录路径
-///
-/// # 返回值
-/// 返回一个 Box 包装的闭包，该闭包创建 RestrictingVfs 实例
-///
-/// # 类型参数
-/// * `Filesystem` - 底层文件系统实现
-/// * `UserInfo` - 用户信息类型
-/// * `Meta` - 文件元数据类型
-pub fn create_restricted_storage_backend(
-    ftp_home: String,
-) -> Box<
-    dyn Fn() -> unftp_sbe_restrict::RestrictingVfs<
-        unftp_sbe_fs::Filesystem,
-        UserInfo,
-        unftp_sbe_fs::Meta,
-    >,
-> {
-    use unftp_sbe_fs::{Filesystem, Meta};
-
-    (Box::new(move || {
-        unftp_sbe_restrict::RestrictingVfs::<Filesystem, UserInfo, Meta>::new(Filesystem::new(
-            ftp_home.clone(),
-        ))
-    })) as _
-}
