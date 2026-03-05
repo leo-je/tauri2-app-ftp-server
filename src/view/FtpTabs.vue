@@ -5,7 +5,7 @@
                 <template #label>
                     <span class="tab-label">
                         <SvgIcon name="folder" :size="18" class="tab-icon" />
-                        服务器
+                        {{ $t('tabs.server') }}
                     </span>
                 </template>
                 <ftp></ftp>
@@ -14,7 +14,7 @@
                 <template #label>
                     <span class="tab-label">
                         <SvgIcon name="lock" :size="18" class="tab-icon" />
-                        权限设置
+                        {{ $t('tabs.auth') }}
                     </span>
                 </template>
                 <ftpAuth></ftpAuth>
@@ -40,7 +40,7 @@ const handleClick = (tab: TabsPaneContext, event: Event) => {
 <style lang="scss" scoped>
 .tabs-container {
     height: 100%;
-    padding: 20px;
+    padding: 0 10px;
     animation: fadeIn 0.5s ease;
 }
 

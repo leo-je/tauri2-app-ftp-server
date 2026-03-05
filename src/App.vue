@@ -13,7 +13,12 @@
         <div class="app-logo" data-tauri-drag-region>
           <AppLogo :size="20" />
         </div>
-        <span class="app-title" data-tauri-drag-region>FTP Server</span>
+        <span class="app-title" data-tauri-drag-region>{{ $t('app.name') }}</span>
+      </div>
+
+      <!-- 语言切换按钮 - 悬浮于标题栏下方 -->
+      <div class="floating-lang-switcher" v-if="appReady">
+        <LanguageSwitcher />
       </div>
 
       <!-- Windows/Linux 风格控制按钮 -->
@@ -42,6 +47,7 @@ import { ref, onMounted } from 'vue';
 import { SvgIcon } from './components/icons';
 import AppLogo from './components/AppLogo.vue';
 import SplashScreen from './components/SplashScreen.vue';
+import LanguageSwitcher from './components/LanguageSwitcher.vue';
 
 const appWindow = getCurrentWindow();
 const isMacos = ref(false);
@@ -51,8 +57,8 @@ onMounted(async () => {
   isMacos.value = await platform() === 'macos';
 });
 
-function disableContextMenu(_event: MouseEvent) {
-  //  event.preventDefault();
+function disableContextMenu(event: MouseEvent) {
+  event.preventDefault();
 }
 
 const minimizeWindow = () => {
@@ -204,6 +210,14 @@ const closeWindow = () => {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+/* 悬浮语言切换按钮 */
+.floating-lang-switcher {
+  position: fixed;
+  top: 48px;
+  right: 16px;
+  z-index: 999;
 }
 
 .control-btn {

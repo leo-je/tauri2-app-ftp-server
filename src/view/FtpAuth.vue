@@ -14,12 +14,12 @@
             <div :class="['auth-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.1s;' : ''">
                 <div v-if="isServerRunning" class="readonly-banner">
                     <SvgIcon name="lock" :size="16" />
-                    <span>服务运行中，权限设置已锁定</span>
+                    <span>{{ $t('auth.serverRunning') }}</span>
                 </div>
                 <div class="access-mode-row">
                     <div class="mode-info">
-                        <span class="mode-label">匿名访问</span>
-                        <span class="mode-desc">无需认证即可访问</span>
+                        <span class="mode-label">{{ $t('auth.anonymous') }}</span>
+                        <span class="mode-desc">{{ $t('auth.anonymousDesc') }}</span>
                     </div>
                     <el-switch
                         v-model="isAnonymous"
@@ -36,8 +36,8 @@
                             class="inline-permission-radio"
                             :disabled="isServerRunning"
                         >
-                            <el-radio-button label="R">只读</el-radio-button>
-                            <el-radio-button label="W">读写</el-radio-button>
+                            <el-radio-button label="R">{{ $t('auth.readOnly') }}</el-radio-button>
+                            <el-radio-button label="W">{{ $t('auth.readWrite') }}</el-radio-button>
                         </el-radio-group>
                     </transition>
                 </div>
@@ -48,7 +48,7 @@
                 <div v-if="!isAnonymous" :class="['users-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.2s;' : ''">
                     <div class="card-header">
                         <SvgIcon name="users" :size="20" class="card-icon" />
-                        <span>用户列表</span>
+                        <span>{{ $t('auth.userList') }}</span>
                         <el-button
                             type="primary"
                             class="add-user-btn"
@@ -56,10 +56,10 @@
                             :disabled="isServerRunning"
                         >
                             <SvgIcon name="plus" :size="16" class="btn-icon" />
-                            添加用户
+                            {{ $t('auth.addUser') }}
                         </el-button>
                     </div>
-                    
+
                     <div class="table-wrapper">
                         <ElTable
                             :data="tableData"
@@ -68,14 +68,14 @@
                             :row-class-name="getRowClassName"
                             height="300"
                         >
-                            <ElTableColumn label="用户名" prop="username" min-width="100">
+                            <ElTableColumn :label="$t('auth.username')" prop="username" min-width="100">
                                 <template #default="scope">
                                     <div class="user-cell">
                                         <span>{{ scope.row.username }}</span>
                                     </div>
                                 </template>
                             </ElTableColumn>
-                            <ElTableColumn label="密码" prop="password" min-width="120">
+                            <ElTableColumn :label="$t('auth.password')" prop="password" min-width="120">
                                 <template #default="scope">
                                     <div class="password-cell">
 
@@ -83,7 +83,7 @@
                                     </div>
                                 </template>
                             </ElTableColumn>
-                            <el-table-column label="操作" width="120" fixed="right">
+                            <el-table-column :label="$t('auth.actions')" width="120" fixed="right">
                                 <template #default="scope">
                                     <div class="action-buttons">
                                         <el-button
@@ -95,7 +95,7 @@
                                             :disabled="isServerRunning"
                                         >
                                             <SvgIcon name="edit" :size="14" class="action-icon" />
-                                            编辑
+                                            {{ $t('auth.edit') }}
                                         </el-button>
                                         <el-button
                                             link
@@ -106,7 +106,7 @@
                                             :disabled="isServerRunning"
                                         >
                                             <SvgIcon name="delete" :size="14" class="action-icon" />
-                                            删除
+                                            {{ $t('auth.delete') }}
                                         </el-button>
                                     </div>
                                 </template>
@@ -117,36 +117,36 @@
                         <div class="color-legend">
                             <div class="legend-item">
                                 <span class="legend-color read-color"></span>
-                                <span>只读权限</span>
+                                <span>{{ $t('auth.readOnly') }}</span>
                             </div>
                             <div class="legend-item">
                                 <span class="legend-color write-color"></span>
-                                <span>读写权限</span>
+                                <span>{{ $t('auth.readWrite') }}</span>
                             </div>
                         </div>
 
                         <div v-if="tableData.length === 0" class="empty-state">
                             <SvgIcon name="users" :size="64" class="empty-icon" />
-                            <p class="empty-text">暂无用户数据</p>
-                            <p class="empty-hint">点击上方"添加用户"按钮创建新用户</p>
+                            <p class="empty-text">{{ $t('auth.noUsers') }}</p>
+                            <p class="empty-hint">{{ $t('auth.addUserHint') }}</p>
                         </div>
                     </div>
                 </div>
             </transition>
 
             <!-- 用户编辑抽屉 -->
-            <el-drawer 
-                v-model="drawer" 
-                :title="form.index !== undefined ? '编辑用户' : '添加用户'"
-                :direction="direction" 
+            <el-drawer
+                v-model="drawer"
+                :title="form.index !== undefined ? $t('auth.editUser') : $t('auth.addUser')"
+                :direction="direction"
                 size="400px"
                 class="user-drawer"
             >
                 <el-form :model="form" class="drawer-form" label-width="80px">
-                    <el-form-item label="用户名" class="drawer-form-item">
+                    <el-form-item :label="$t('auth.username')" class="drawer-form-item">
                         <el-input
                             v-model="form.username"
-                            placeholder="请输入用户名"
+                            :placeholder="$t('auth.usernamePlaceholder')"
                             class="ftp-input"
                         >
                             <template #prefix>
@@ -154,10 +154,10 @@
                             </template>
                         </el-input>
                     </el-form-item>
-                    <el-form-item label="密码" class="drawer-form-item">
+                    <el-form-item :label="$t('auth.password')" class="drawer-form-item">
                         <el-input
                             v-model="form.password"
-                            placeholder="请输入密码"
+                            :placeholder="$t('auth.passwordPlaceholder')"
                             class="ftp-input"
                         >
                             <template #prefix>
@@ -165,16 +165,16 @@
                             </template>
                         </el-input>
                     </el-form-item>
-                    <el-form-item label="权限" class="drawer-form-item">
+                    <el-form-item :label="$t('auth.permission')" class="drawer-form-item">
                         <el-radio-group v-model="form.fileAuth" size="large" class="drawer-permission-radio">
-                            <el-radio-button label="R">只读</el-radio-button>
-                            <el-radio-button label="W">读写</el-radio-button>
+                            <el-radio-button label="R">{{ $t('auth.readOnly') }}</el-radio-button>
+                            <el-radio-button label="W">{{ $t('auth.readWrite') }}</el-radio-button>
                         </el-radio-group>
                     </el-form-item>
                 </el-form>
                 <div class="drawer-footer">
-                    <ElButton @click="drawer = false" class="cancel-btn">取消</ElButton>
-                    <ElButton type="success" @click="saveForm" class="save-btn">保存</ElButton>
+                    <ElButton @click="drawer = false" class="cancel-btn">{{ $t('auth.cancel') }}</ElButton>
+                    <ElButton type="success" @click="saveForm" class="save-btn">{{ $t('auth.save') }}</ElButton>
                 </div>
             </el-drawer>
         </div>
@@ -183,6 +183,7 @@
 
 <script lang="ts" setup>
 import { onBeforeMount, onMounted, reactive, ref, nextTick, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
     ElSwitch, ElTable, ElTableColumn,
     ElButton, ElDrawer, DrawerProps, ElInput, ElMessage, ElMessageBox,
@@ -193,6 +194,8 @@ import type { TableColumnCtx } from 'element-plus'
 import store, { runtimeState } from '../store';
 import { SvgIcon } from '../components/icons';
 import { validateUser } from '../utils/validation';
+
+const { t } = useI18n()
 
 interface TableDataItem {
     username: string;
@@ -269,17 +272,17 @@ const editUser = (scope: TableScope) => {
 
 const deleteRow = (scope: TableScope) => {
     ElMessageBox.confirm(
-        `确定要删除用户 "${scope.row.username}" 吗？`,
-        '删除确认',
+        t('auth.deleteConfirm', { username: scope.row.username }),
+        t('auth.deleteTitle'),
         {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
+            confirmButtonText: t('auth.confirm'),
+            cancelButtonText: t('auth.cancel'),
             type: 'warning',
         }
     ).then(() => {
         tableData.value.splice(scope.$index, 1)
         store.set('tableData', tableData.value)
-        ElMessage.success('用户已删除')
+        ElMessage.success(t('auth.userDeleted'))
     }).catch(() => {
         // 用户取消删除
     })
@@ -319,10 +322,10 @@ const saveForm = () => {
     }
     try {
         store.set('tableData', tableData.value)
-        ElMessage.success(form.index !== undefined ? '用户已更新' : '用户已添加')
+        ElMessage.success(form.index !== undefined ? t('auth.userUpdated') : t('auth.userAdded'))
     } catch (e) {
         console.error('保存数据失败:', e)
-        ElMessage.error('保存数据失败')
+        ElMessage.error(t('auth.saveFailed'))
     }
 }
 

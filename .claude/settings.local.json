@@ -21,7 +21,8 @@
       "Bash(cargo search:*)",
       "Bash(yarn build:*)",
       "Bash(wc:*)",
-      "Bash(cargo build:*)"
+      "Bash(cargo build:*)",
+      "Bash(npm install:*)"
     ]
   }
 }

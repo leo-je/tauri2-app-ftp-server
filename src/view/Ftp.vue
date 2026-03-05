@@ -14,7 +14,7 @@
             <div :class="['status-section', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.1s;' : ''">
                 <div :class="['status-indicator', isStart ? 'running' : 'stopped']">
                     <span class="status-dot"></span>
-                    {{ isStart ? '运行中' : '已停止' }}
+                    {{ isStart ? $t('status.running') : $t('status.stopped') }}
                 </div>
             </div>
 
@@ -22,38 +22,38 @@
             <div :class="['config-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.2s;' : ''">
                 <div class="card-header">
                     <SvgIcon name="lock" :size="20" class="card-icon" />
-                    <span>服务器配置</span>
+                    <span>{{ $t('config.title') }}</span>
                 </div>
-                
+
                 <div class="form-section">
                     <div class="form-item">
                         <label class="form-label">
                             <SvgIcon name="folder" :size="16" class="label-icon" />
-                            共享目录
+                            {{ $t('config.shareDir') }}
                         </label>
                         <div class="input-group">
-                            <el-input 
-                                v-model="dirPath" 
-                                disabled 
-                                placeholder="请选择共享目录"
+                            <el-input
+                                v-model="dirPath"
+                                disabled
+                                :placeholder="$t('config.placeholder.dir')"
                                 class="ftp-input"
                             >
                                 <template #prefix>
                                     <SvgIcon name="folder" :size="16" />
                                 </template>
                             </el-input>
-                            <el-button 
+                            <el-button
                                 class="ftp-button ftp-button-primary"
-                                :disabled="isStart" 
+                                :disabled="isStart"
                                 @click="selectDir"
                             >
-                                选择
+                                {{ $t('config.select') }}
                             </el-button>
-                            <el-button 
+                            <el-button
                                 class="ftp-button"
                                 @click="openDir"
                             >
-                                打开
+                                {{ $t('config.open') }}
                             </el-button>
                         </div>
                     </div>
@@ -61,12 +61,12 @@
                     <div class="form-item">
                         <label class="form-label">
                             <SvgIcon name="terminal" :size="16" class="label-icon" />
-                            服务端口
+                            {{ $t('config.port') }}
                         </label>
-                        <el-input 
-                            :disabled="isStart" 
-                            v-model="port" 
-                            placeholder="21"
+                        <el-input
+                            :disabled="isStart"
+                            v-model="port"
+                            :placeholder="$t('config.placeholder.port')"
                             class="ftp-input"
                             type="number"
                         >
@@ -95,7 +95,7 @@
             <div
                 :class="['floating-btn', { 'is-running': isStart }]"
                 @click="startOrStopServer"
-                :title="isStart ? '停止服务' : '启动服务'"
+                :title="isStart ? $t('control.stopTooltip') : $t('control.startTooltip')"
             >
                 <SvgIcon name="plane" :size="28" class="plane-icon" />
             </div>
@@ -105,7 +105,7 @@
                 <div v-if="isStart" :class="['connection-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.4s;' : ''">
                     <div class="card-header">
                         <SvgIcon name="link" :size="20" class="card-icon" />
-                        <span>连接地址</span>
+                        <span>{{ $t('connection.title') }}</span>
                     </div>
                     <div class="connection-links">
                         <div
@@ -123,7 +123,7 @@
                     <!-- 运行时间 -->
                     <div class="run-time-section">
                         <SvgIcon name="clock" :size="18" class="time-icon" />
-                        <span class="run-time-label">运行时间</span>
+                        <span class="run-time-label">{{ $t('status.runtime') }}</span>
                         <span class="run-time-value">{{ runTime }}</span>
                     </div>
                 </div>
@@ -134,6 +134,7 @@
 
 <script setup lang="ts">
 import { onBeforeMount, onMounted, onUnmounted, ref, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
 import { ElButton, ElMessage, ElInput } from "element-plus";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from '@tauri-apps/plugin-dialog';
@@ -145,6 +146,8 @@ import { SvgIcon } from '../components/icons';
 import clipboard from "tauri-plugin-clipboard-api";
 import { runtimeState } from '../store';
 import { validatePath, validatePort } from '../utils/validation';
+
+const { t } = useI18n();
 
 const dirPath = ref('');
 const ips = ref(['127.0.0.1']);
@@ -231,12 +234,12 @@ const copy = async (ip: string) => {
     // 拼装地址放入剪贴板
     let address = `ftp://${ip}:${port.value}`;
     await clipboard.writeText(address);
-    ElMessage({ type: "success", message: '已复制到剪贴板' });
+    ElMessage({ type: "success", message: t('connection.copied') });
 };
 
 async function openDir() {
     if (!dirPath.value) {
-        ElMessage({ type: "warning", message: "未选择目录" });
+        ElMessage({ type: "warning", message: t('message.noDir') });
         return;
     }
     const osType = checkPlatform();
@@ -290,20 +293,20 @@ async function startFtpServer() {
 
         // 验证路径
         if (!dirPath.value) {
-            ElMessage({ type: "warning", message: "请选择路径" });
+            ElMessage({ type: "warning", message: t('message.selectPath') });
             return;
         }
 
         const pathValidation = validatePath(dirPath.value);
         if (!pathValidation.valid) {
-            ElMessage({ type: "error", message: pathValidation.error || "路径无效" });
+            ElMessage({ type: "error", message: pathValidation.error || t('message.pathInvalid') });
             return;
         }
 
         // 验证端口
         const portValidation = validatePort(port.value);
         if (!portValidation.valid) {
-            ElMessage({ type: "error", message: portValidation.error || "端口无效" });
+            ElMessage({ type: "error", message: portValidation.error || t('message.portInvalid') });
             return;
         }
 
