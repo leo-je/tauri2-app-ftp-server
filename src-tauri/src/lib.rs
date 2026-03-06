@@ -46,6 +46,12 @@ pub fn run() {
             invoke_command::start_ftp_server,
             invoke_command::stop_ftp_server,
             invoke_command::get_primary_ipv4,
+            invoke_command::get_system_info,
+            invoke_command::check_app_config,
+            invoke_command::check_permissions,
+            invoke_command::get_network_interfaces,
+            invoke_command::run_init_step,
+            invoke_command::get_init_status,
         ])
         // 初始化日志插件
         .plugin(

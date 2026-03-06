@@ -6,7 +6,36 @@ export default {
   splash: {
     welcome: 'Welcome to FTP Server',
     loading: 'Loading',
-    ready: 'Ready'
+    ready: 'Ready',
+    init: {
+      title: 'System Initialization',
+      systemCheck: 'System Check',
+      systemCheckDesc: 'Detecting OS and hardware environment',
+      configLoad: 'Configuration',
+      configLoadDesc: 'Loading application configuration',
+      serviceInit: 'Service Initialization',
+      serviceInitDesc: 'Initializing FTP service and network interfaces',
+      ready: 'Ready',
+      readyDesc: 'System initialization completed',
+    },
+    status: {
+      pending: 'Pending',
+      running: 'In Progress',
+      completed: 'Completed',
+      error: 'Error',
+    },
+    error: {
+      title: 'Initialization Failed',
+      retry: 'Retry',
+      skip: 'Skip',
+      unknownError: 'Unknown Error',
+    },
+    messages: {
+      checkingSystem: 'Checking system environment...',
+      loadingConfig: 'Loading configuration...',
+      initService: 'Initializing services...',
+      finalizing: 'Finalizing initialization...',
+    }
   },
   status: {
     running: 'Running',

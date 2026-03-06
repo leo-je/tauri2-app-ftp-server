@@ -6,7 +6,36 @@ export default {
   splash: {
     welcome: '欢迎使用 FTP Server',
     loading: '正在启动',
-    ready: '准备就绪'
+    ready: '准备就绪',
+    init: {
+      title: '系统初始化',
+      systemCheck: '系统检测',
+      systemCheckDesc: '检测操作系统和硬件环境',
+      configLoad: '配置加载',
+      configLoadDesc: '加载应用配置文件',
+      serviceInit: '服务初始化',
+      serviceInitDesc: '初始化 FTP 服务和网络接口',
+      ready: '准备就绪',
+      readyDesc: '系统初始化完成',
+    },
+    status: {
+      pending: '等待中',
+      running: '进行中',
+      completed: '已完成',
+      error: '错误',
+    },
+    error: {
+      title: '初始化失败',
+      retry: '重试',
+      skip: '跳过',
+      unknownError: '未知错误',
+    },
+    messages: {
+      checkingSystem: '正在检测系统环境...',
+      loadingConfig: '正在加载配置...',
+      initService: '正在初始化服务...',
+      finalizing: '正在完成初始化...',
+    }
   },
   status: {
     running: '运行中',

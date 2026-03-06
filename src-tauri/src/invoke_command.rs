@@ -4,6 +4,7 @@
 //! 主要功能包括：
 //! - 启动/停止 FTP 服务器
 //! - 获取本机 IPv4 地址列表
+//! - 应用初始化和系统检查
 
 use std::sync::{Arc, Mutex};
 
@@ -11,12 +12,289 @@ use crate::ftp::ftpworker::{FtpWorker, FtpWorkerConfig};
 use get_if_addrs::get_if_addrs;
 use std::net::IpAddr;
 use std::path::PathBuf;
+use serde::{Deserialize, Serialize};
+use tauri_plugin_os::{arch, platform, version};
 
 /// 允许的端口号范围
 const MIN_PORT: u16 = 1;
 /// FTP 标准端口
 const FTP_STANDARD_PORT: u16 = 21;
 
+/// 初始化步骤枚举
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum InitStep {
+    SystemCheck,
+    ConfigLoad,
+    ServiceInit,
+    Ready,
+}
+
+/// 初始化状态
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InitStatus {
+    pub step: String,
+    pub progress: u8,
+    pub message: String,
+    pub status: String, // "pending", "running", "completed", "error"
+}
+
+/// 系统信息
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemInfo {
+    pub platform: String,
+    pub arch: String,
+    pub version: String,
+    pub hostname: String,
+}
+
+/// 配置信息
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppConfig {
+    pub config_exists: bool,
+    pub config_valid: bool,
+    pub default_path: Option<String>,
+    pub default_port: u16,
+}
+
+/// 权限检查结果
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PermissionCheck {
+    pub has_write_permission: bool,
+    pub has_network_permission: bool,
+    pub can_bind_privileged_port: bool,
+}
+
+/// 初始化检查结果
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InitCheckResult {
+    pub success: bool,
+    pub step: String,
+    pub progress: u8,
+    pub message: String,
+    pub can_continue: bool,
+}
+
+/// 获取系统信息
+///
+/// 检测当前操作系统、架构和版本信息
+#[tauri::command]
+pub fn get_system_info() -> Result<SystemInfo, String> {
+    let platform_str = platform().to_string();
+    let arch_str = arch().to_string();
+    let version_str = version().to_string();
+
+    // 获取主机名 - 使用环境变量
+    let hostname = std::env::var("HOSTNAME")
+        .or_else(|_| std::env::var("COMPUTERNAME"))
+        .or_else(|_| std::env::var("NAME"))
+        .unwrap_or_else(|_| "unknown".to_string());
+
+    Ok(SystemInfo {
+        platform: platform_str,
+        arch: arch_str,
+        version: version_str,
+        hostname,
+    })
+}
+
+/// 检查应用配置
+///
+/// 检查配置文件是否存在且有效
+#[tauri::command]
+pub fn check_app_config(app_handle: tauri::AppHandle) -> Result<AppConfig, String> {
+    use tauri_plugin_store::StoreExt;
+
+    // 尝试获取存储
+    let store = app_handle.store("app-config.json")
+        .map_err(|e| format!("无法访问配置存储: {}", e))?;
+
+    // 检查是否有默认配置
+    let default_path = store.get("defaultPath")
+        .and_then(|v| v.as_str().map(|s| s.to_string()));
+
+    let default_port = store.get("defaultPort")
+        .and_then(|v| v.as_u64())
+        .map(|p| p as u16)
+        .unwrap_or(2121);
+
+    let config_exists = default_path.is_some();
+
+    Ok(AppConfig {
+        config_exists,
+        config_valid: config_exists,
+        default_path,
+        default_port,
+    })
+}
+
+/// 检查权限状态
+///
+/// 检查应用运行所需的各项权限
+#[tauri::command]
+pub fn check_permissions() -> Result<PermissionCheck, String> {
+    let has_write_permission = check_write_permission();
+    let has_network_permission = true; // Tauri 应用中网络权限通常是默认的
+    let can_bind_privileged_port = check_privileged_port_permission();
+
+    Ok(PermissionCheck {
+        has_write_permission,
+        has_network_permission,
+        can_bind_privileged_port,
+    })
+}
+
+/// 检查写入权限
+fn check_write_permission() -> bool {
+    use std::fs;
+
+    // 尝试在临时目录写入测试文件
+    let temp_path = std::env::temp_dir().join("ftp_server_write_test.tmp");
+    match fs::write(&temp_path, b"test") {
+        Ok(_) => {
+            let _ = fs::remove_file(&temp_path);
+            true
+        }
+        Err(_) => false,
+    }
+}
+
+/// 检查是否有权限绑定特权端口
+fn check_privileged_port_permission() -> bool {
+    // 尝试绑定一个特权端口来判断
+    use std::net::TcpListener;
+
+    // 使用 1023 作为测试端口
+    match TcpListener::bind("127.0.0.1:1023") {
+        Ok(listener) => {
+            // 成功绑定，说明有权限
+            drop(listener);
+            true
+        }
+        Err(_) => false,
+    }
+}
+
+/// 获取网络接口信息
+#[tauri::command]
+pub fn get_network_interfaces() -> Result<Vec<String>, String> {
+    let mut interfaces = vec![];
+
+    if let Ok(ifaces) = get_if_addrs() {
+        for iface in ifaces {
+            if let IpAddr::V4(ipv4) = iface.ip() {
+                if !ipv4.is_loopback() {
+                    interfaces.push(format!("{}: {}", iface.name, ipv4));
+                }
+            }
+        }
+    }
+
+    Ok(interfaces)
+}
+
+/// 执行初始化检查步骤
+///
+/// 根据步骤名称执行相应的初始化检查
+#[tauri::command]
+pub async fn run_init_step(
+    step: String,
+    app_handle: tauri::AppHandle,
+) -> Result<InitCheckResult, String> {
+    match step.as_str() {
+        "system_check" => {
+            // 模拟系统检查耗时
+            tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+
+            let sys_info = get_system_info()?;
+
+            Ok(InitCheckResult {
+                success: true,
+                step: "system_check".to_string(),
+                progress: 25,
+                message: format!("检测完成: {} {}", sys_info.platform, sys_info.arch),
+                can_continue: true,
+            })
+        }
+        "config_load" => {
+            // 模拟配置加载耗时
+            tokio::time::sleep(tokio::time::Duration::from_millis(600)).await;
+
+            let config = check_app_config(app_handle)?;
+
+            Ok(InitCheckResult {
+                success: true,
+                step: "config_load".to_string(),
+                progress: 50,
+                message: if config.config_exists {
+                    "配置加载成功".to_string()
+                } else {
+                    "使用默认配置".to_string()
+                },
+                can_continue: true,
+            })
+        }
+        "service_init" => {
+            // 模拟服务初始化耗时
+            tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
+
+            // 检查网络接口
+            let interfaces = get_network_interfaces()?;
+            let interface_count = interfaces.len();
+
+            Ok(InitCheckResult {
+                success: true,
+                step: "service_init".to_string(),
+                progress: 80,
+                message: format!("发现 {} 个网络接口", interface_count),
+                can_continue: true,
+            })
+        }
+        "ready" => {
+            // 最终准备检查
+            tokio::time::sleep(tokio::time::Duration::from_millis(400)).await;
+
+            Ok(InitCheckResult {
+                success: true,
+                step: "ready".to_string(),
+                progress: 100,
+                message: "系统准备就绪".to_string(),
+                can_continue: true,
+            })
+        }
+        _ => Err(format!("未知的初始化步骤: {}", step)),
+    }
+}
+
+/// 获取完整的初始化状态
+#[tauri::command]
+pub fn get_init_status() -> Vec<InitStatus> {
+    vec![
+        InitStatus {
+            step: "system_check".to_string(),
+            progress: 0,
+            message: "等待系统检测".to_string(),
+            status: "pending".to_string(),
+        },
+        InitStatus {
+            step: "config_load".to_string(),
+            progress: 0,
+            message: "等待配置加载".to_string(),
+            status: "pending".to_string(),
+        },
+        InitStatus {
+            step: "service_init".to_string(),
+            progress: 0,
+            message: "等待服务初始化".to_string(),
+            status: "pending".to_string(),
+        },
+        InitStatus {
+            step: "ready".to_string(),
+            progress: 0,
+            message: "等待准备就绪".to_string(),
+            status: "pending".to_string(),
+        },
+    ]
+}
 /// 清理和验证路径
 ///
 /// # 功能

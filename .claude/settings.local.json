@@ -29,7 +29,12 @@
       "Bash(uv pip:*)",
       "Bash(npx:*)",
       "Bash(pip show:*)",
-      "Bash(/usr/local/opt/python@3.11/bin/python3.11:*)"
+      "Bash(/usr/local/opt/python@3.11/bin/python3.11:*)",
+      "Bash(echo:*)",
+      "Bash(curl:*)",
+      "mcp__memory__search_nodes",
+      "mcp__filesystem__list_directory",
+      "mcp__filesystem__directory_tree"
     ]
   }
 }
