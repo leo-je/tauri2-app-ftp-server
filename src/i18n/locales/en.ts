@@ -3,6 +3,11 @@ export default {
     title: 'FTP Server',
     name: 'FTP Server'
   },
+  splash: {
+    welcome: 'Welcome to FTP Server',
+    loading: 'Loading',
+    ready: 'Ready'
+  },
   status: {
     running: 'Running',
     stopped: 'Stopped',

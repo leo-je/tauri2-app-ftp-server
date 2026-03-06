@@ -22,7 +22,14 @@
       "Bash(yarn build:*)",
       "Bash(wc:*)",
       "Bash(cargo build:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(claude mcp:*)",
+      "Bash(uvx:*)",
+      "Bash(uv:*)",
+      "Bash(uv pip:*)",
+      "Bash(npx:*)",
+      "Bash(pip show:*)",
+      "Bash(/usr/local/opt/python@3.11/bin/python3.11:*)"
     ]
   }
 }

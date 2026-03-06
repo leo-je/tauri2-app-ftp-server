@@ -57,8 +57,8 @@ onMounted(async () => {
   isMacos.value = await platform() === 'macos';
 });
 
-function disableContextMenu(event: MouseEvent) {
-  event.preventDefault();
+function disableContextMenu() {
+  //event.preventDefault();
 }
 
 const minimizeWindow = () => {

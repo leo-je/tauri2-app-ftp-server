@@ -3,6 +3,11 @@ export default {
     title: 'FTP Server',
     name: 'FTP 服务器'
   },
+  splash: {
+    welcome: '欢迎使用 FTP Server',
+    loading: '正在启动',
+    ready: '准备就绪'
+  },
   status: {
     running: '运行中',
     stopped: '已停止',
