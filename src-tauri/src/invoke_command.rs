@@ -14,6 +14,7 @@ use std::net::IpAddr;
 use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use tauri_plugin_os::{arch, platform, version};
+use rand::Rng;
 
 /// 允许的端口号范围
 const MIN_PORT: u16 = 1;
@@ -27,6 +28,23 @@ pub enum InitStep {
     ConfigLoad,
     ServiceInit,
     Ready,
+}
+
+/// 初始化步骤请求
+#[derive(Debug, Deserialize)]
+pub struct InitStepRequest {
+    pub step: String,
+}
+
+/// 初始化步骤响应
+#[derive(Debug, Serialize)]
+pub struct InitStepResponse {
+    pub success: bool,
+    pub step: String,
+    pub progress: u8,
+    pub message: String,
+    pub can_continue: bool,
+    pub estimated_time_ms: Option<u32>,
 }
 
 /// 初始化状态
@@ -72,6 +90,7 @@ pub struct InitCheckResult {
     pub progress: u8,
     pub message: String,
     pub can_continue: bool,
+    pub estimated_time_ms: Option<u32>,
 }
 
 /// 获取系统信息
@@ -202,8 +221,9 @@ pub async fn run_init_step(
 ) -> Result<InitCheckResult, String> {
     match step.as_str() {
         "system_check" => {
-            // 模拟系统检查耗时
-            tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+            // 随机睡眠 500-800ms
+            let sleep_ms = rand::random::<u64>() % 301 + 500;
+            tokio::time::sleep(tokio::time::Duration::from_millis(sleep_ms)).await;
 
             let sys_info = get_system_info()?;
 
@@ -213,11 +233,13 @@ pub async fn run_init_step(
                 progress: 25,
                 message: format!("检测完成: {} {}", sys_info.platform, sys_info.arch),
                 can_continue: true,
+                estimated_time_ms: None,
             })
         }
         "config_load" => {
-            // 模拟配置加载耗时
-            tokio::time::sleep(tokio::time::Duration::from_millis(600)).await;
+            // 随机睡眠 300-500ms
+            let sleep_ms = rand::random::<u64>() % 201 + 300;
+            tokio::time::sleep(tokio::time::Duration::from_millis(sleep_ms)).await;
 
             let config = check_app_config(app_handle)?;
 
@@ -231,11 +253,13 @@ pub async fn run_init_step(
                     "使用默认配置".to_string()
                 },
                 can_continue: true,
+                estimated_time_ms: None,
             })
         }
         "service_init" => {
-            // 模拟服务初始化耗时
-            tokio::time::sleep(tokio::time::Duration::from_millis(800)).await;
+            // 随机睡眠 800-1200ms
+            let sleep_ms = rand::random::<u64>() % 401 + 800;
+            tokio::time::sleep(tokio::time::Duration::from_millis(sleep_ms)).await;
 
             // 检查网络接口
             let interfaces = get_network_interfaces()?;
@@ -244,14 +268,16 @@ pub async fn run_init_step(
             Ok(InitCheckResult {
                 success: true,
                 step: "service_init".to_string(),
-                progress: 80,
+                progress: 75,
                 message: format!("发现 {} 个网络接口", interface_count),
                 can_continue: true,
+                estimated_time_ms: None,
             })
         }
         "ready" => {
-            // 最终准备检查
-            tokio::time::sleep(tokio::time::Duration::from_millis(400)).await;
+            // 随机睡眠 200-300ms
+            let sleep_ms = rand::random::<u64>() % 101 + 200;
+            tokio::time::sleep(tokio::time::Duration::from_millis(sleep_ms)).await;
 
             Ok(InitCheckResult {
                 success: true,
@@ -259,6 +285,7 @@ pub async fn run_init_step(
                 progress: 100,
                 message: "系统准备就绪".to_string(),
                 can_continue: true,
+                estimated_time_ms: None,
             })
         }
         _ => Err(format!("未知的初始化步骤: {}", step)),
