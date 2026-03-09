@@ -1,0 +1,117 @@
+export default {
+  app: {
+    title: 'FTP Server',
+    name: 'FTP サーバー'
+  },
+  splash: {
+    welcome: 'FTP Server へようこそ',
+    loading: '起動中',
+    ready: '準備完了',
+    init: {
+      title: 'システム初期化',
+      systemCheck: 'システムチェック',
+      systemCheckDesc: 'OSとハードウェア環境を検出中',
+      configLoad: '設定読み込み',
+      configLoadDesc: 'アプリケーション設定を読み込み中',
+      serviceInit: 'サービス初期化',
+      serviceInitDesc: 'FTPサービスとネットワークインターフェースを初期化中',
+      ready: '準備完了',
+      readyDesc: 'システム初期化が完了しました',
+    },
+    status: {
+      pending: '待機中',
+      running: '進行中',
+      completed: '完了',
+      error: 'エラー',
+    },
+    error: {
+      title: '初期化失敗',
+      retry: '再試行',
+      skip: 'スキップ',
+      unknownError: '不明なエラー',
+    },
+    messages: {
+      checkingSystem: 'システム環境をチェック中...',
+      loadingConfig: '設定を読み込み中...',
+      initService: 'サービスを初期化中...',
+      finalizing: '初期化を完了中...',
+      systemCheckComplete: 'チェック完了: {0} {1}',
+      configLoaded: '設定を読み込みました',
+      usingDefaultConfig: 'デフォルト設定を使用',
+      interfacesFound: '{0} 個のネットワークインターフェースを発見',
+      systemReady: 'システム準備完了'
+    }
+  },
+  status: {
+    running: '実行中',
+    stopped: '停止',
+    runtime: '実行時間'
+  },
+  config: {
+    title: 'サーバー設定',
+    shareDir: '共有ディレクトリ',
+    port: 'サービスポート',
+    select: '選択',
+    open: '開く',
+    placeholder: {
+      dir: '共有ディレクトリを選択してください',
+      port: '21'
+    }
+  },
+  connection: {
+    title: '接続アドレス',
+    copied: 'クリップボードにコピーしました'
+  },
+  control: {
+    start: 'サービス開始',
+    stop: 'サービス停止',
+    startTooltip: 'サービス開始',
+    stopTooltip: 'サービス停止'
+  },
+  message: {
+    selectPath: 'パスを選択してください',
+    noDir: 'ディレクトリが選択されていません',
+    pathInvalid: '無効なパス',
+    portInvalid: '無効なポート'
+  },
+  language: {
+    title: '言語',
+    zh: '中文',
+    en: 'English',
+    ja: '日本語',
+    th: 'ไทย'
+  },
+  tabs: {
+    server: 'サーバー',
+    auth: '権限設定'
+  },
+  auth: {
+    serverRunning: 'サービス実行中、権限設定はロックされています',
+    anonymous: '匿名アクセス',
+    anonymousDesc: '認証なしでアクセス可能',
+    readOnly: '読み取り専用',
+    readWrite: '読み書き',
+    userList: 'ユーザーリスト',
+    addUser: 'ユーザーを追加',
+    username: 'ユーザー名',
+    password: 'パスワード',
+    actions: '操作',
+    edit: '編集',
+    delete: '削除',
+    noUsers: 'ユーザーがいません',
+    addUserHint: '上の「ユーザーを追加」ボタンをクリックして新規ユーザーを作成',
+    editUser: 'ユーザーを編集',
+    usernamePlaceholder: 'ユーザー名を入力',
+    passwordPlaceholder: 'パスワードを入力',
+    permission: '権限',
+    cancel: 'キャンセル',
+    save: '保存',
+    deleteConfirm: 'ユーザー「{username}」を削除してもよろしいですか？',
+    deleteTitle: '削除確認',
+    confirm: '確認',
+    userDeleted: 'ユーザーを削除しました',
+    userUpdated: 'ユーザーを更新しました',
+    userAdded: 'ユーザーを追加しました',
+    saveFailed: 'データの保存に失敗しました'
+  }
+}

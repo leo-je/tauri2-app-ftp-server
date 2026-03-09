@@ -35,6 +35,11 @@ export default {
       loadingConfig: '正在加载配置...',
       initService: '正在初始化服务...',
       finalizing: '正在完成初始化...',
+      systemCheckComplete: '检测完成: {0} {1}',
+      configLoaded: '配置加载成功',
+      usingDefaultConfig: '使用默认配置',
+      interfacesFound: '发现 {0} 个网络接口',
+      systemReady: '系统准备就绪'
     }
   },
   status: {
@@ -72,7 +77,9 @@ export default {
   language: {
     title: '语言',
     zh: '中文',
-    en: 'English'
+    en: 'English',
+    ja: '日本語',
+    th: 'ไทย'
   },
   tabs: {
     server: '服务器',

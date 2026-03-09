@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { InitStep, InitStepType, createInitSteps } from '../types';
 
 export interface UseInitializationOptions {
-  t: (key: string) => string;
+  t: (key: string, params?: string[]) => string;
   onComplete?: () => void;
   onError?: (message: string) => void;
 }
@@ -58,13 +58,20 @@ export function useInitialization(options: UseInitializationOptions): UseInitial
         step: string;
         progress: number;
         message: string;
+        message_key: string;
+        message_params: string[];
         can_continue: boolean;
       }>('run_init_step', { step: step.id });
 
       if (result.success) {
         step.status = 'completed';
         step.progress = result.progress;
-        step.message = result.message;
+        // 使用 message_key 进行翻译，如果有参数则传递参数
+        if (result.message_key) {
+          step.message = t(result.message_key, result.message_params);
+        } else {
+          step.message = result.message;
+        }
         return true;
       } else {
         throw new Error(result.message);

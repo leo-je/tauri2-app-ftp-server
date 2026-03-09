@@ -14,7 +14,6 @@ use std::net::IpAddr;
 use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use tauri_plugin_os::{arch, platform, version};
-use rand::Rng;
 
 /// 允许的端口号范围
 const MIN_PORT: u16 = 1;
@@ -89,6 +88,8 @@ pub struct InitCheckResult {
     pub step: String,
     pub progress: u8,
     pub message: String,
+    pub message_key: String,
+    pub message_params: Vec<String>,
     pub can_continue: bool,
     pub estimated_time_ms: Option<u32>,
 }
@@ -231,7 +232,9 @@ pub async fn run_init_step(
                 success: true,
                 step: "system_check".to_string(),
                 progress: 25,
-                message: format!("检测完成: {} {}", sys_info.platform, sys_info.arch),
+                message: format!("{} {}", sys_info.platform, sys_info.arch),
+                message_key: "splash.messages.systemCheckComplete".to_string(),
+                message_params: vec![sys_info.platform, sys_info.arch],
                 can_continue: true,
                 estimated_time_ms: None,
             })
@@ -243,15 +246,19 @@ pub async fn run_init_step(
 
             let config = check_app_config(app_handle)?;
 
+            let (message_key, message) = if config.config_exists {
+                ("splash.messages.configLoaded", "Config loaded".to_string())
+            } else {
+                ("splash.messages.usingDefaultConfig", "Using default config".to_string())
+            };
+
             Ok(InitCheckResult {
                 success: true,
                 step: "config_load".to_string(),
                 progress: 50,
-                message: if config.config_exists {
-                    "配置加载成功".to_string()
-                } else {
-                    "使用默认配置".to_string()
-                },
+                message,
+                message_key: message_key.to_string(),
+                message_params: vec![],
                 can_continue: true,
                 estimated_time_ms: None,
             })
@@ -263,13 +270,15 @@ pub async fn run_init_step(
 
             // 检查网络接口
             let interfaces = get_network_interfaces()?;
-            let interface_count = interfaces.len();
+            let interface_count = interfaces.len().to_string();
 
             Ok(InitCheckResult {
                 success: true,
                 step: "service_init".to_string(),
                 progress: 75,
-                message: format!("发现 {} 个网络接口", interface_count),
+                message: format!("Found {} interfaces", interface_count),
+                message_key: "splash.messages.interfacesFound".to_string(),
+                message_params: vec![interface_count],
                 can_continue: true,
                 estimated_time_ms: None,
             })
@@ -283,7 +292,9 @@ pub async fn run_init_step(
                 success: true,
                 step: "ready".to_string(),
                 progress: 100,
-                message: "系统准备就绪".to_string(),
+                message: "System ready".to_string(),
+                message_key: "splash.messages.systemReady".to_string(),
+                message_params: vec![],
                 can_continue: true,
                 estimated_time_ms: None,
             })

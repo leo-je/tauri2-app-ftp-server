@@ -35,6 +35,11 @@ export default {
       loadingConfig: 'Loading configuration...',
       initService: 'Initializing services...',
       finalizing: 'Finalizing initialization...',
+      systemCheckComplete: 'Check complete: {0} {1}',
+      configLoaded: 'Config loaded',
+      usingDefaultConfig: 'Using default config',
+      interfacesFound: 'Found {0} network interfaces',
+      systemReady: 'System ready'
     }
   },
   status: {
@@ -72,7 +77,9 @@ export default {
   language: {
     title: 'Language',
     zh: '中文',
-    en: 'English'
+    en: 'English',
+    ja: '日本語',
+    th: 'ไทย'
   },
   tabs: {
     server: 'Server',
