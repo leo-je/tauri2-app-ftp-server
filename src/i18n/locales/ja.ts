@@ -83,7 +83,8 @@ export default {
   },
   tabs: {
     server: 'サーバー',
-    auth: '権限設定'
+    auth: '権限設定',
+    about: 'について'
   },
   auth: {
     serverRunning: 'サービス実行中、権限設定はロックされています',
@@ -113,5 +114,24 @@ export default {
     userUpdated: 'ユーザーを更新しました',
     userAdded: 'ユーザーを追加しました',
     saveFailed: 'データの保存に失敗しました'
+  },
+  about: {
+    appName: 'FTP サーバー',
+    description: 'Tauri 2.0 で構築された軽量でクロスプラットフォームな FTP サーバー管理ツール。モダンなユーザーインターフェースを備え、迅速なデプロイと安全なファイル転送サービスを提供します。',
+    techStack: '技術スタック',
+    features: '主な機能',
+    featureList: {
+      lightweight: '軽量設計でメモリ使用量が少ない',
+      crossPlatform: 'Windows、macOS、Linux に対応',
+      secure: 'ユーザー権限管理で安全・信頼性が高い',
+      easyToUse: 'シンプルで直感的なユーザーインターフェース',
+      modern: 'モダンな技術スタックとデザイン哲学'
+    },
+    links: {
+      github: 'GitHub リポジトリ',
+      documentation: 'ドキュメント'
+    },
+    copyright: '© 2024 FTP Server. All rights reserved.',
+    license: 'Apache 2.0 ライセンスでオープンソース'
   }
 }

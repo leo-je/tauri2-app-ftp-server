@@ -83,7 +83,8 @@ export default {
   },
   tabs: {
     server: 'เซิร์ฟเวอร์',
-    auth: 'การตั้งค่าสิทธิ์'
+    auth: 'การตั้งค่าสิทธิ์',
+    about: 'เกี่ยวกับ'
   },
   auth: {
     serverRunning: 'บริการกำลังทำงาน การตั้งค่าสิทธิ์ถูกล็อก',
@@ -113,5 +114,24 @@ export default {
     userUpdated: 'อัปเดตผู้ใช้แล้ว',
     userAdded: 'เพิ่มผู้ใช้แล้ว',
     saveFailed: 'บันทึกข้อมูลล้มเหลว'
+  },
+  about: {
+    appName: 'FTP เซิร์ฟเวอร์',
+    description: 'เครื่องมือจัดการเซิร์ฟเวอร์ FTP ข้ามแพลตฟอร์มที่เบาและสร้างด้วย Tauri 2.0 มีอินเทอร์เฟซผู้ใช้ที่ทันสมัยสำหรับการปรับใช้ที่รวดเร็วและบริการถ่ายโอนไฟล์ที่ปลอดภัย',
+    techStack: 'เทคโนโลยีที่ใช้',
+    features: 'คุณสมบัติหลัก',
+    featureList: {
+      lightweight: 'การออกแบบที่เบาและใช้หน่วยความจำต่ำ',
+      crossPlatform: 'รองรับข้ามแพลตฟอร์มสำหรับ Windows, macOS, Linux',
+      secure: 'ปลอดภัยและเชื่อถือได้ด้วยการจัดการสิทธิ์ผู้ใช้',
+      easyToUse: 'อินเทอร์เฟซผู้ใช้ที่สะอาดและใช้งานง่าย',
+      modern: 'เทคโนโลยีและปรัชญาการออกแบบที่ทันสมัย'
+    },
+    links: {
+      github: 'ที่เก็บ GitHub',
+      documentation: 'เอกสารประกอบ'
+    },
+    copyright: '© 2024 FTP Server. All rights reserved.',
+    license: 'โอเพนซอร์สภายใต้ Apache 2.0 License'
   }
 }

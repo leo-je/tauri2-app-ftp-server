@@ -39,7 +39,8 @@
       "mcp__filesystem__write_file",
       "Bash(tasklist:*)",
       "Bash(cat:*)",
-      "mcp__plugin_oh-my-claudecode_t__state_list_active"
+      "mcp__plugin_oh-my-claudecode_t__state_list_active",
+      "mcp__plugin_oh-my-claudecode_t__lsp_diagnostics"
     ]
   }
 }

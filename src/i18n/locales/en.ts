@@ -83,7 +83,8 @@ export default {
   },
   tabs: {
     server: 'Server',
-    auth: 'Permissions'
+    auth: 'Permissions',
+    about: 'About'
   },
   auth: {
     serverRunning: 'Server is running, settings are locked',
@@ -113,5 +114,43 @@ export default {
     userUpdated: 'User updated',
     userAdded: 'User added',
     saveFailed: 'Failed to save data'
+  },
+  about: {
+    appName: 'FTP Server',
+    version: 'Version',
+    clickToCopy: 'Click to copy version',
+    versionCopied: 'Version copied',
+    developer: 'Developer',
+    developerName: 'FTP Server Team',
+    description: 'A lightweight, cross-platform FTP server management tool built with Tauri 2.0. Featuring a modern user interface for quick deployment and secure file transfer services.',
+    techStack: 'Tech Stack',
+    features: 'Key Features',
+    featuresList: {
+      crossPlatform: {
+        title: 'Cross-Platform',
+        desc: 'Supports Windows, macOS, and Linux'
+      },
+      easyConfig: {
+        title: 'Easy Configuration',
+        desc: 'Intuitive interface for quick FTP setup'
+      },
+      permissionControl: {
+        title: 'Permission Control',
+        desc: 'Flexible user permissions and anonymous access'
+      },
+      realtime: {
+        title: 'Real-time Monitoring',
+        desc: 'Track service status and runtime'
+      }
+    },
+    linksSection: 'Links',
+    links: {
+      github: 'GitHub',
+      documentation: 'Documentation',
+      feedback: 'Feedback',
+      changelog: 'Changelog'
+    },
+    copyright: 'Copyright © 2024 FTP Server Team',
+    rights: 'All rights reserved'
   }
 }
