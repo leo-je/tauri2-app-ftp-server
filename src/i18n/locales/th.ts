@@ -72,7 +72,17 @@ export default {
     selectPath: 'กรุณาเลือกเส้นทาง',
     noDir: 'ยังไม่ได้เลือกไดเรกทอรี',
     pathInvalid: 'เส้นทางไม่ถูกต้อง',
-    portInvalid: 'พอร์ตไม่ถูกต้อง'
+    portInvalid: 'พอร์ตไม่ถูกต้อง',
+    serviceStarted: 'บริการเริ่มแล้ว',
+    serviceStopped: 'บริการหยุดแล้ว',
+    serviceStartFailed: 'การเริ่มต้นบริการล้มเหลว',
+    serviceStopFailed: 'การหยุดบริการล้มเหลว'
+  },
+  validation: {
+    portWarning: {
+      privilegedPort: 'การใช้พอร์ตพิเศษ {port} อาจต้องการสิทธิ์ผู้ดูแลระบบ',
+      ftpStandardPort: 'การใช้พอร์ต FTP มาตรฐาน 21 อาจต้องการสิทธิ์ผู้ดูแลระบบ'
+    }
   },
   language: {
     title: 'ภาษา',

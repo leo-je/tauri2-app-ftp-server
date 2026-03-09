@@ -72,7 +72,17 @@ export default {
     selectPath: '请选择路径',
     noDir: '未选择目录',
     pathInvalid: '路径无效',
-    portInvalid: '端口无效'
+    portInvalid: '端口无效',
+    serviceStarted: '服务已启动',
+    serviceStopped: '服务已停止',
+    serviceStartFailed: '服务启动失败',
+    serviceStopFailed: '服务停止失败'
+  },
+  validation: {
+    portWarning: {
+      privilegedPort: '使用特权端口 {port} 可能需要管理员权限',
+      ftpStandardPort: '使用标准 FTP 端口 21 可能需要管理员权限'
+    }
   },
   language: {
     title: '语言',

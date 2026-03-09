@@ -39,7 +39,7 @@ export function validatePath(path: string): { valid: boolean; error?: string } {
  * @param port - 待验证的端口号
  * @returns 验证结果和错误消息
  */
-export function validatePort(port: number | string): { valid: boolean; error?: string; warning?: string } {
+export function validatePort(port: number | string): { valid: boolean; error?: string; warning?: string; warningKey?: string; warningParams?: Record<string, string> } {
   // 转换为数字
   const portNum = typeof port === 'string' ? parseInt(port.trim(), 10) : port;
 
@@ -55,16 +55,25 @@ export function validatePort(port: number | string): { valid: boolean; error?: s
 
   // 警告信息
   const warnings: string[] = [];
+  const warningKeys: string[] = [];
+  const warningParams: Record<string, string>[] = [];
+
   if (portNum === 21) {
     warnings.push('使用标准 FTP 端口 21 可能需要管理员权限');
+    warningKeys.push('validation.portWarning.ftpStandardPort');
+    warningParams.push({});
   }
   if (portNum < 1024) {
     warnings.push(`使用特权端口 ${portNum} 可能需要管理员权限`);
+    warningKeys.push('validation.portWarning.privilegedPort');
+    warningParams.push({ port: portNum.toString() });
   }
 
   return {
     valid: true,
-    warning: warnings.length > 0 ? warnings.join('；') : undefined
+    warning: warnings.length > 0 ? warnings.join('；') : undefined,
+    warningKey: warningKeys.length > 0 ? warningKeys[0] : undefined,
+    warningParams: warningParams.length > 0 ? warningParams[0] : undefined
   };
 }
 

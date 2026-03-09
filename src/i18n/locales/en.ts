@@ -72,7 +72,17 @@ export default {
     selectPath: 'Please select a path',
     noDir: 'No directory selected',
     pathInvalid: 'Invalid path',
-    portInvalid: 'Invalid port'
+    portInvalid: 'Invalid port',
+    serviceStarted: 'Service started',
+    serviceStopped: 'Service stopped',
+    serviceStartFailed: 'Failed to start service',
+    serviceStopFailed: 'Failed to stop service'
+  },
+  validation: {
+    portWarning: {
+      privilegedPort: 'Using privileged port {port} may require administrator privileges',
+      ftpStandardPort: 'Using standard FTP port 21 may require administrator privileges'
+    }
   },
   language: {
     title: 'Language',

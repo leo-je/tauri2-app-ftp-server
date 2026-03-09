@@ -72,7 +72,17 @@ export default {
     selectPath: 'パスを選択してください',
     noDir: 'ディレクトリが選択されていません',
     pathInvalid: '無効なパス',
-    portInvalid: '無効なポート'
+    portInvalid: '無効なポート',
+    serviceStarted: 'サービスが開始されました',
+    serviceStopped: 'サービスが停止しました',
+    serviceStartFailed: 'サービスの開始に失敗しました',
+    serviceStopFailed: 'サービスの停止に失敗しました'
+  },
+  validation: {
+    portWarning: {
+      privilegedPort: '特権ポート {port} の使用には管理者権限が必要になる場合があります',
+      ftpStandardPort: '標準 FTP ポート 21 の使用には管理者権限が必要になる場合があります'
+    }
   },
   language: {
     title: '言語',

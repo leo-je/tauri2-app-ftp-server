@@ -265,13 +265,13 @@ function startOrStopServer() {
 
 async function stopFtpServer() {
     try {
-        const result = await invoke('stop_ftp_server', {}) || '';
-        ElMessage({ type: "success", message: result.toString() });
+        const result = await invoke('stop_ftp_server', {});
+        ElMessage({ type: "success", message: t('message.serviceStopped') });
         isStart.value = false;
         runtimeState.isServerRunning.value = false;
         stopRunTimer();
     } catch (e) {
-        ElMessage({ type: "error", message: e ? e.toString() : "未知错误" });
+        ElMessage({ type: "error", message: t('message.serviceStopFailed') });
     }
 }
 
@@ -311,8 +311,11 @@ async function startFtpServer() {
         }
 
         // 显示端口警告
-        if (portValidation.warning) {
-            ElMessage({ type: "warning", message: portValidation.warning, duration: 5000 });
+        if (portValidation.warningKey) {
+            const warningMessage = portValidation.warningParams
+                ? t(portValidation.warningKey, portValidation.warningParams)
+                : t(portValidation.warningKey);
+            ElMessage({ type: "warning", message: warningMessage, duration: 5000 });
         }
 
         logl("invoke-'start_ftp_server'");
@@ -326,13 +329,13 @@ async function startFtpServer() {
             users: JSON.stringify(users),
             isAnonymous,
             fileAuth
-        }) || '';
-        ElMessage({ type: "success", message: result.toString() });
+        });
+        ElMessage({ type: "success", message: t('message.serviceStarted') });
         isStart.value = true;
         runtimeState.isServerRunning.value = true;
         startRunTimer();
     } catch (e) {
-        ElMessage({ type: "error", message: e ? e.toString() : "未知错误" });
+        ElMessage({ type: "error", message: t('message.serviceStartFailed') });
     }
 }
 
