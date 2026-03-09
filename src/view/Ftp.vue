@@ -265,7 +265,7 @@ function startOrStopServer() {
 
 async function stopFtpServer() {
     try {
-        const result = await invoke('stop_ftp_server', {});
+        await invoke('stop_ftp_server', {});
         ElMessage({ type: "success", message: t('message.serviceStopped') });
         isStart.value = false;
         runtimeState.isServerRunning.value = false;
@@ -323,7 +323,7 @@ async function startFtpServer() {
         const isAnonymous = await store.get('isAnonymous') || false;
         let fileAuth = await store.get('fileauth') || 'R';
 
-        const result = await invoke('start_ftp_server', {
+        await invoke('start_ftp_server', {
             path: dirPath.value,
             port: port.value.toString(),
             users: JSON.stringify(users),

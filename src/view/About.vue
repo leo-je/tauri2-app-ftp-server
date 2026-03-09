@@ -100,7 +100,6 @@ import { ref, onMounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ElMessage } from 'element-plus';
 import { getVersion } from '@tauri-apps/api/app';
-import { openUrl } from '@tauri-apps/plugin-opener';
 import AppLogo from '../components/AppLogo.vue';
 import { SvgIcon, type IconName } from '../components/icons';
 import clipboard from 'tauri-plugin-clipboard-api';
@@ -137,22 +136,6 @@ const techStack = ref<Array<{ name: string; version: string; icon: IconName; gra
   }
 ]);
 
-// Features data
-const featuresData = ref<Record<string, { icon: IconName }>>({
-  crossPlatform: { icon: 'global' },
-  easyConfig: { icon: 'link' },
-  permissionControl: { icon: 'lock' },
-  realtime: { icon: 'clock' }
-});
-
-// Links data
-const links = ref<Array<{ name: string; icon: IconName; url: string }>>([
-  { name: 'github', icon: 'link', url: 'https://github.com/your-repo/ftp-server' },
-  { name: 'documentation', icon: 'link', url: 'https://github.com/your-repo/ftp-server#readme' },
-  { name: 'feedback', icon: 'link', url: 'https://github.com/your-repo/ftp-server/issues' },
-  { name: 'changelog', icon: 'link', url: 'https://github.com/your-repo/ftp-server/releases' }
-]);
-
 // Copy version to clipboard
 const copyVersion = async () => {
   try {
@@ -164,15 +147,6 @@ const copyVersion = async () => {
     });
   } catch (error) {
     console.error('Failed to copy version:', error);
-  }
-};
-
-// Open external link
-const openLink = async (url: string) => {
-  try {
-    await openUrl(url);
-  } catch (error) {
-    console.error('Failed to open link:', error);
   }
 };
 
