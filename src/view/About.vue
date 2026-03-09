@@ -113,19 +113,19 @@ const techStack = ref<Array<{ name: string; version: string; icon: IconName; gra
   {
     name: 'Tauri',
     version: 'v2.2.0',
-    icon: 'server',
+    icon: 'target',
     gradient: 'linear-gradient(135deg, #24C8DB 0%, #14B8A6 100%)'
   },
   {
     name: 'Vue',
     version: 'v3.5.13',
-    icon: 'terminal',
+    icon: 'checkCircle',
     gradient: 'linear-gradient(135deg, #42B883 0%, #35495E 100%)'
   },
   {
     name: 'Element Plus',
     version: 'v2.9.5',
-    icon: 'checkCircle',
+    icon: 'plus',
     gradient: 'linear-gradient(135deg, #409EFF 0%, #66B1FF 100%)'
   },
   {
