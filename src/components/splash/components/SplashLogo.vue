@@ -96,7 +96,7 @@ const imgStyle = computed(() => ({
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   border-radius: 50%;
   filter: blur(30px);
-  opacity: 0.4;
+  opacity: 0.6;
   animation: glowPulse 3s ease-in-out infinite;
 }
 
@@ -129,15 +129,15 @@ const imgStyle = computed(() => ({
 
 .splash-logo {
   position: relative;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
   padding: 8px;
   overflow: hidden;
 }
@@ -153,11 +153,11 @@ const imgStyle = computed(() => ({
 
 @keyframes glowPulse {
   0%, 100% {
-    opacity: 0.4;
+    opacity: 0.6;
     transform: scale(1);
   }
   50% {
-    opacity: 0.6;
+    opacity: 0.8;
     transform: scale(1.1);
   }
 }

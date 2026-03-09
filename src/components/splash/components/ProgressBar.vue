@@ -37,7 +37,7 @@ const clampedProgress = computed(() => {
 .progress-track {
   position: relative;
   height: 4px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.08);
   border-radius: 2px;
   overflow: hidden;
   margin-top: 16px;
@@ -45,7 +45,7 @@ const clampedProgress = computed(() => {
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
   border-radius: 2px;
   transition: width 0.3s ease;
   position: relative;

@@ -66,10 +66,10 @@ defineProps<Props>();
 <style lang="scss" scoped>
 .init-steps-container {
   width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 20px;
 }
 
@@ -79,13 +79,13 @@ defineProps<Props>();
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .steps-title {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .progress-text {
@@ -107,23 +107,23 @@ defineProps<Props>();
   gap: 12px;
   padding: 12px;
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
   border: 1px solid transparent;
 
   &.step-active {
-    background: rgba(102, 126, 234, 0.15);
-    border-color: rgba(102, 126, 234, 0.3);
+    background: rgba(102, 126, 234, 0.25);
+    border-color: rgba(102, 126, 234, 0.4);
   }
 
   &.step-completed {
-    background: rgba(72, 187, 120, 0.1);
-    border-color: rgba(72, 187, 120, 0.2);
+    background: rgba(72, 187, 120, 0.2);
+    border-color: rgba(72, 187, 120, 0.3);
   }
 
   &.step-error {
-    background: rgba(245, 101, 101, 0.15);
-    border-color: rgba(245, 101, 101, 0.3);
+    background: rgba(245, 101, 101, 0.2);
+    border-color: rgba(245, 101, 101, 0.4);
   }
 }
 
@@ -146,8 +146,8 @@ defineProps<Props>();
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
   border-radius: 50%;
 }
 
@@ -157,14 +157,14 @@ defineProps<Props>();
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(102, 126, 234, 0.3);
+  background: rgba(102, 126, 234, 0.4);
   border-radius: 50%;
 
   .spinner {
     width: 14px;
     height: 14px;
     border: 2px solid transparent;
-    border-top-color: #667eea;
+    border-top-color: white;
     border-radius: 50%;
     animation: spinnerRotate 0.8s linear infinite;
   }
@@ -176,8 +176,8 @@ defineProps<Props>();
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(72, 187, 120, 0.3);
-  color: #48bb78;
+  background: rgba(72, 187, 120, 0.4);
+  color: white;
   border-radius: 50%;
 
   svg {
@@ -192,8 +192,8 @@ defineProps<Props>();
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(245, 101, 101, 0.3);
-  color: #f56565;
+  background: rgba(245, 101, 101, 0.4);
+  color: white;
   border-radius: 50%;
 
   svg {
@@ -216,7 +216,7 @@ defineProps<Props>();
 
 .step-desc {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.7);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -224,7 +224,7 @@ defineProps<Props>();
 
 .step-message {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.8);
   margin-top: 4px;
   font-style: italic;
 }
