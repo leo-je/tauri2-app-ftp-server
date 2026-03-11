@@ -42,7 +42,15 @@
       "mcp__plugin_oh-my-claudecode_t__state_list_active",
       "mcp__plugin_oh-my-claudecode_t__lsp_diagnostics",
       "Bash(ls:*)",
-      "mcp__plugin_oh-my-claudecode_t__state_clear"
+      "mcp__plugin_oh-my-claudecode_t__state_clear",
+      "WebFetch(domain:simpleicons.org)",
+      "Bash(source:*)",
+      "mcp__exa__get_code_context_exa",
+      "Bash(cdev:*)",
+      "Bash(ln:*)",
+      "mcp__exa__web_search_exa",
+      "WebFetch(domain:tauri.app)",
+      "WebFetch(domain:element-plus.org)"
     ]
   }
 }
