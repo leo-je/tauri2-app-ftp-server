@@ -50,7 +50,8 @@
       "Bash(ln:*)",
       "mcp__exa__web_search_exa",
       "WebFetch(domain:tauri.app)",
-      "WebFetch(domain:element-plus.org)"
+      "WebFetch(domain:element-plus.org)",
+      "Bash(grep:*)"
     ]
   }
 }

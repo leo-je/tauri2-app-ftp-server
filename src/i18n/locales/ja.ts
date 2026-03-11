@@ -142,6 +142,7 @@ export default {
       documentation: 'ドキュメント'
     },
     copyright: '© 2024 FTP Server. All rights reserved.',
+    rights: '全著作権所有',
     license: 'Apache 2.0 ライセンスでオープンソース'
   }
 }

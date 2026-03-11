@@ -142,6 +142,7 @@ export default {
       documentation: 'เอกสารประกอบ'
     },
     copyright: '© 2024 FTP Server. All rights reserved.',
+    rights: 'สงวนลิขสิทธิ์ทั้งหมด',
     license: 'โอเพนซอร์สภายใต้ Apache 2.0 License'
   }
 }
