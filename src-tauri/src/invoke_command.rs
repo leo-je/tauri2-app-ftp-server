@@ -605,6 +605,8 @@ pub fn sanitize_users_json(users_json: &str) -> Result<String, String> {
 /// 启动 FTP 服务器（Tauri 命令）
 ///
 /// # 参数
+/// * `app` - Tauri 应用句柄，用于更新托盘菜单
+/// * `app_state` - 应用状态，用于更新运行状态
 /// * `state` - Tauri 应用状态，包含 FtpWorker 实例
 /// * `path` - FTP 根目录路径
 /// * `port` - FTP 服务监听端口
@@ -635,6 +637,8 @@ pub fn sanitize_users_json(users_json: &str) -> Result<String, String> {
 /// ```
 #[tauri::command]
 pub fn start_ftp_server(
+    app: tauri::AppHandle,
+    app_state: tauri::State<'_, Arc<Mutex<AppState>>>,
     state: tauri::State<'_, Arc<Mutex<FtpWorker>>>,
     path: String,
     port: String,
@@ -685,7 +689,16 @@ pub fn start_ftp_server(
     });
 
     match worker.start() {
-        Ok(_) => Ok("服务已启动".to_string()),
+        Ok(_) => {
+            // 更新托盘菜单和运行状态
+            if let Ok(state) = app_state.lock() {
+                if let Ok(mut is_running) = state.is_server_running.lock() {
+                    *is_running = true;
+                }
+            }
+            let _ = crate::update_tray_menu(&app, true);
+            Ok("服务已启动".to_string())
+        }
         Err(e) => Err(format!("服务启动失败: {}", e)),
     }
 }
@@ -693,13 +706,19 @@ pub fn start_ftp_server(
 /// 停止 FTP 服务器（Tauri 命令）
 ///
 /// # 参数
+/// * `app` - Tauri 应用句柄，用于更新托盘菜单
+/// * `app_state` - 应用状态，用于更新运行状态
 /// * `state` - Tauri 应用状态，包含 FtpWorker 实例
 ///
 /// # 返回值
 /// * `Ok(String)` - 停止成功，返回 "服务已停止"
 /// * `Err(String)` - 停止失败，返回错误信息
 #[tauri::command]
-pub fn stop_ftp_server(state: tauri::State<'_, Arc<Mutex<FtpWorker>>>) -> Result<String, String> {
+pub fn stop_ftp_server(
+    app: tauri::AppHandle,
+    app_state: tauri::State<'_, Arc<Mutex<AppState>>>,
+    state: tauri::State<'_, Arc<Mutex<FtpWorker>>>,
+) -> Result<String, String> {
     // 获取锁，如果锁中毒则尝试恢复
     let mut worker = match state.lock() {
         Ok(guard) => guard,
@@ -711,7 +730,16 @@ pub fn stop_ftp_server(state: tauri::State<'_, Arc<Mutex<FtpWorker>>>) -> Result
     };
 
     match worker.stop() {
-        Ok(_) => Ok("服务已停止".to_string()),
+        Ok(_) => {
+            // 更新托盘菜单和运行状态
+            if let Ok(state) = app_state.lock() {
+                if let Ok(mut is_running) = state.is_server_running.lock() {
+                    *is_running = false;
+                }
+            }
+            let _ = crate::update_tray_menu(&app, false);
+            Ok("服务已停止".to_string())
+        }
         Err(e) => Err(format!("FTP 服务停止失败: {}", e)),
     }
 }
