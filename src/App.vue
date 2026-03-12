@@ -1,6 +1,7 @@
 <template>
   <SplashScreen v-if="!appReady" @complete="appReady = true" />
   <el-container class="app-container">
+    <AppBackground v-if="appReady" />
     <!-- 自定义标题栏 -->
     <div class="title-bar" data-tauri-drag-region :class="{ 'is-macos': isMacos }">
       <!-- macOS 风格控制按钮 -->
@@ -48,6 +49,7 @@ import { SvgIcon } from './components/icons';
 import AppLogo from './components/AppLogo.vue';
 import SplashScreen from './components/SplashScreen.vue';
 import LanguageSwitcher from './components/LanguageSwitcher.vue';
+import AppBackground from './components/AppBackground.vue';
 
 const appWindow = getCurrentWindow();
 const isMacos = ref(false);
@@ -75,40 +77,30 @@ const closeWindow = () => {
   height: 100%;
   width: 100%;
   background: var(--gradient-bg);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
+  background-size: 180% 180%;
+  animation: gradientShift 22s ease infinite;
   position: relative;
   overflow: hidden;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   border-radius: 12px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 20px 40px rgba(0, 0, 0, 0.15);
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    animation: float 20s ease-in-out infinite;
-    pointer-events: none;
-  }
 }
 
 /* 自定义标题栏 */
 .title-bar {
   height: 40px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+  background: linear-gradient(135deg, rgba(24, 39, 78, 0.7) 0%, rgba(69, 46, 116, 0.66) 100%);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 10px 0 14px;
   flex-shrink: 0;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 3;
+  backdrop-filter: blur(18px) saturate(120%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 18px rgba(6, 10, 24, 0.14);
 
   /* macOS 风格 */
   &.is-macos {
@@ -217,7 +209,7 @@ const closeWindow = () => {
   position: fixed;
   top: 48px;
   right: 16px;
-  z-index: 999;
+  z-index: 4;
 }
 
 .control-btn {
@@ -257,18 +249,6 @@ const closeWindow = () => {
   }
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  33% {
-    transform: translate(30px, -30px) rotate(120deg);
-  }
-  66% {
-    transform: translate(-20px, 20px) rotate(240deg);
-  }
-}
-
 .index-main {
   color: var(--el-text-color-primary);
   flex: 1;
@@ -276,7 +256,7 @@ const closeWindow = () => {
   padding: 0;
   overflow: auto;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 * {

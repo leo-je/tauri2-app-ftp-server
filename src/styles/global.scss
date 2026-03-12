@@ -17,7 +17,11 @@
   --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   --gradient-success: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%);
-  --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  --gradient-bg: linear-gradient(135deg, #091a34 0%, #243b7a 28%, #57339b 56%, #186b9e 80%, #21b7c5 100%);
+  --bg-aurora-primary: rgba(116, 154, 255, 0.34);
+  --bg-aurora-secondary: rgba(238, 145, 251, 0.28);
+  --bg-aurora-tertiary: rgba(87, 208, 255, 0.26);
+  --bg-grid-color: rgba(255, 255, 255, 0.05);
   
   /* 阴影 */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -40,7 +44,11 @@
 
 /* 暗色模式变量 */
 html.dark {
-  --gradient-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  --gradient-bg: linear-gradient(135deg, #060b16 0%, #112047 30%, #2d1d57 60%, #0f4e7a 100%);
+  --bg-aurora-primary: rgba(92, 120, 255, 0.26);
+  --bg-aurora-secondary: rgba(203, 113, 255, 0.2);
+  --bg-aurora-tertiary: rgba(60, 206, 255, 0.2);
+  --bg-grid-color: rgba(255, 255, 255, 0.04);
   --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
