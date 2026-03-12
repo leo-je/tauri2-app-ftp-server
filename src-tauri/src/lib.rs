@@ -16,7 +16,8 @@ use tauri::{
 use tauri_plugin_log::{Target, TargetKind};
 
 pub mod ftp;
-pub mod invoke_command;
+pub mod commands;
+pub mod validators;
 
 /// 全局应用状态
 pub struct AppState {
@@ -24,7 +25,7 @@ pub struct AppState {
 }
 
 /// 更新托盘菜单
-fn update_tray_menu(app: &tauri::AppHandle, is_running: bool) -> Result<(), Box<dyn std::error::Error>> {
+pub fn update_tray_menu(app: &tauri::AppHandle, is_running: bool) -> Result<(), Box<dyn std::error::Error>> {
     // 创建托盘菜单项
     let show_item = MenuItem::with_id(app, "show", "显示主界面", true, None::<&str>)?;
     let toggle_text = if is_running { "停止 FTP" } else { "启动 FTP" };
@@ -105,17 +106,17 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         // 注册前端可调用的命令
         .invoke_handler(tauri::generate_handler![
-            invoke_command::start_ftp_server,
-            invoke_command::stop_ftp_server,
-            invoke_command::get_primary_ipv4,
-            invoke_command::get_system_info,
-            invoke_command::check_app_config,
-            invoke_command::check_permissions,
-            invoke_command::get_network_interfaces,
-            invoke_command::run_init_step,
-            invoke_command::get_init_status,
-            invoke_command::set_server_running,
-            invoke_command::get_server_running,
+            commands::ftp::start_ftp_server,
+            commands::ftp::stop_ftp_server,
+            commands::network::get_primary_ipv4,
+            commands::system::get_system_info,
+            commands::system::check_app_config,
+            commands::system::check_permissions,
+            commands::network::get_network_interfaces,
+            commands::init::run_init_step,
+            commands::init::get_init_status,
+            commands::system::set_server_running,
+            commands::system::get_server_running,
         ])
         // 初始化日志插件
         .plugin(
