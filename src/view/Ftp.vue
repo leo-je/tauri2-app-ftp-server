@@ -146,7 +146,7 @@ import { SvgIcon } from '../components/icons';
 import clipboard from "tauri-plugin-clipboard-api";
 import { runtimeState } from '../store';
 import { validatePath, validatePort } from '../utils/validation';
-import { listen, emit } from '@tauri-apps/api/event';
+import { listen } from '@tauri-apps/api/event';
 
 const { t } = useI18n();
 
