@@ -54,7 +54,16 @@
       "Bash(grep:*)",
       "Bash(cargo tree:*)",
       "Bash(cargo bloat:*)",
-      "Bash(chmod +x:*)"
+      "Bash(chmod +x:*)",
+      "Bash(yarn install:*)",
+      "Bash(yarn tauri:*)",
+      "Bash(cp:*)",
+      "Bash(perl:*)",
+      "Bash(sed:*)",
+      "Bash(cat:*)",
+      "Bash(lsof:*)",
+      "Bash(cargo audit:*)",
+      "Bash(cargo clippy:*)"
     ]
   }
 }

@@ -21,9 +21,17 @@
         "maximizable": false,
         "decorations": false,
         "transparent": true,
-        "shadow": false
+        "shadow": false,
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay"
       }
     ],
+    "trayIcon": {
+      "iconPath": "icons/32x32.png",
+      "iconAsTemplate": true,
+      "showMenuOnLeftClick": true,
+      "id": "main"
+    },
     "security": {
       "csp": {
         "default-src": "'self'",

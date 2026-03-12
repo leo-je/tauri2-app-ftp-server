@@ -146,6 +146,7 @@ import { SvgIcon } from '../components/icons';
 import clipboard from "tauri-plugin-clipboard-api";
 import { runtimeState } from '../store';
 import { validatePath, validatePort } from '../utils/validation';
+import { listen, emit } from '@tauri-apps/api/event';
 
 const { t } = useI18n();
 
@@ -179,7 +180,22 @@ onMounted(() => {
             isFirstLoad.value = false;
         }, 600); // 等待动画完成
     });
-})
+
+  // 监听全局启动 FTP 事件
+  listen('global-start-ftp', async () => {
+    console.log('收到全局启动事件');
+    if (!isStart.value) {
+      await startFtpServer();
+    }
+  });
+
+  // 监听全局停止 FTP 事件
+  listen('global-stop-ftp', async () => {
+    console.log('收到全局停止事件');
+    if (isStart.value) {
+      await stopFtpServer();
+    }
+  });})
 
 onUnmounted(() => {
     if (runTimer) {
@@ -271,7 +287,8 @@ async function stopFtpServer() {
         runtimeState.isServerRunning.value = false;
         stopRunTimer();
     } catch (e) {
-        ElMessage({ type: "error", message: t('message.serviceStopFailed') });
+    // 更新后端状态
+    await invoke('set_server_running', { running: false });        ElMessage({ type: "error", message: t('message.serviceStopFailed') });
     }
 }
 
@@ -333,7 +350,8 @@ async function startFtpServer() {
         ElMessage({ type: "success", message: t('message.serviceStarted') });
         isStart.value = true;
         runtimeState.isServerRunning.value = true;
-        startRunTimer();
+    // 更新后端状态
+    await invoke('set_server_running', { running: true });        startRunTimer();
     } catch (e) {
         ElMessage({ type: "error", message: t('message.serviceStartFailed') });
     }

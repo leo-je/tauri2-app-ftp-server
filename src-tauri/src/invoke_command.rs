@@ -9,6 +9,7 @@
 use std::sync::{Arc, Mutex};
 
 use crate::ftp::ftpworker::{FtpWorker, FtpWorkerConfig};
+use crate::AppState;
 use get_if_addrs::get_if_addrs;
 use std::net::IpAddr;
 use std::path::PathBuf;
@@ -738,4 +739,38 @@ pub fn get_primary_ipv4() -> Vec<String> {
     }
 
     result
+}
+
+/// 设置服务运行状态
+#[tauri::command]
+pub fn set_server_running(
+    app: tauri::AppHandle,
+    app_state: tauri::State<'_, Arc<Mutex<AppState>>>,
+    running: bool,
+) -> Result<(), String> {
+    // 更新状态
+    if let Ok(state) = app_state.lock() {
+        if let Ok(mut is_running) = state.is_server_running.lock() {
+            *is_running = running;
+        }
+    }
+
+    // 更新托盘菜单
+    crate::update_tray_menu(&app, running)
+        .map_err(|e| format!("更新托盘菜单失败: {}", e))?;
+
+    Ok(())
+}
+
+/// 获取服务运行状态
+#[tauri::command]
+pub fn get_server_running(
+    app_state: tauri::State<'_, Arc<Mutex<AppState>>>,
+) -> Result<bool, String> {
+    if let Ok(state) = app_state.lock() {
+        if let Ok(is_running) = state.is_server_running.lock() {
+            return Ok(*is_running);
+        }
+    }
+    Ok(false)
 }

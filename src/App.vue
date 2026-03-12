@@ -50,6 +50,9 @@ import AppLogo from './components/AppLogo.vue';
 import SplashScreen from './components/SplashScreen.vue';
 import LanguageSwitcher from './components/LanguageSwitcher.vue';
 import AppBackground from './components/AppBackground.vue';
+import { listen, emit } from '@tauri-apps/api/event';
+import { runtimeState } from './store';
+import { invoke } from '@tauri-apps/api/core';
 
 const appWindow = getCurrentWindow();
 const isMacos = ref(false);
@@ -57,6 +60,19 @@ const appReady = ref(false);
 
 onMounted(async () => {
   isMacos.value = await platform() === 'macos';
+
+  // 监听托盘菜单事件 - 切换 FTP 服务
+  await listen('tray-toggle-ftp', async () => {
+    console.log('托盘事件：切换 FTP 服务');
+    // 从后端获取当前状态
+    const isRunning = await invoke<boolean>('get_server_running');
+    // 根据当前状态触发相应事件
+    if (isRunning) {
+      await emit('global-stop-ftp');
+    } else {
+      await emit('global-start-ftp');
+    }
+  });
 });
 
 function disableContextMenu() {
@@ -68,7 +84,8 @@ const minimizeWindow = () => {
 }
 
 const closeWindow = () => {
-  appWindow.close();
+  // 隐藏窗口而不是关闭应用
+  appWindow.hide();
 }
 </script>
 

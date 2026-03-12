@@ -9,11 +9,39 @@
 //! 了解更多关于 Tauri 命令：<https://tauri.app/develop/calling-rust/>
 
 use std::sync::{Arc, Mutex};
-use tauri::Manager;
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::TrayIconBuilder,
+    Emitter, Manager,
+};
 use tauri_plugin_log::{Target, TargetKind};
 
 pub mod ftp;
 pub mod invoke_command;
+
+/// 全局应用状态
+pub struct AppState {
+    pub is_server_running: Arc<Mutex<bool>>,
+}
+
+/// 更新托盘菜单
+fn update_tray_menu(app: &tauri::AppHandle, is_running: bool) -> Result<(), Box<dyn std::error::Error>> {
+    // 创建托盘菜单项
+    let show_item = MenuItem::with_id(app, "show", "显示主界面", true, None::<&str>)?;
+    let toggle_text = if is_running { "停止 FTP" } else { "启动 FTP" };
+    let toggle_item = MenuItem::with_id(app, "toggle", toggle_text, true, None::<&str>)?;
+    let quit_item = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
+
+    // 创建托盘菜单
+    let menu = Menu::with_items(app, &[&show_item, &toggle_item, &quit_item])?;
+
+    // 获取托盘并设置新菜单
+    if let Some(tray) = app.tray_by_id("main") {
+        tray.set_menu(Some(menu))?;
+    }
+
+    Ok(())
+}
 
 /// Tauri 应用入口函数
 ///
@@ -31,6 +59,41 @@ pub fn run() {
             // 创建 FTP 工作线程并管理其状态
             let worker = Arc::new(Mutex::new(ftp::ftpworker::FtpWorker::new()));
             app.manage(worker);
+
+            // 创建应用状态
+            let app_state = Arc::new(Mutex::new(AppState {
+                is_server_running: Arc::new(Mutex::new(false)),
+            }));
+            app.manage(app_state.clone());
+
+            // 初始化托盘菜单（服务未运行）
+            let app_handle = app.handle().clone();
+            update_tray_menu(&app_handle, false)?;
+
+            // 获取托盘并设置事件处理
+            if let Some(tray) = app.tray_by_id("main") {
+                tray.on_menu_event(|app, event| {
+                    match event.id.as_ref() {
+                        "show" => {
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                            }
+                        }
+                        "toggle" => {
+                            // 触发切换事件，由前端处理
+                            if let Some(window) = app.get_webview_window("main") {
+                                let _ = window.emit("tray-toggle-ftp", ());
+                            }
+                        }
+                        "quit" => {
+                            app.exit(0);
+                        }
+                        _ => {}
+                    }
+                });
+            }
+
             Ok(())
         })
         // 初始化操作系统信息插件
@@ -52,6 +115,8 @@ pub fn run() {
             invoke_command::get_network_interfaces,
             invoke_command::run_init_step,
             invoke_command::get_init_status,
+            invoke_command::set_server_running,
+            invoke_command::get_server_running,
         ])
         // 初始化日志插件
         .plugin(
