@@ -51,7 +51,6 @@ import SplashScreen from './components/SplashScreen.vue';
 import LanguageSwitcher from './components/LanguageSwitcher.vue';
 import AppBackground from './components/AppBackground.vue';
 import { listen, emit } from '@tauri-apps/api/event';
-import { runtimeState } from './store';
 import { invoke } from '@tauri-apps/api/core';
 
 const appWindow = getCurrentWindow();

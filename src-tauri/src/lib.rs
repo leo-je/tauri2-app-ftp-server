@@ -11,7 +11,6 @@
 use std::sync::{Arc, Mutex};
 use tauri::{
     menu::{Menu, MenuItem},
-    tray::TrayIconBuilder,
     Emitter, Manager,
 };
 use tauri_plugin_log::{Target, TargetKind};
