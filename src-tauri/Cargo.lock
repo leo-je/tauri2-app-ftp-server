@@ -1625,6 +1625,7 @@ dependencies = [
  "tauri-plugin-shellx",
  "tauri-plugin-store",
  "tokio",
+ "unftp-core",
  "unftp-sbe-fs",
  "unftp-sbe-restrict",
 ]

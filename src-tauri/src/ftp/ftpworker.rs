@@ -3,10 +3,10 @@
 //! 该模块负责管理 FTP 服务器的生命周期，包括启动和停止 FTP 服务。
 //! 使用独立的线程运行 FTP 服务器，避免阻塞主线程。
 
-use crate::ftp::{ftp_user_authenticator::FtpUserAuthenticator, ftpuser::UserInfo};
+use crate::ftp::{ftp_user_authenticator::{FtpUserAuthenticator, FtpUserDetailProvider}, ftpuser::UserInfo};
 use std::{
     net::{SocketAddr, TcpListener},
-    ops::Range,
+    ops::RangeInclusive,
     path::PathBuf,
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -39,7 +39,7 @@ pub struct FtpWorkerConfig {
     /// 文件权限设置（"W" 表示读写，其他表示只读）
     pub file_auth: String,
     /// 被动模式端口范围
-    pub passive_port_range: Range<u16>,
+    pub passive_port_range: RangeInclusive<u16>,
 }
 
 impl Default for FtpWorkerConfig {
@@ -50,7 +50,7 @@ impl Default for FtpWorkerConfig {
             users: "".to_string(),
             is_anonymous: true,
             file_auth: "R".to_string(),
-            passive_port_range: DEFAULT_PASSIVE_PORT_START..DEFAULT_PASSIVE_PORT_END,
+            passive_port_range: DEFAULT_PASSIVE_PORT_START..=DEFAULT_PASSIVE_PORT_END,
         }
     }
 }
@@ -151,18 +151,22 @@ impl FtpWorker {
             };
 
             let shutdown_running = Arc::clone(&running_clone);
-            let server_builder = libunftp::ServerBuilder::with_authenticator(
+            let server_builder = libunftp::ServerBuilder::with_user_detail_provider(
                 Box::new(move || {
                     unftp_sbe_restrict::RestrictingVfs::<Filesystem, UserInfo, Meta>::new(
-                        Filesystem::new(ftp_home.clone()),
+                        Filesystem::new(ftp_home.clone()).unwrap(),
                     )
                 }),
-                std::sync::Arc::new(FtpUserAuthenticator {
-                    is_anonymous: config.is_anonymous,
-                    users,
-                    file_auth: config.file_auth,
+                std::sync::Arc::new(FtpUserDetailProvider {
+                    users: users.clone(),
+                    file_auth: config.file_auth.clone(),
                 }),
             )
+            .authenticator(std::sync::Arc::new(FtpUserAuthenticator {
+                is_anonymous: config.is_anonymous,
+                users: users.clone(),
+                file_auth: config.file_auth.clone(),
+            }))
             .greeting("Welcome to my FTP server")
             .passive_ports(config.passive_port_range.clone())
             .shutdown_indicator(async move {
