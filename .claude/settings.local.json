@@ -65,7 +65,8 @@
       "Bash(cargo:*)",
       "Bash(cd:*)",
       "Bash(find:*)",
-      "Bash(rustup toolchain:*)"
+      "Bash(rustup:*)",
+      "Bash(npm:*)"
     ]
   }
 }
