@@ -4,8 +4,12 @@
 
 use std::sync::{Arc, Mutex};
 
+#[cfg(target_os = "windows")]
+use tauri::Manager;
+
+use crate::ftp::ftpworker::FtpWorker;
+use crate::validators::{check_privileged_port_permission, check_write_permission};
 use crate::AppState;
-use crate::validators::{check_write_permission, check_privileged_port_permission};
 use serde::{Deserialize, Serialize};
 use tauri_plugin_os::{arch, platform, version};
 
@@ -66,14 +70,17 @@ pub fn check_app_config(app_handle: tauri::AppHandle) -> Result<AppConfig, Strin
     use tauri_plugin_store::StoreExt;
 
     // 尝试获取存储
-    let store = app_handle.store("app-config.json")
+    let store = app_handle
+        .store("app-config.json")
         .map_err(|e| format!("无法访问配置存储: {}", e))?;
 
     // 检查是否有默认配置
-    let default_path = store.get("defaultPath")
+    let default_path = store
+        .get("defaultPath")
         .and_then(|v| v.as_str().map(|s| s.to_string()));
 
-    let default_port = store.get("defaultPort")
+    let default_port = store
+        .get("defaultPort")
         .and_then(|v| v.as_u64())
         .map(|p| p as u16)
         .unwrap_or(2121);
@@ -119,8 +126,7 @@ pub fn set_server_running(
     }
 
     // 更新托盘菜单
-    crate::update_tray_menu(&app, running)
-        .map_err(|e| format!("更新托盘菜单失败: {}", e))?;
+    crate::update_tray_menu(&app, running).map_err(|e| format!("更新托盘菜单失败: {}", e))?;
 
     Ok(())
 }
@@ -129,13 +135,20 @@ pub fn set_server_running(
 #[tauri::command]
 pub fn get_server_running(
     app_state: tauri::State<'_, Arc<Mutex<AppState>>>,
+    ftp_state: tauri::State<'_, Arc<Mutex<FtpWorker>>>,
 ) -> Result<bool, String> {
+    let running = match ftp_state.lock() {
+        Ok(worker) => worker.is_running(),
+        Err(poisoned) => poisoned.into_inner().is_running(),
+    };
+
     if let Ok(state) = app_state.lock() {
-        if let Ok(is_running) = state.is_server_running.lock() {
-            return Ok(*is_running);
+        if let Ok(mut is_running) = state.is_server_running.lock() {
+            *is_running = running;
         }
     }
-    Ok(false)
+
+    Ok(running)
 }
 
 /// 隐藏 Dock 图标 / 任务栏图标
@@ -152,7 +165,8 @@ pub fn hide_dock_icon(app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         if let Some(window) = app.get_webview_window("main") {
-            window.set_skip_taskbar(true)
+            window
+                .set_skip_taskbar(true)
                 .map_err(|e| format!("隐藏任务栏图标失败: {}", e))?;
         }
     }
@@ -173,7 +187,8 @@ pub fn show_dock_icon(app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         if let Some(window) = app.get_webview_window("main") {
-            window.set_skip_taskbar(false)
+            window
+                .set_skip_taskbar(false)
                 .map_err(|e| format!("显示任务栏图标失败: {}", e))?;
         }
     }
