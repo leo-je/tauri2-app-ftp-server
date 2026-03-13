@@ -5,7 +5,7 @@
 use std::sync::{Arc, Mutex};
 
 use crate::ftp::ftpworker::{FtpWorker, FtpWorkerConfig};
-use crate::AppState;
+use crate::tray::AppState;
 use crate::validators::{sanitize_path, sanitize_port, sanitize_users_json, sanitize_file_auth};
 
 /// 启动 FTP 服务器（Tauri 命令）
@@ -102,7 +102,7 @@ pub fn start_ftp_server(
                     *is_running = true;
                 }
             }
-            let _ = crate::update_tray_menu(&app, true);
+            let _ = crate::tray::update_tray_menu(&app, true);
             Ok("服务已启动".to_string())
         }
         Err(e) => Err(format!("服务启动失败: {}", e)),
@@ -143,7 +143,7 @@ pub fn stop_ftp_server(
                     *is_running = false;
                 }
             }
-            let _ = crate::update_tray_menu(&app, false);
+            let _ = crate::tray::update_tray_menu(&app, false);
             Ok("服务已停止".to_string())
         }
         Err(e) => Err(format!("FTP 服务停止失败: {}", e)),

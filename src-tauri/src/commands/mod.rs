@@ -12,4 +12,4 @@ pub use ftp::{start_ftp_server, stop_ftp_server};
 pub use init::{run_init_step, get_init_status};
 pub use network::{get_primary_ipv4, get_network_interfaces};
 pub use system::{get_system_info, check_app_config, check_permissions,
-                 set_server_running, get_server_running, hide_dock_icon, show_dock_icon};
+                 set_server_running, get_server_running};
