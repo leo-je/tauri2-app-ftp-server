@@ -62,8 +62,10 @@
       "Bash(sed:*)",
       "Bash(cat:*)",
       "Bash(lsof:*)",
-      "Bash(cargo audit:*)",
-      "Bash(cargo clippy:*)"
+      "Bash(cargo:*)",
+      "Bash(cd:*)",
+      "Bash(find:*)",
+      "Bash(rustup toolchain:*)"
     ]
   }
 }
