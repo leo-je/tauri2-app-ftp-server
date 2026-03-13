@@ -83,8 +83,9 @@ const minimizeWindow = () => {
 }
 
 const closeWindow = () => {
-  // 隐藏窗口而不是关闭应用
+  // 隐藏窗口并隐藏 Dock 图标，仅保留托盘图标
   appWindow.hide();
+  invoke('hide_dock_icon');
 }
 </script>
 

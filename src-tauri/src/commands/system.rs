@@ -137,3 +137,45 @@ pub fn get_server_running(
     }
     Ok(false)
 }
+
+/// 隐藏 Dock 图标 / 任务栏图标
+///
+/// macOS: 将应用激活策略设为 Accessory，隐藏 Dock 栏图标
+/// Windows: 从任务栏移除窗口，仅保留托盘图标
+#[tauri::command]
+pub fn hide_dock_icon(app: tauri::AppHandle) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        app.set_activation_policy(tauri::ActivationPolicy::Accessory)
+            .map_err(|e| format!("隐藏 Dock 图标失败: {}", e))?;
+    }
+    #[cfg(target_os = "windows")]
+    {
+        if let Some(window) = app.get_webview_window("main") {
+            window.set_skip_taskbar(true)
+                .map_err(|e| format!("隐藏任务栏图标失败: {}", e))?;
+        }
+    }
+    Ok(())
+}
+
+/// 显示 Dock 图标 / 任务栏图标
+///
+/// macOS: 将应用激活策略恢复为 Regular，重新在 Dock 栏显示图标
+/// Windows: 将窗口重新添加到任务栏
+#[tauri::command]
+pub fn show_dock_icon(app: tauri::AppHandle) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        app.set_activation_policy(tauri::ActivationPolicy::Regular)
+            .map_err(|e| format!("显示 Dock 图标失败: {}", e))?;
+    }
+    #[cfg(target_os = "windows")]
+    {
+        if let Some(window) = app.get_webview_window("main") {
+            window.set_skip_taskbar(false)
+                .map_err(|e| format!("显示任务栏图标失败: {}", e))?;
+        }
+    }
+    Ok(())
+}

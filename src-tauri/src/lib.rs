@@ -78,6 +78,15 @@ pub fn run() {
                             if let Some(window) = app.get_webview_window("main") {
                                 let _ = window.show();
                                 let _ = window.set_focus();
+                                // 恢复任务栏/Dock 图标
+                                #[cfg(target_os = "macos")]
+                                {
+                                    let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
+                                }
+                                #[cfg(target_os = "windows")]
+                                {
+                                    let _ = window.set_skip_taskbar(false);
+                                }
                             }
                         }
                         "toggle" => {
@@ -117,6 +126,8 @@ pub fn run() {
             commands::init::get_init_status,
             commands::system::set_server_running,
             commands::system::get_server_running,
+            commands::system::hide_dock_icon,
+            commands::system::show_dock_icon,
         ])
         // 初始化日志插件
         .plugin(
