@@ -144,5 +144,11 @@ export default {
     copyright: '© 2024 FTP Server. All rights reserved.',
     rights: '全著作権所有',
     license: 'Apache 2.0 ライセンスでオープンソース'
+  },
+  tray: {
+    show: 'メインウィンドウを表示',
+    start: 'FTP を起動',
+    stop: 'FTP を停止',
+    quit: '終了'
   }
 }

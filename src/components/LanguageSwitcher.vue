@@ -25,6 +25,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus'
 import { SvgIcon } from './icons'
+import { invoke } from '@tauri-apps/api/core'
+import appStore from '../store'
 
 const { locale, t } = useI18n()
 
@@ -37,9 +39,26 @@ const languages = [
 
 const currentLanguage = computed(() => locale.value)
 
-const handleLanguageChange = (lang: string) => {
+const updateTrayMenu = async () => {
+  try {
+    await invoke('update_tray_menu_language', {
+      isRunning: appStore.runtimeState.isServerRunning.value,
+      text: {
+        show: t('tray.show'),
+        start: t('tray.start'),
+        stop: t('tray.stop'),
+        quit: t('tray.quit')
+      }
+    })
+  } catch (e) {
+    console.warn('Failed to update tray menu:', e)
+  }
+}
+
+const handleLanguageChange = async (lang: string) => {
   locale.value = lang
   localStorage.setItem('app-language', lang)
+  await updateTrayMenu()
 }
 </script>
 

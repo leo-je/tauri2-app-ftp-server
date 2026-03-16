@@ -162,5 +162,11 @@ export default {
     },
     copyright: '版权所有 © 2024 FTP Server Team',
     rights: '保留所有权利'
+  },
+  tray: {
+    show: '显示主界面',
+    start: '启动 FTP',
+    stop: '停止 FTP',
+    quit: '退出'
   }
 }

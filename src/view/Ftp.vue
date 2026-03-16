@@ -159,6 +159,22 @@ const startTime = ref<Date | null>(null);
 const runTime = ref('00:00:00');
 let runTimer: ReturnType<typeof setInterval> | null = null;
 
+async function updateTrayMenu(isRunning: boolean) {
+  try {
+    await invoke('update_tray_menu_language', {
+      isRunning,
+      text: {
+        show: t('tray.show'),
+        start: t('tray.start'),
+        stop: t('tray.stop'),
+        quit: t('tray.quit')
+      }
+    });
+  } catch (e) {
+    console.warn('Failed to update tray menu:', e);
+  }
+}
+
 async function init() {
     const detach = await attachConsole();
     detach();
@@ -285,10 +301,12 @@ async function stopFtpServer() {
         ElMessage({ type: "success", message: t('message.serviceStopped') });
         isStart.value = false;
         runtimeState.isServerRunning.value = false;
+        await updateTrayMenu(false);
         stopRunTimer();
     } catch (e) {
     // 更新后端状态
-    await invoke('set_server_running', { running: false });        ElMessage({ type: "error", message: t('message.serviceStopFailed') });
+    await invoke('set_server_running', { running: false });
+        ElMessage({ type: "error", message: t('message.serviceStopFailed') });
     }
 }
 
@@ -350,8 +368,10 @@ async function startFtpServer() {
         ElMessage({ type: "success", message: t('message.serviceStarted') });
         isStart.value = true;
         runtimeState.isServerRunning.value = true;
-    // 更新后端状态
-    await invoke('set_server_running', { running: true });        startRunTimer();
+        await updateTrayMenu(true);
+        // 更新后端状态
+        await invoke('set_server_running', { running: true });
+        startRunTimer();
     } catch (e) {
         ElMessage({ type: "error", message: t('message.serviceStartFailed') });
     }

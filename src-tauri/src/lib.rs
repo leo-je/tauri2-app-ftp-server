@@ -96,6 +96,7 @@ pub fn run() {
             commands::system::set_server_running,
             commands::system::get_server_running,
             tray::hide_main_window,
+            tray::update_tray_menu_language,
         ])
         // 初始化日志插件
         .plugin(

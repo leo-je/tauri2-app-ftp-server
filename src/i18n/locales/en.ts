@@ -162,5 +162,11 @@ export default {
     },
     copyright: 'Copyright © 2024 FTP Server Team',
     rights: 'All rights reserved'
+  },
+  tray: {
+    show: 'Show Main Window',
+    start: 'Start FTP',
+    stop: 'Stop FTP',
+    quit: 'Quit'
   }
 }

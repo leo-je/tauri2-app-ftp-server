@@ -144,5 +144,11 @@ export default {
     copyright: '© 2024 FTP Server. All rights reserved.',
     rights: 'สงวนลิขสิทธิ์ทั้งหมด',
     license: 'โอเพนซอร์สภายใต้ Apache 2.0 License'
+  },
+  tray: {
+    show: 'แสดงหน้าต่างหลัก',
+    start: 'เริ่ม FTP',
+    stop: 'หยุด FTP',
+    quit: 'ออก'
   }
 }

@@ -45,6 +45,7 @@ import { ElMain, ElContainer } from 'element-plus';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { platform } from '@tauri-apps/plugin-os';
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { SvgIcon } from './components/icons';
 import AppLogo from './components/AppLogo.vue';
 import SplashScreen from './components/SplashScreen.vue';
@@ -52,13 +53,34 @@ import LanguageSwitcher from './components/LanguageSwitcher.vue';
 import AppBackground from './components/AppBackground.vue';
 import { listen, emit } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
+import appStore from './store';
 
+const { t } = useI18n();
 const appWindow = getCurrentWindow();
 const isMacos = ref(false);
 const appReady = ref(false);
 
+const initTrayMenuLanguage = async () => {
+  try {
+    await invoke('update_tray_menu_language', {
+      isRunning: appStore.runtimeState.isServerRunning.value,
+      text: {
+        show: t('tray.show'),
+        start: t('tray.start'),
+        stop: t('tray.stop'),
+        quit: t('tray.quit')
+      }
+    });
+  } catch (e) {
+    console.warn('Failed to init tray menu language:', e);
+  }
+};
+
 onMounted(async () => {
   isMacos.value = await platform() === 'macos';
+
+  // 初始化托盘菜单语言
+  await initTrayMenuLanguage();
 
   // 监听托盘菜单事件 - 切换 FTP 服务
   await listen('tray-toggle-ftp', async () => {
