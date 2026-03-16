@@ -74,16 +74,21 @@ jobs:
           - platform: 'macos-latest' # for Arm based macs (M1 and above).
             target: 'aarch64-apple-darwin'
             args: '--target aarch64-apple-darwin'
+            platform_name: 'macos-arm64'
           - platform: 'macos-latest' # for Intel based macs.
             target: 'x86_64-apple-darwin'
             args: '--target x86_64-apple-darwin'
+            platform_name: 'macos-x86_64'
           - platform: 'macos-latest'
             target: 'universal-apple-darwin'
             args: '--target universal-apple-darwin'
+            platform_name: 'macos-universal'
           #- platform: 'ubuntu-22.04' # for Tauri v1 you could replace this with ubuntu-20.04.
           #  args: ''
+          #  platform_name: 'linux-x86_64'
           - platform: 'windows-latest'
             args: ''
+            platform_name: 'windows-x86_64'
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -111,15 +116,84 @@ jobs:
       - name: install frontend dependencies
         run: yarn install # change this to npm, pnpm or bun depending on which one you use.
 
-      - name: Create GitHub Release
+      - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
+        with:
+          args: ${{ matrix.args }} --config '{"version":"${{matrix.platform == 'windows-latest' && needs.get_version.outputs.windows_version || needs.get_version.outputs.macos_version}}"}'
+
+      - name: Rename build artifacts
+        if: matrix.platform != 'ubuntu-22.04'
+        shell: bash
+        run: |
+          VERSION="${{needs.get_version.outputs.version}}"
+          PLATFORM="${{matrix.platform_name}}"
+          PRODUCT_NAME="ftp-server"
+          BUNDLE_NAME="${PRODUCT_NAME}-${VERSION}-${PLATFORM}"
+
+          # Determine build dir based on whether target is specified
+          if [[ -n "${{matrix.target}}" ]]; then
+            BUILD_DIR="src-tauri/target/${{matrix.target}}/release/bundle"
+          else
+            BUILD_DIR="src-tauri/target/release/bundle"
+          fi
+
+          echo "Renaming artifacts for ${PLATFORM} in ${BUILD_DIR}..."
+
+          if [[ "${{matrix.platform}}" == "macos-latest" ]]; then
+            # Rename .dmg files
+            for dmg in ${BUILD_DIR}/dmg/*.dmg; do
+              [ -f "$dmg" ] && ext="${dmg##*.}" && mv "$dmg" "$(dirname "$dmg")/${BUNDLE_NAME}.${ext}"
+            done
+            # Rename .app.tar.gz files
+            for tarball in ${BUILD_DIR}/*.app.tar.gz; do
+              [ -f "$tarball" ] && mv "$tarball" "$(dirname "$tarball")/${BUNDLE_NAME}.app.tar.gz"
+            done
+            # Rename .app.tar.gz.sig files
+            for sig in ${BUILD_DIR}/*.app.tar.gz.sig; do
+              [ -f "$sig" ] && mv "$sig" "$(dirname "$sig")/${BUNDLE_NAME}.app.tar.gz.sig"
+            done
+          elif [[ "${{matrix.platform}}" == "windows-latest" ]]; then
+            # Rename .msi files
+            for msi in ${BUILD_DIR}/msi/*.msi; do
+              [ -f "$msi" ] && ext="${msi##*.}" && mv "$msi" "$(dirname "$msi")/${BUNDLE_NAME}.${ext}"
+            done
+            # Rename .msi.sig files
+            for sig in ${BUILD_DIR}/msi/*.msi.sig; do
+              [ -f "$sig" ] && mv "$sig" "$(dirname "$sig")/${BUNDLE_NAME}.msi.sig"
+            done
+            # Rename .exe (NSIS) files
+            for exe in ${BUILD_DIR}/nsis/*.exe; do
+              [ -f "$exe" ] && mv "$exe" "$(dirname "$exe")/${BUNDLE_NAME}-setup.exe"
+            done
+            # Rename .exe.sig files
+            for sig in ${BUILD_DIR}/nsis/*.exe.sig; do
+              [ -f "$sig" ] && mv "$sig" "$(dirname "$sig")/${BUNDLE_NAME}-setup.exe.sig"
+            done
+          fi
+
+          echo "Listing renamed artifacts:"
+          find ${BUILD_DIR} -type f \( -name "*.dmg" -o -name "*.app.tar.gz" -o -name "*.msi" -o -name "*.exe" -o -name "*.sig" \) -ls
+
+      - name: Upload renamed artifacts to release
+        if: matrix.platform != 'ubuntu-22.04'
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: ${{needs.get_version.outputs.tagName}}
-          releaseName: ${{needs.get_version.outputs.releaseName}}
-          releaseBody: ${{needs.get_version.outputs.releaseBody}}
-          releaseDraft: false
-          prerelease: false
-          args: ${{ matrix.args }} --config '{"version":"${{matrix.platform == 'windows-latest' && needs.get_version.outputs.windows_version || needs.get_version.outputs.macos_version}}"}'
+        run: |
+          TAG="${{needs.get_version.outputs.tagName}}"
+
+          # Determine build dir based on whether target is specified
+          if [[ -n "${{matrix.target}}" ]]; then
+            BUILD_DIR="src-tauri/target/${{matrix.target}}/release/bundle"
+          else
+            BUILD_DIR="src-tauri/target/release/bundle"
+          fi
+
+          echo "Uploading artifacts for tag ${TAG} from ${BUILD_DIR}..."
+
+          # Upload all renamed bundle files
+          find ${BUILD_DIR} -type f \( -name "*.dmg" -o -name "*.app.tar.gz" -o -name "*.msi" -o -name "*.exe" -o -name "*.sig" \) | while read -r file; do
+            echo "Uploading: $(basename "$file")"
+            gh release upload "$TAG" "$file" --clobber
+          done
  
