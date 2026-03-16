@@ -9,7 +9,7 @@
 //! 了解更多关于 Tauri 命令：<https://tauri.app/develop/calling-rust/>
 
 use std::sync::{Arc, Mutex};
-use tauri::Manager;
+use tauri::{Manager, WindowEvent};
 use tauri_plugin_log::{Target, TargetKind};
 
 pub mod ftp;
@@ -44,6 +44,17 @@ pub fn run() {
             let app_handle = app.handle().clone();
             tray::setup_tray_menu(&app_handle)?;
 
+            // 拦截窗口关闭请求，改为隐藏窗口
+            if let Some(window) = app.get_webview_window("main") {
+                let app_handle_clone = app.handle().clone();
+                window.on_window_event(move |event| {
+                    if let WindowEvent::CloseRequested { api, .. } = event {
+                        api.prevent_close();
+                        let _ = tray::hide_main_window(app_handle_clone.clone());
+                    }
+                });
+            }
+
             Ok(())
         })
         // 初始化操作系统信息插件
@@ -67,8 +78,7 @@ pub fn run() {
             commands::init::get_init_status,
             commands::system::set_server_running,
             commands::system::get_server_running,
-            tray::hide_dock_icon,
-            tray::show_dock_icon,
+            tray::hide_main_window,
         ])
         // 初始化日志插件
         .plugin(
