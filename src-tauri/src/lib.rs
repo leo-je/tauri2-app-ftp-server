@@ -9,7 +9,9 @@
 //! 了解更多关于 Tauri 命令：<https://tauri.app/develop/calling-rust/>
 
 use std::sync::{Arc, Mutex};
-use tauri::{Manager, RunEvent, WindowEvent};
+use tauri::{Manager, WindowEvent};
+#[cfg(target_os = "macos")]
+use tauri::RunEvent;
 use tauri_plugin_log::{Target, TargetKind};
 
 pub mod ftp;
@@ -21,7 +23,7 @@ pub mod validators;
 #[cfg(target_os = "windows")]
 fn setup_window_icon(window: &tauri::WebviewWindow) -> Result<(), Box<dyn std::error::Error>> {
     if let Some(icon) = window.app_handle().default_window_icon() {
-        window.set_icon(Some(icon.clone()))?;
+        window.set_icon(icon.clone())?;
     }
     Ok(())
 }
@@ -114,11 +116,11 @@ pub fn run() {
         // 运行应用，处理 Dock 图标点击等事件
         .build(tauri::generate_context!())
         .expect("Failed to build Tauri application")
-        .run(|app_handle, event| {
+        .run(|_app_handle, _event| {
             #[cfg(target_os = "macos")]
-            if let RunEvent::Reopen { .. } = event {
+            if let RunEvent::Reopen { .. } = _event {
                 // macOS: 点击 Dock 图标时显示主窗口
-                if let Some(window) = app_handle.get_webview_window("main") {
+                if let Some(window) = _app_handle.get_webview_window("main") {
                     let _ = window.show();
                     let _ = window.set_focus();
                 }
