@@ -142,13 +142,20 @@ jobs:
           if [[ "${{matrix.platform}}" == "macos-latest" ]]; then
             # Rename .dmg files
             for dmg in ${BUILD_DIR}/dmg/*.dmg; do
-              [ -f "$dmg" ] && ext="${dmg##*.}" && mv "$dmg" "$(dirname "$dmg")/${BUNDLE_NAME}.${ext}"
+              [ -f "$dmg" ] && mv "$dmg" "$(dirname "$dmg")/${BUNDLE_NAME}.dmg"
             done
-            # Rename .app.tar.gz files
+            # Rename .app.tar.gz files (Tauri v2 places them in macos/ subdirectory)
+            for tarball in ${BUILD_DIR}/macos/*.app.tar.gz; do
+              [ -f "$tarball" ] && mv "$tarball" "$(dirname "$tarball")/${BUNDLE_NAME}.app.tar.gz"
+            done
+            # Also check bundle root for .app.tar.gz
             for tarball in ${BUILD_DIR}/*.app.tar.gz; do
               [ -f "$tarball" ] && mv "$tarball" "$(dirname "$tarball")/${BUNDLE_NAME}.app.tar.gz"
             done
             # Rename .app.tar.gz.sig files
+            for sig in ${BUILD_DIR}/macos/*.app.tar.gz.sig; do
+              [ -f "$sig" ] && mv "$sig" "$(dirname "$sig")/${BUNDLE_NAME}.app.tar.gz.sig"
+            done
             for sig in ${BUILD_DIR}/*.app.tar.gz.sig; do
               [ -f "$sig" ] && mv "$sig" "$(dirname "$sig")/${BUNDLE_NAME}.app.tar.gz.sig"
             done
