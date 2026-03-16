@@ -1,42 +1,140 @@
 <template>
-    <div style="height: 100%; border: 1px;">
-        <div style="width: 90%;margin: auto;text-align: left;">
-            <!-- <div style="margin-top: 10px;height: 20px;"><span> </span></div> -->
-            <div style="margin-top: 10px;">
-                <div style="margin: 0px;"><span>目录：</span></div>
-                <div>
-                    <el-input v-model="dirPath" disabled placeholder="" style="width: 65%" />
-                    <el-button style="margin-left: 5px;" :disabled="isStart" @click="selectDir">选择</el-button>
-                    <el-button style="margin-left: 5px;" @click="openDir">打开</el-button>
+    <div class="ftp-container">
+        <div class="ftp-content">
+            <!-- 标题区域 -->
+            <div class="header-section fade-in" style="display: none;">
+                <div class="icon-wrapper">
+                    <SvgIcon name="checkCircle" :size="24" />
+                </div>
+                <h1 class="ftp-title">FTP 服务器</h1>
+                <p class="ftp-subtitle">快速启动您的文件传输服务</p>
+            </div>
+
+            <!-- 状态指示器 -->
+            <div :class="['status-section', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.1s;' : ''">
+                <div :class="['status-indicator', isStart ? 'running' : 'stopped']">
+                    <span class="status-dot"></span>
+                    {{ isStart ? $t('status.running') : $t('status.stopped') }}
                 </div>
             </div>
 
-            <div style="margin-top: 10px;">
-                <div style="margin: 0px;"><span>端口：</span></div>
-                <div>
-                    <el-input :disabled="isStart" v-model="port" placeholder="21" />
+            <!-- 配置卡片 -->
+            <div :class="['config-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.2s;' : ''">
+                <div class="card-header">
+                    <SvgIcon name="lock" :size="20" class="card-icon" />
+                    <span>{{ $t('config.title') }}</span>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-item">
+                        <label class="form-label">
+                            <SvgIcon name="folder" :size="16" class="label-icon" />
+                            {{ $t('config.shareDir') }}
+                        </label>
+                        <div class="input-group">
+                            <el-input
+                                v-model="dirPath"
+                                disabled
+                                :placeholder="$t('config.placeholder.dir')"
+                                class="ftp-input"
+                            >
+                                <template #prefix>
+                                    <SvgIcon name="folder" :size="16" />
+                                </template>
+                            </el-input>
+                            <el-button
+                                class="ftp-button ftp-button-primary"
+                                :disabled="isStart"
+                                @click="selectDir"
+                            >
+                                {{ $t('config.select') }}
+                            </el-button>
+                            <el-button
+                                class="ftp-button"
+                                @click="openDir"
+                            >
+                                {{ $t('config.open') }}
+                            </el-button>
+                        </div>
+                    </div>
+
+                    <div class="form-item">
+                        <label class="form-label">
+                            <SvgIcon name="terminal" :size="16" class="label-icon" />
+                            {{ $t('config.port') }}
+                        </label>
+                        <el-input
+                            :disabled="isStart"
+                            v-model="port"
+                            :placeholder="$t('config.placeholder.port')"
+                            class="ftp-input"
+                            type="number"
+                        >
+                            <template #prefix>
+                                <SvgIcon name="target" :size="16" />
+                            </template>
+                        </el-input>
+                    </div>
                 </div>
             </div>
-            <div style="margin-top: 30px;margin-bottom: 10px;text-align: center;">
-                <el-button type="success" @click="startOrStopServer" style="width: 100px;">
-                    {{ isStart ? '停止' : '开始' }}
+
+            <!-- 控制按钮 -->
+            <div :class="['control-section', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.3s;' : ''" style="display: none;">
+                <el-button
+                    :type="isStart ? 'danger' : 'success'"
+                    @click="startOrStopServer"
+                    class="control-button"
+                    :class="{ 'is-running': isStart }"
+                >
+                    <SvgIcon :name="isStart ? 'stop' : 'play'" :size="20" class="button-icon" />
+                    {{ isStart ? '停止服务' : '启动服务' }}
                 </el-button>
             </div>
 
-            <div style="margin-top: 20px;margin-bottom: 10px;">
-                <template v-if="isStart">
-                    <span>link: </span>
-                    <span v-for="ip in ips" style="color: blue;cursor: pointer; margin-left: 10px;" @click="copy(ip)">
-                        {{ 'ftp://' + ip + ':' + port }}
-                    </span>
-                </template>
+            <!-- 悬浮按钮 -->
+            <div
+                :class="['floating-btn', { 'is-running': isStart }]"
+                @click="startOrStopServer"
+                :title="isStart ? $t('control.stopTooltip') : $t('control.startTooltip')"
+            >
+                <SvgIcon name="plane" :size="28" class="plane-icon" />
             </div>
+
+            <!-- 连接信息 -->
+            <transition name="slide-fade">
+                <div v-if="isStart" :class="['connection-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.4s;' : ''">
+                    <div class="card-header">
+                        <SvgIcon name="link" :size="20" class="card-icon" />
+                        <span>{{ $t('connection.title') }}</span>
+                    </div>
+                    <div class="connection-links">
+                        <div
+                            v-for="ip in ips"
+                            :key="ip"
+                            class="connection-link"
+                            @click="copy(ip)"
+                        >
+                            <SvgIcon name="copyOutline" :size="20" class="link-icon" />
+                            <span class="link-text">{{ 'ftp://' + ip + ':' + port }}</span>
+                            <SvgIcon name="copy" :size="16" class="copy-icon" />
+                        </div>
+                    </div>
+
+                    <!-- 运行时间 -->
+                    <div class="run-time-section">
+                        <SvgIcon name="clock" :size="18" class="time-icon" />
+                        <span class="run-time-label">{{ $t('status.runtime') }}</span>
+                        <span class="run-time-value">{{ runTime }}</span>
+                    </div>
+                </div>
+            </transition>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, ref } from "vue";
+import { onBeforeMount, onMounted, onUnmounted, ref, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
 import { ElButton, ElMessage, ElInput } from "element-plus";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from '@tauri-apps/plugin-dialog';
@@ -44,11 +142,38 @@ import { Command } from 'tauri-plugin-shellx-api';
 import { platform } from '@tauri-apps/plugin-os';
 import store from '../store';
 import { info, error, attachConsole } from '@tauri-apps/plugin-log';
+import { SvgIcon } from '../components/icons';
+import clipboard from "tauri-plugin-clipboard-api";
+import { runtimeState } from '../store';
+import { validatePath, validatePort } from '../utils/validation';
+import { listen } from '@tauri-apps/api/event';
+
+const { t } = useI18n();
 
 const dirPath = ref('');
 const ips = ref(['127.0.0.1']);
 const port = ref(21);
 const isStart = ref(false);
+const isFirstLoad = ref(true);
+const startTime = ref<Date | null>(null);
+const runTime = ref('00:00:00');
+let runTimer: ReturnType<typeof setInterval> | null = null;
+
+async function updateTrayMenu(isRunning: boolean) {
+  try {
+    await invoke('update_tray_menu_language', {
+      isRunning,
+      text: {
+        show: t('tray.show'),
+        start: t('tray.start'),
+        stop: t('tray.stop'),
+        quit: t('tray.quit')
+      }
+    });
+  } catch (e) {
+    console.warn('Failed to update tray menu:', e);
+  }
+}
 
 async function init() {
     const detach = await attachConsole();
@@ -63,6 +188,63 @@ async function init() {
 onBeforeMount(() => {
     init()
 })
+
+onMounted(() => {
+    // 首次加载后移除动画，避免切换 tabs 时重复触发
+    nextTick(() => {
+        setTimeout(() => {
+            isFirstLoad.value = false;
+        }, 600); // 等待动画完成
+    });
+
+  // 监听全局启动 FTP 事件
+  listen('global-start-ftp', async () => {
+    console.log('收到全局启动事件');
+    if (!isStart.value) {
+      await startFtpServer();
+    }
+  });
+
+  // 监听全局停止 FTP 事件
+  listen('global-stop-ftp', async () => {
+    console.log('收到全局停止事件');
+    if (isStart.value) {
+      await stopFtpServer();
+    }
+  });})
+
+onUnmounted(() => {
+    if (runTimer) {
+        clearInterval(runTimer);
+        runTimer = null;
+    }
+})
+
+const formatRunTime = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+const startRunTimer = () => {
+    startTime.value = new Date();
+    runTimer = setInterval(() => {
+        if (startTime.value) {
+            const elapsed = Math.floor((Date.now() - startTime.value.getTime()) / 1000);
+            runTime.value = formatRunTime(elapsed);
+        }
+    }, 1000);
+}
+
+const stopRunTimer = () => {
+    if (runTimer) {
+        clearInterval(runTimer);
+        runTimer = null;
+    }
+    startTime.value = null;
+    runTime.value = '00:00:00';
+}
 
 const logl = (msg: string) => info(msg);
 
@@ -79,18 +261,17 @@ const checkPlatform = () => {
     logl(`当前操作系统是 ${platformName}`);
     return currentPlatform;
 };
-import clipboard from "tauri-plugin-clipboard-api";
 
 const copy = async (ip: string) => {
     // 拼装地址放入剪贴板
     let address = `ftp://${ip}:${port.value}`;
     await clipboard.writeText(address);
-    ElMessage({ type: "success", message: '已复制到剪贴板' });
+    ElMessage({ type: "success", message: t('connection.copied') });
 };
 
 async function openDir() {
     if (!dirPath.value) {
-        ElMessage({ type: "warning", message: "未选择目录" });
+        ElMessage({ type: "warning", message: t('message.noDir') });
         return;
     }
     const osType = checkPlatform();
@@ -116,11 +297,16 @@ function startOrStopServer() {
 
 async function stopFtpServer() {
     try {
-        const result = await invoke('stop_ftp_server', {}) || '';
-        ElMessage({ type: "success", message: result.toString() });
+        await invoke('stop_ftp_server', {});
+        ElMessage({ type: "success", message: t('message.serviceStopped') });
         isStart.value = false;
+        runtimeState.isServerRunning.value = false;
+        await updateTrayMenu(false);
+        stopRunTimer();
     } catch (e) {
-        ElMessage({ type: "error", message: e ? e.toString() : "未知错误" });
+    // 更新后端状态
+    await invoke('set_server_running', { running: false });
+        ElMessage({ type: "error", message: t('message.serviceStopFailed') });
     }
 }
 
@@ -139,31 +325,435 @@ const getIps = async () => {
 async function startFtpServer() {
     try {
         await getIps()
+
+        // 验证路径
         if (!dirPath.value) {
-            ElMessage("请选择路径");
+            ElMessage({ type: "warning", message: t('message.selectPath') });
             return;
         }
+
+        const pathValidation = validatePath(dirPath.value);
+        if (!pathValidation.valid) {
+            ElMessage({ type: "error", message: pathValidation.error || t('message.pathInvalid') });
+            return;
+        }
+
+        // 验证端口
+        const portValidation = validatePort(port.value);
+        if (!portValidation.valid) {
+            ElMessage({ type: "error", message: portValidation.error || t('message.portInvalid') });
+            return;
+        }
+
+        // 显示端口警告
+        if (portValidation.warningKey) {
+            const warningMessage = portValidation.warningParams
+                ? t(portValidation.warningKey, portValidation.warningParams)
+                : t(portValidation.warningKey);
+            ElMessage({ type: "warning", message: warningMessage, duration: 5000 });
+        }
+
         logl("invoke-'start_ftp_server'");
         const users = (await store.get('tableData')) || [];
         const isAnonymous = await store.get('isAnonymous') || false;
-        let fileauth = await store.get('fileauth') || 'R';
+        let fileAuth = await store.get('fileauth') || 'R';
 
-        const result = await invoke('start_ftp_server', {
+        await invoke('start_ftp_server', {
             path: dirPath.value,
             port: port.value.toString(),
             users: JSON.stringify(users),
             isAnonymous,
-            fileauth,
-        }) || '';
-        ElMessage({ type: "success", message: result.toString() });
+            fileAuth
+        });
+        ElMessage({ type: "success", message: t('message.serviceStarted') });
         isStart.value = true;
+        runtimeState.isServerRunning.value = true;
+        await updateTrayMenu(true);
+        // 更新后端状态
+        await invoke('set_server_running', { running: true });
+        startRunTimer();
     } catch (e) {
-        ElMessage({ type: "error", message: e ? e.toString() : "未知错误" });
+        ElMessage({ type: "error", message: t('message.serviceStartFailed') });
     }
 }
 
 </script>
 
+<style lang="scss" scoped>
+.ftp-container {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    overflow: auto;
+}
 
+.ftp-content {
+    width: 100%;
+    max-width: 600px;
+}
 
-<style lang="scss" scoped></style>
+.header-section {
+    text-align: center;
+    margin-bottom: 24px;
+    
+    .icon-wrapper {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 16px;
+        font-size: 24px;
+    }
+}
+
+.status-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.config-card,
+.connection-card {
+    margin-bottom: 20px;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #303133;
+    
+    .card-icon {
+        width: 20px;
+        height: 20px;
+        color: var(--primary-color);
+    }
+}
+
+html.dark .card-header {
+    color: #e0e0e0;
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #606266;
+    
+    .label-icon {
+        width: 16px;
+        height: 16px;
+        color: var(--primary-color);
+    }
+}
+
+html.dark .form-label {
+    color: #b0b0b0;
+}
+
+.input-group {
+    display: flex;
+    gap: 8px;
+    
+    .el-input {
+        flex: 1;
+    }
+}
+
+.control-section {
+    display: flex;
+    justify-content: center;
+    margin: 32px 0;
+}
+
+/* 悬浮按钮 */
+.floating-btn {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--gradient-success);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(72, 198, 239, 0.4);
+    transition: all 0.3s ease;
+    z-index: 100;
+
+    .plane-icon {
+        width: 28px;
+        height: 28px;
+        transform: rotate(-45deg);
+        transition: transform 0.3s ease;
+    }
+
+    &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 28px rgba(72, 198, 239, 0.5);
+
+        .plane-icon {
+            transform: rotate(-45deg) translateX(2px);
+        }
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+
+    &.is-running {
+        background: linear-gradient(135deg, #f56565 0%, #ed8936 100%);
+        box-shadow: 0 4px 20px rgba(245, 101, 101, 0.4);
+
+        .plane-icon {
+            transform: rotate(135deg);
+        }
+
+        &:hover {
+            box-shadow: 0 6px 28px rgba(245, 101, 101, 0.5);
+        }
+    }
+}
+
+html.dark .floating-btn {
+    &:not(.is-running) {
+        box-shadow: 0 4px 20px rgba(72, 198, 239, 0.3);
+    }
+
+    &.is-running {
+        box-shadow: 0 4px 20px rgba(245, 101, 101, 0.3);
+    }
+}
+
+.control-button {
+    min-width: 160px;
+    height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: var(--radius-lg);
+    border: none;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s ease;
+
+    &:not(.is-running) {
+        background: var(--gradient-success);
+        color: white;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(72, 198, 239, 0.3);
+        }
+    }
+
+    &.is-running {
+        background: linear-gradient(135deg, #f56565 0%, #ed8936 100%);
+        color: white;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(245, 101, 101, 0.3);
+        }
+    }
+
+    .button-icon {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+    }
+}
+
+.connection-links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.connection-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    
+    &:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border-color: rgba(102, 126, 234, 0.3);
+        transform: translateX(4px);
+    }
+    
+    .link-icon {
+        width: 20px;
+        height: 20px;
+        color: var(--primary-color);
+        flex-shrink: 0;
+    }
+    
+    .link-text {
+        flex: 1;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 14px;
+        color: #303133;
+        font-weight: 500;
+    }
+    
+    .copy-icon {
+        width: 16px;
+        height: 16px;
+        color: var(--primary-color);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    &:hover .copy-icon {
+        opacity: 1;
+    }
+}
+
+html.dark .connection-link {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-color: rgba(102, 126, 234, 0.2);
+
+    .link-text {
+        color: #e0e0e0;
+    }
+}
+
+/* 运行时间 */
+.run-time-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(102, 126, 234, 0.1);
+
+    .time-icon {
+        width: 18px;
+        height: 18px;
+        color: var(--primary-color);
+    }
+
+    .run-time-label {
+        font-size: 14px;
+        color: #606266;
+    }
+
+    .run-time-value {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--primary-color);
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        padding: 4px 12px;
+        border-radius: var(--radius-sm);
+    }
+}
+
+html.dark .run-time-section {
+    border-top-color: rgba(102, 126, 234, 0.2);
+
+    .run-time-label {
+        color: #b0b0b0;
+    }
+}
+
+/* 过渡动画 */
+.slide-fade-enter-active {
+    transition: all 0.4s ease;
+}
+
+.slide-fade-leave-active {
+    transition: all 0.3s ease;
+}
+
+.slide-fade-enter-from {
+    transform: translateY(-20px);
+    opacity: 0;
+}
+
+.slide-fade-leave-to {
+    transform: translateY(20px);
+    opacity: 0;
+}
+
+/* Element Plus 组件样式覆盖 */
+:deep(.el-input) {
+    .el-input__wrapper {
+        border-radius: var(--radius-md);
+        box-shadow: none;
+        border: 2px solid rgba(102, 126, 234, 0.1);
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.8);
+        
+        &:hover {
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        &.is-focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+    }
+    
+    &.is-disabled .el-input__wrapper {
+        background: rgba(0, 0, 0, 0.02);
+        border-color: rgba(0, 0, 0, 0.05);
+    }
+}
+
+html.dark :deep(.el-input) {
+    .el-input__wrapper {
+        background: rgba(30, 30, 40, 0.8);
+        border-color: rgba(102, 126, 234, 0.2);
+        
+        &:hover {
+            border-color: rgba(102, 126, 234, 0.4);
+        }
+    }
+    
+    &.is-disabled .el-input__wrapper {
+        background: rgba(0, 0, 0, 0.2);
+    }
+}
+
+:deep(.el-button) {
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    
+    &:not(.is-disabled):hover {
+        transform: translateY(-1px);
+    }
+    
+    &:active {
+        transform: translateY(0);
+    }
+}
+.el-button+.el-button{
+    margin-left: 0px;
+}
+</style>
