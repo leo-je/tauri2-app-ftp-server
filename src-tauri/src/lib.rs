@@ -21,7 +21,7 @@ pub mod validators;
 #[cfg(target_os = "windows")]
 fn setup_window_icon(window: &tauri::WebviewWindow) -> Result<(), Box<dyn std::error::Error>> {
     if let Some(icon) = window.app_handle().default_window_icon() {
-        window.set_window_icon(Some(icon.clone()))?;
+        window.set_icon(Some(icon.clone()))?;
     }
     Ok(())
 }
@@ -53,7 +53,7 @@ pub fn run() {
             #[cfg(target_os = "windows")]
             if let Some(window) = app.get_webview_window("main") {
                 if let Err(e) = setup_window_icon(&window) {
-                    log::warn!("设置窗口图标失败: {}", e);
+                    eprintln!("设置窗口图标失败: {}", e);
                 }
             }
 
@@ -115,6 +115,7 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("Failed to build Tauri application")
         .run(|app_handle, event| {
+            #[cfg(target_os = "macos")]
             if let RunEvent::Reopen { .. } = event {
                 // macOS: 点击 Dock 图标时显示主窗口
                 if let Some(window) = app_handle.get_webview_window("main") {
