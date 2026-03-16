@@ -9,7 +9,7 @@
 //! 了解更多关于 Tauri 命令：<https://tauri.app/develop/calling-rust/>
 
 use std::sync::{Arc, Mutex};
-use tauri::{Manager, WindowEvent};
+use tauri::{Manager, RunEvent, WindowEvent};
 use tauri_plugin_log::{Target, TargetKind};
 
 pub mod ftp;
@@ -93,7 +93,16 @@ pub fn run() {
                 ])
                 .build(),
         )
-        // 运行应用
-        .run(tauri::generate_context!())
-        .expect("error while running ftp Server application");
+        // 运行应用，处理 Dock 图标点击等事件
+        .build(tauri::generate_context!())
+        .expect("Failed to build Tauri application")
+        .run(|app_handle, event| {
+            if let RunEvent::Reopen { .. } = event {
+                // macOS: 点击 Dock 图标时显示主窗口
+                if let Some(window) = app_handle.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+            }
+        });
 }
