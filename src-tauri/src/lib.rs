@@ -17,6 +17,15 @@ pub mod commands;
 pub mod tray;
 pub mod validators;
 
+/// 设置默认窗口图标（解决Windows任务栏图标显示问题）
+#[cfg(target_os = "windows")]
+fn setup_window_icon(window: &tauri::WebviewWindow) -> Result<(), Box<dyn std::error::Error>> {
+    if let Some(icon) = window.app_handle().default_window_icon() {
+        window.set_window_icon(Some(icon.clone()))?;
+    }
+    Ok(())
+}
+
 /// Tauri 应用入口函数
 ///
 /// 构建并运行 Tauri 应用，配置所有必要的插件和处理器。
@@ -39,6 +48,14 @@ pub fn run() {
                 is_server_running: Arc::new(Mutex::new(false)),
             }));
             app.manage(app_state.clone());
+
+            // 设置窗口图标（解决Windows任务栏图标显示问题）
+            #[cfg(target_os = "windows")]
+            if let Some(window) = app.get_webview_window("main") {
+                if let Err(e) = setup_window_icon(&window) {
+                    log::warn!("设置窗口图标失败: {}", e);
+                }
+            }
 
             // 初始化托盘菜单和事件处理
             let app_handle = app.handle().clone();

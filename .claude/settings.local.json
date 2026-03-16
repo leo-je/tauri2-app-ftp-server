@@ -68,7 +68,9 @@
       "Bash(rustup:*)",
       "Bash(npm:*)",
       "Bash(gh repo:*)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(/tmp/check_icon_issue.txt:*)",
+      "Read(//tmp/**)"
     ]
   }
 }
