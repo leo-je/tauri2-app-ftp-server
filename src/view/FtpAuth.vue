@@ -124,12 +124,6 @@
                                 <span>{{ $t('auth.readWrite') }}</span>
                             </div>
                         </div>
-
-                        <div v-if="tableData.length === 0" class="empty-state">
-                            <SvgIcon name="users" :size="64" class="empty-icon" />
-                            <p class="empty-text">{{ $t('auth.noUsers') }}</p>
-                            <p class="empty-hint">{{ $t('auth.addUserHint') }}</p>
-                        </div>
                     </div>
                 </div>
             </transition>
