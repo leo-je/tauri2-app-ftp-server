@@ -23,14 +23,13 @@ const props = withDefaults(defineProps<Props>(), {
   class: ''
 });
 
-// 使用 Tauri 的图标路径
-const logoSrc = ref('/src-tauri/icons/icon.png');
+// 使用 public 目录下的图标（打包后也能正常访问）
+const logoSrc = ref('/icon.png');
 
-// 如果主图标加载失败，尝试使用备用图标
+// 备用图标
 const fallbackIcons = [
-  '/src-tauri/icons/128x128.png',
-  '/src-tauri/icons/64x64.png',
-  '/src-tauri/icons/32x32.png'
+  '/vite.svg',
+  '/tauri.svg'
 ];
 
 let fallbackIndex = 0;

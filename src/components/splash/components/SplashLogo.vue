@@ -38,11 +38,10 @@ const props = withDefaults(defineProps<Props>(), {
   ready: false
 });
 
-const logoSrc = ref('/src-tauri/icons/icon.png');
+const logoSrc = ref('/icon.png');
 const fallbackIcons = [
-  '/src-tauri/icons/128x128.png',
-  '/src-tauri/icons/64x64.png',
-  '/src-tauri/icons/32x32.png'
+  '/vite.svg',
+  '/tauri.svg'
 ];
 let fallbackIndex = 0;
 
