@@ -16,7 +16,7 @@
     "@tauri-apps/plugin-opener": "2.5.3",
     "@tauri-apps/plugin-os": "2.3.2",
     "@tauri-apps/plugin-store": "2.4.2",
-    "element-plus": "2.9.5",
+    "element-plus": "2.13.5",
     "tauri-plugin-clipboard-api": "^2.1.11",
     "tauri-plugin-shellx-api": "^2.0.16",
     "vue": "^3.5.30",
