@@ -167,6 +167,7 @@ export default {
     show: 'Show Main Window',
     start: 'Start FTP',
     stop: 'Stop FTP',
-    quit: 'Quit'
+    quit: 'Quit',
+    uptime: 'Uptime'
   }
 }

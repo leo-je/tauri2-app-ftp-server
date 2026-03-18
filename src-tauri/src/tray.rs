@@ -6,14 +6,17 @@
 //! - 托盘菜单事件处理
 
 use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::{Duration, Instant};
 use tauri::{
-    menu::{Menu, MenuItem},
-    Emitter, Manager,
+    menu::{Menu, MenuItem, PredefinedMenuItem},
+    Emitter, Manager, Wry,
 };
 
 /// 全局应用状态
 pub struct AppState {
     pub is_server_running: Arc<Mutex<bool>>,
+    pub server_start_time: Option<Instant>,
 }
 
 /// 托盘菜单翻译文本
@@ -23,6 +26,12 @@ pub struct TrayMenuText {
     pub start: String,
     pub stop: String,
     pub quit: String,
+    #[serde(default = "default_uptime_label")]
+    pub uptime: String,
+}
+
+fn default_uptime_label() -> String {
+    "运行时间".to_string()
 }
 
 /// 全局托盘菜单翻译文本
@@ -32,8 +41,26 @@ static TRAY_MENU_TEXT: std::sync::LazyLock<Mutex<TrayMenuText>> = std::sync::Laz
         start: "启动 FTP".to_string(),
         stop: "停止 FTP".to_string(),
         quit: "退出".to_string(),
+        uptime: "运行时间".to_string(),
     })
 });
+
+/// 全局运行时间菜单项引用
+static UPTIME_MENU_ITEM: std::sync::LazyLock<Mutex<Option<MenuItem<Wry>>>> =
+    std::sync::LazyLock::new(|| Mutex::new(None));
+
+fn format_uptime(server_start_time: Option<Instant>, label: &str) -> String {
+    match server_start_time {
+        Some(start) => {
+            let elapsed = start.elapsed();
+            let hours = elapsed.as_secs() / 3600;
+            let minutes = (elapsed.as_secs() % 3600) / 60;
+            let seconds = elapsed.as_secs() % 60;
+            format!("{}: {:02}:{:02}:{:02}", label, hours, minutes, seconds)
+        }
+        None => format!("{}: --:--:--", label),
+    }
+}
 
 /// 更新托盘菜单文本
 pub fn update_tray_menu_text(text: TrayMenuText) {
@@ -49,6 +76,14 @@ pub fn update_tray_menu(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let menu_text = TRAY_MENU_TEXT.lock().unwrap();
 
+    let uptime_display = {
+        let state = app.state::<Arc<Mutex<AppState>>>();
+        let state = state.lock().unwrap();
+        format_uptime(state.server_start_time, &menu_text.uptime)
+    };
+
+    let uptime_item = MenuItem::with_id(app, "uptime", &uptime_display, false, None::<&str>)?;
+    let separator = PredefinedMenuItem::separator(app)?;
     let show_item = MenuItem::with_id(app, "show", &menu_text.show, true, None::<&str>)?;
     let toggle_text = if is_running {
         menu_text.stop.clone()
@@ -58,10 +93,24 @@ pub fn update_tray_menu(
     let toggle_item = MenuItem::with_id(app, "toggle", &toggle_text, true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, "quit", &menu_text.quit, true, None::<&str>)?;
 
-    let menu = Menu::with_items(app, &[&show_item, &toggle_item, &quit_item])?;
+    let menu = Menu::with_items(
+        app,
+        &[
+            &uptime_item,
+            &separator,
+            &show_item,
+            &toggle_item,
+            &quit_item,
+        ],
+    )?;
 
     if let Some(tray) = app.tray_by_id("main") {
         tray.set_menu(Some(menu))?;
+    }
+
+    // 存储新的运行时间菜单项引用，供定时器线程更新文字
+    if let Ok(mut item) = UPTIME_MENU_ITEM.lock() {
+        *item = Some(uptime_item);
     }
 
     Ok(())
@@ -90,6 +139,32 @@ pub fn setup_tray_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error:
             _ => {}
         });
     }
+
+    let app_handle = app.clone();
+    thread::spawn(move || loop {
+        thread::sleep(Duration::from_secs(1));
+
+        let uptime_display = {
+            let state = app_handle.state::<Arc<Mutex<AppState>>>();
+            let app_state = Arc::clone(&*state);
+            let menu_text = match TRAY_MENU_TEXT.lock() {
+                Ok(t) => t,
+                Err(_) => continue,
+            };
+            let result = match app_state.lock() {
+                Ok(s) => format_uptime(s.server_start_time, &menu_text.uptime),
+                Err(_) => continue,
+            };
+            result
+        };
+
+        // 只更新运行时间菜单项的文字，不重建菜单（避免关闭已打开的菜单）
+        if let Ok(item_guard) = UPTIME_MENU_ITEM.lock() {
+            if let Some(ref item) = *item_guard {
+                let _ = item.set_text(&uptime_display);
+            }
+        }
+    });
 
     Ok(())
 }

@@ -48,6 +48,7 @@ pub fn run() {
             // 创建应用状态
             let app_state = Arc::new(Mutex::new(tray::AppState {
                 is_server_running: Arc::new(Mutex::new(false)),
+                server_start_time: None,
             }));
             app.manage(app_state.clone());
 

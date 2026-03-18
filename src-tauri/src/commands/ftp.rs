@@ -3,10 +3,11 @@
 //! 包含启动和停止 FTP 服务器的 Tauri 命令。
 
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
 use crate::ftp::ftpworker::{FtpWorker, FtpWorkerConfig};
 use crate::tray::AppState;
-use crate::validators::{sanitize_path, sanitize_port, sanitize_users_json, sanitize_file_auth};
+use crate::validators::{sanitize_file_auth, sanitize_path, sanitize_port, sanitize_users_json};
 
 /// 启动 FTP 服务器（Tauri 命令）
 ///
@@ -54,10 +55,7 @@ pub fn start_ftp_server(
 ) -> Result<String, String> {
     // 清理和验证路径
     let sanitized_path = sanitize_path(&path)?;
-    let path_str = sanitized_path
-        .to_str()
-        .ok_or("路径格式无效")?
-        .to_string();
+    let path_str = sanitized_path.to_str().ok_or("路径格式无效")?.to_string();
 
     // 清理和验证端口
     let sanitized_port = sanitize_port(&port)?;
@@ -102,6 +100,9 @@ pub fn start_ftp_server(
                     *is_running = true;
                 }
             }
+            if let Ok(mut state) = app_state.lock() {
+                state.server_start_time = Some(Instant::now());
+            }
             let _ = crate::tray::update_tray_menu(&app, true);
             Ok("服务已启动".to_string())
         }
@@ -142,6 +143,9 @@ pub fn stop_ftp_server(
                 if let Ok(mut is_running) = state.is_server_running.lock() {
                     *is_running = false;
                 }
+            }
+            if let Ok(mut state) = app_state.lock() {
+                state.server_start_time = None;
             }
             let _ = crate::tray::update_tray_menu(&app, false);
             Ok("服务已停止".to_string())

@@ -167,6 +167,7 @@ export default {
     show: '显示主界面',
     start: '启动 FTP',
     stop: '停止 FTP',
-    quit: '退出'
+    quit: '退出',
+    uptime: '运行时间'
   }
 }

@@ -112,25 +112,25 @@ const isFirstLoad = ref(true);
 const techStack = ref<Array<{ name: string; version: string; icon: IconName; gradient: string }>>([
   {
     name: 'Tauri',
-    version: 'v2.2.0',
+    version: 'v2.10.1',
     icon: 'tauri',
     gradient: 'linear-gradient(135deg, #24C8DB 0%, #14B8A6 100%)'
   },
   {
     name: 'Vue',
-    version: 'v3.5.13',
+    version: 'v3.5.30',
     icon: 'vue',
     gradient: 'linear-gradient(135deg, #42B883 0%, #35495E 100%)'
   },
   {
     name: 'Element Plus',
-    version: 'v2.9.5',
+    version: 'v2.13.5',
     icon: 'elementPlus',
     gradient: 'linear-gradient(135deg, #409EFF 0%, #66B1FF 100%)'
   },
   {
     name: 'TypeScript',
-    version: 'v5.7.3',
+    version: 'v5.9.3',
     icon: 'typescript',
     gradient: 'linear-gradient(135deg, #3178C6 0%, #235A97 100%)'
   }

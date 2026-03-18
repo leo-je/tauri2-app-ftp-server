@@ -3,10 +3,11 @@
 //! 包含系统信息获取、应用配置检查、权限检查和服务器运行状态管理的 Tauri 命令。
 
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
 use crate::ftp::ftpworker::FtpWorker;
-use crate::validators::{check_privileged_port_permission, check_write_permission};
 use crate::tray::AppState;
+use crate::validators::{check_privileged_port_permission, check_write_permission};
 use serde::{Deserialize, Serialize};
 use tauri_plugin_os::{arch, platform, version};
 
@@ -119,6 +120,15 @@ pub fn set_server_running(
     if let Ok(state) = app_state.lock() {
         if let Ok(mut is_running) = state.is_server_running.lock() {
             *is_running = running;
+        }
+    }
+    if let Ok(mut state) = app_state.lock() {
+        if running {
+            if state.server_start_time.is_none() {
+                state.server_start_time = Some(Instant::now());
+            }
+        } else {
+            state.server_start_time = None;
         }
     }
 

@@ -47,7 +47,8 @@ const updateTrayMenu = async () => {
         show: t('tray.show'),
         start: t('tray.start'),
         stop: t('tray.stop'),
-        quit: t('tray.quit')
+        quit: t('tray.quit'),
+        uptime: t('tray.uptime')
       }
     })
   } catch (e) {

@@ -167,6 +167,7 @@ export default {
     show: 'แสดงหน้าต่างหลัก',
     start: 'เริ่ม FTP',
     stop: 'หยุด FTP',
-    quit: 'ออก'
+    quit: 'ออก',
+    uptime: 'เวลาทำงาน'
   }
 }

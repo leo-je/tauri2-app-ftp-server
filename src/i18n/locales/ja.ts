@@ -149,6 +149,7 @@ export default {
     show: 'メインウィンドウを表示',
     start: 'FTP を起動',
     stop: 'FTP を停止',
-    quit: '終了'
+    quit: '終了',
+    uptime: '稼働時間'
   }
 }
