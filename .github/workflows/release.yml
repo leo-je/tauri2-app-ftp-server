@@ -26,6 +26,7 @@ jobs:
       windows_version: ${{ steps.get_version.outputs.WINDOWSVERSION }}
       current_datetime: ${{ steps.get_version.outputs.CURRENT_DATETIME }}
       macos_version: ${{ steps.get_version.outputs.MACOSVERSION }}
+      linux_version: ${{ steps.get_version.outputs.LINUXVERSION }}
       last_commit_msg: ${{ steps.get_version.outputs.LAST_COMMIT_INFO }}
       tagName: ${{ steps.get_version.outputs.TAG }}
       releaseBody: ${{ steps.get_version.outputs.RELEASE_BODY }}
@@ -45,6 +46,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "WINDOWSVERSION=$VERSION-$run_number" >> $GITHUB_OUTPUT
           echo "MACOSVERSION=$VERSION-$run_number" >> $GITHUB_OUTPUT
+          echo "LINUXVERSION=$VERSION-$run_number" >> $GITHUB_OUTPUT
           CURRENT_DATETIME=$(date +"%Y%m%d %H:%M:%S")
           echo "CURRENT_DATETIME=$CURRENT_DATETIME" >> $GITHUB_OUTPUT
           LAST_COMMIT_INFO=$(git log -1 --pretty=format:'%an: %s ')
@@ -83,9 +85,9 @@ jobs:
             target: 'universal-apple-darwin'
             args: '--target universal-apple-darwin'
             platform_name: 'macos-universal'
-          #- platform: 'ubuntu-22.04' # for Tauri v1 you could replace this with ubuntu-20.04.
-          #  args: ''
-          #  platform_name: 'linux-x86_64'
+          - platform: 'ubuntu-22.04'
+            args: ''
+            platform_name: 'linux-x86_64'
           - platform: 'windows-latest'
             args: ''
             platform_name: 'windows-x86_64'
@@ -119,10 +121,9 @@ jobs:
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         with:
-          args: ${{ matrix.args }} --config '{"version":"${{matrix.platform == 'windows-latest' && needs.get_version.outputs.windows_version || needs.get_version.outputs.macos_version}}"}'
+          args: ${{ matrix.args }} --config '{"version":"${{matrix.platform == 'windows-latest' && needs.get_version.outputs.windows_version || matrix.platform == 'ubuntu-22.04' && needs.get_version.outputs.linux_version || needs.get_version.outputs.macos_version}}"}'
 
       - name: Rename build artifacts
-        if: matrix.platform != 'ubuntu-22.04'
         shell: bash
         run: |
           VERSION="${{needs.get_version.outputs.version}}"
@@ -176,13 +177,37 @@ jobs:
             for sig in ${BUILD_DIR}/nsis/*.exe.sig; do
               [ -f "$sig" ] && mv "$sig" "$(dirname "$sig")/${BUNDLE_NAME}-setup.exe.sig"
             done
+          elif [[ "${{matrix.platform}}" == "ubuntu-22.04" ]]; then
+            # Rename .AppImage files
+            for appimage in ${BUILD_DIR}/appimage/*.AppImage; do
+              [ -f "$appimage" ] && mv "$appimage" "$(dirname "$appimage")/${BUNDLE_NAME}.AppImage"
+            done
+            # Rename .AppImage.sig files
+            for sig in ${BUILD_DIR}/appimage/*.AppImage.sig; do
+              [ -f "$sig" ] && mv "$sig" "$(dirname "$sig")/${BUNDLE_NAME}.AppImage.sig"
+            done
+            # Rename .deb files
+            for deb in ${BUILD_DIR}/deb/*.deb; do
+              [ -f "$deb" ] && mv "$deb" "$(dirname "$deb")/${BUNDLE_NAME}.deb"
+            done
+            # Rename .deb.sig files
+            for sig in ${BUILD_DIR}/deb/*.deb.sig; do
+              [ -f "$sig" ] && mv "$sig" "$(dirname "$sig")/${BUNDLE_NAME}.deb.sig"
+            done
+            # Rename .rpm files
+            for rpm in ${BUILD_DIR}/rpm/*.rpm; do
+              [ -f "$rpm" ] && mv "$rpm" "$(dirname "$rpm")/${BUNDLE_NAME}.rpm"
+            done
+            # Rename .rpm.sig files
+            for sig in ${BUILD_DIR}/rpm/*.rpm.sig; do
+              [ -f "$sig" ] && mv "$sig" "$(dirname "$sig")/${BUNDLE_NAME}.rpm.sig"
+            done
           fi
 
           echo "Listing renamed artifacts:"
-          find ${BUILD_DIR} -type f \( -name "*.dmg" -o -name "*.app.tar.gz" -o -name "*.msi" -o -name "*.exe" -o -name "*.sig" \) -ls
+          find ${BUILD_DIR} -type f \( -name "*.dmg" -o -name "*.app.tar.gz" -o -name "*.msi" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.sig" \) -ls
 
       - name: Upload renamed artifacts to release
-        if: matrix.platform != 'ubuntu-22.04'
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -199,7 +224,7 @@ jobs:
           echo "Uploading artifacts for tag ${TAG} from ${BUILD_DIR}..."
 
           # Upload all renamed bundle files
-          find ${BUILD_DIR} -type f \( -name "*.dmg" -o -name "*.app.tar.gz" -o -name "*.msi" -o -name "*.exe" -o -name "*.sig" \) | while read -r file; do
+          find ${BUILD_DIR} -type f \( -name "*.dmg" -o -name "*.app.tar.gz" -o -name "*.msi" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.sig" \) | while read -r file; do
             echo "Uploading: $(basename "$file")"
             gh release upload "$TAG" "$file" --clobber
           done
