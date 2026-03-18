@@ -173,7 +173,10 @@ pub fn setup_tray_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error:
 #[tauri::command]
 pub fn hide_main_window(app: tauri::AppHandle) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("main") {
-        window.hide().map_err(|e| format!("隐藏窗口失败: {}", e))?;
+        let is_visible = window.is_visible().unwrap_or(false);
+        if is_visible {
+            window.hide().map_err(|e| format!("隐藏窗口失败: {}", e))?;
+        }
     }
     Ok(())
 }
