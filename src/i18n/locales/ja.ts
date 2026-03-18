@@ -93,11 +93,16 @@ export default {
   },
   tabs: {
     server: 'サーバー',
-    auth: '権限設定',
+    auth: '設定',
     about: 'について'
   },
   auth: {
     serverRunning: 'サービス実行中、権限設定はロックされています',
+    settings: '一般設定',
+    autoStart: '自動起動',
+    autoStartDesc: 'システム起動時にアプリケーションを自動起動',
+    hideOnStartup: '起動時にメインウィンドウを非表示',
+    hideOnStartupDesc: '起動時にメインウィンドウを非表示にし、トレイアイコンのみ表示',
     anonymous: '匿名アクセス',
     anonymousDesc: '認証なしでアクセス可能',
     readOnly: '読み取り専用',

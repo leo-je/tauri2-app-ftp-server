@@ -10,6 +10,38 @@
                 <p class="ftp-subtitle">配置 FTP 服务器的访问权限</p>
             </div>
 
+            <!-- 常规设置卡片 -->
+            <div :class="['settings-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.05s;' : ''">
+                <div class="card-header">
+                    <SvgIcon name="settings" :size="20" class="card-icon" />
+                    <span>{{ $t('auth.settings') }}</span>
+                </div>
+                <div class="settings-list">
+                    <div class="access-mode-row">
+                        <div class="mode-info">
+                            <span class="mode-label">{{ $t('auth.autoStart') }}</span>
+                            <span class="mode-desc">{{ $t('auth.autoStartDesc') }}</span>
+                        </div>
+                        <el-switch
+                            v-model="autoStart"
+                            @change="onAutoStartChange"
+                            class="auth-switch"
+                        />
+                    </div>
+                    <div class="access-mode-row setting-item">
+                        <div class="mode-info">
+                            <span class="mode-label">{{ $t('auth.hideOnStartup') }}</span>
+                            <span class="mode-desc">{{ $t('auth.hideOnStartupDesc') }}</span>
+                        </div>
+                        <el-switch
+                            v-model="hideOnStartup"
+                            @change="() => store.set('hideOnStartup', hideOnStartup)"
+                            class="auth-switch"
+                        />
+                    </div>
+                </div>
+            </div>
+
             <!-- 匿名访问设置卡片 -->
             <div :class="['auth-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.1s;' : ''">
                 <div v-if="isServerRunning" class="readonly-banner">
@@ -188,6 +220,7 @@ import type { TableColumnCtx } from 'element-plus'
 import store, { runtimeState } from '../store';
 import { SvgIcon } from '../components/icons';
 import { validateUser } from '../utils/validation';
+import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 
 const { t } = useI18n()
 
@@ -209,6 +242,8 @@ const isAnonymous = ref(true)
 const tableData = ref<TableDataItem[]>([])
 const fileAuth = ref('R')
 const isFirstLoad = ref(true)
+const autoStart = ref(true)
+const hideOnStartup = ref(true)
 
 // 服务运行状态
 const isServerRunning = computed(() => runtimeState.isServerRunning.value)
@@ -224,10 +259,36 @@ const init = async () => {
         let t: unknown = await store.get('tableData');
         console.log("tableData:" + t)
         tableData.value = (t && Array.isArray(t) && t.length > 0) ? t as TableDataItem[] : []
+
+        // 加载自启动设置
+        try {
+            autoStart.value = await isEnabled()
+        } catch (e) {
+            console.warn('Failed to get autostart status:', e)
+            autoStart.value = true
+        }
+
+        // 加载启动时隐藏主界面设置
+        let hs = await store.get('hideOnStartup')
+        hideOnStartup.value = hs !== null ? !!hs : true
     } catch (e) {
         console.error(e)
         tableData.value = []
         store.set('tableData', []);
+    }
+}
+
+const onAutoStartChange = async () => {
+    try {
+        if (autoStart.value) {
+            await enable()
+        } else {
+            await disable()
+        }
+    } catch (e) {
+        console.error('Failed to toggle autostart:', e)
+        // 恢复原状态
+        autoStart.value = !autoStart.value
     }
 }
 
@@ -355,6 +416,27 @@ const saveForm = () => {
 .auth-card,
 .users-card {
     margin-bottom: 16px;
+}
+
+.settings-card {
+    margin-bottom: 16px;
+
+    .settings-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .setting-item {
+        padding-top: 16px;
+        border-top: 1px solid rgba(102, 126, 234, 0.1);
+    }
+}
+
+html.dark .settings-card {
+    .setting-item {
+        border-top-color: rgba(102, 126, 234, 0.2);
+    }
 }
 
 /* 访问模式紧凑行 */

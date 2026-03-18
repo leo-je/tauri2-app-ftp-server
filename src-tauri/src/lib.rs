@@ -13,6 +13,7 @@ use tauri::{Manager, WindowEvent};
 #[cfg(target_os = "macos")]
 use tauri::RunEvent;
 use tauri_plugin_log::{Target, TargetKind};
+use tauri_plugin_autostart::MacosLauncher;
 
 pub mod ftp;
 pub mod commands;
@@ -85,6 +86,11 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         // 初始化文件打开插件
         .plugin(tauri_plugin_opener::init())
+        // 初始化自启动插件
+        .plugin(tauri_plugin_autostart::init(
+            MacosLauncher::LaunchAgent,
+            Some(vec!["--minimized"]),
+        ))
         // 注册前端可调用的命令
         .invoke_handler(tauri::generate_handler![
             commands::ftp::start_ftp_server,

@@ -93,11 +93,16 @@ export default {
   },
   tabs: {
     server: '服务器',
-    auth: '权限设置',
+    auth: '设置',
     about: '关于'
   },
   auth: {
     serverRunning: '服务运行中，权限设置已锁定',
+    settings: '常规设置',
+    autoStart: '是否自动启动',
+    autoStartDesc: '开机时自动启动应用程序',
+    hideOnStartup: '启动时是否隐藏主界面',
+    hideOnStartupDesc: '启动时隐藏主窗口，仅显示托盘图标',
     anonymous: '匿名访问',
     anonymousDesc: '无需认证即可访问',
     readOnly: '只读',

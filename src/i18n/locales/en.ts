@@ -93,11 +93,16 @@ export default {
   },
   tabs: {
     server: 'Server',
-    auth: 'Permissions',
+    auth: 'Settings',
     about: 'About'
   },
   auth: {
     serverRunning: 'Server is running, settings are locked',
+    settings: 'General Settings',
+    autoStart: 'Auto Start',
+    autoStartDesc: 'Launch application automatically on system startup',
+    hideOnStartup: 'Hide Window on Startup',
+    hideOnStartupDesc: 'Hide main window on startup, show tray icon only',
     anonymous: 'Anonymous Access',
     anonymousDesc: 'Access without authentication',
     readOnly: 'Read Only',

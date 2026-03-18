@@ -1,5 +1,5 @@
 <template>
-  <SplashScreen v-if="!appReady" @complete="appReady = true" />
+  <SplashScreen v-if="!appReady" @complete="onSplashComplete" />
   <el-container class="app-container">
     <AppBackground v-if="appReady" />
     <!-- 自定义标题栏 -->
@@ -108,6 +108,25 @@ const minimizeWindow = () => {
 const closeWindow = () => {
   // 隐藏窗口，保留 Dock 图标（macOS 标准行为）
   invoke('hide_main_window');
+}
+
+const onSplashComplete = async () => {
+  appReady.value = true
+  // 检查启动时隐藏主界面设置
+  try {
+    const hideOnStartup = await appStore.get('hideOnStartup')
+    if (hideOnStartup !== false) {
+      // 默认隐藏（设置为 ON）
+      await invoke('hide_main_window')
+    } else {
+      // 设置为 OFF，确保窗口可见
+      await appWindow.show()
+    }
+  } catch (e) {
+    console.warn('Failed to check hide-on-startup setting:', e)
+    // 出错时默认显示窗口
+    await appWindow.show()
+  }
 }
 </script>
 

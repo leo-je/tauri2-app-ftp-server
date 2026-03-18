@@ -36,6 +36,7 @@
     "store:default",
     "log:default",
     "clipboard:allow-write-text",
-    "clipboard:write-all"
+    "clipboard:write-all",
+    "autostart:default"
   ]
 }
