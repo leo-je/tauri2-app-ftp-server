@@ -127,23 +127,41 @@ export default {
   },
   about: {
     appName: 'FTP เซิร์ฟเวอร์',
+    version: 'เวอร์ชัน',
+    clickToCopy: 'คลิกเพื่อคัดลอกหมายเลขเวอร์ชัน',
+    versionCopied: 'คัดลอกหมายเลขเวอร์ชันแล้ว',
+    developer: 'ผู้พัฒนา',
+    developerName: 'FTP Server Team',
     description: 'เครื่องมือจัดการเซิร์ฟเวอร์ FTP ข้ามแพลตฟอร์มที่เบาและสร้างด้วย Tauri 2.0 มีอินเทอร์เฟซผู้ใช้ที่ทันสมัยสำหรับการปรับใช้ที่รวดเร็วและบริการถ่ายโอนไฟล์ที่ปลอดภัย',
     techStack: 'เทคโนโลยีที่ใช้',
     features: 'คุณสมบัติหลัก',
-    featureList: {
-      lightweight: 'การออกแบบที่เบาและใช้หน่วยความจำต่ำ',
-      crossPlatform: 'รองรับข้ามแพลตฟอร์มสำหรับ Windows, macOS, Linux',
-      secure: 'ปลอดภัยและเชื่อถือได้ด้วยการจัดการสิทธิ์ผู้ใช้',
-      easyToUse: 'อินเทอร์เฟซผู้ใช้ที่สะอาดและใช้งานง่าย',
-      modern: 'เทคโนโลยีและปรัชญาการออกแบบที่ทันสมัย'
+    featuresList: {
+      crossPlatform: {
+        title: 'รองรับหลายแพลตฟอร์ม',
+        desc: 'รองรับ Windows, macOS และ Linux'
+      },
+      easyConfig: {
+        title: 'ตั้งค่าง่าย',
+        desc: 'อินเทอร์เฟซที่ใช้งานง่าย เริ่มต้นบริการ FTP ได้อย่างรวดเร็ว'
+      },
+      permissionControl: {
+        title: 'จัดการสิทธิ์',
+        desc: 'การควบคุมสิทธิ์ผู้ใช้และการเข้าถึงแบบไม่ระบุตัวตนที่ยืดหยุ่น'
+      },
+      realtime: {
+        title: 'ตรวจสอบแบบเรียลไทม์',
+        desc: 'ดูสถานะบริการและเวลาทำงาน'
+      }
     },
+    linksSection: 'ลิงก์ที่เกี่ยวข้อง',
     links: {
-      github: 'ที่เก็บ GitHub',
-      documentation: 'เอกสารประกอบ'
+      github: 'GitHub',
+      documentation: 'เอกสารประกอบ',
+      feedback: 'แจ้งปัญหา',
+      changelog: 'บันทึกการเปลี่ยนแปลง'
     },
-    copyright: '© 2024 FTP Server. All rights reserved.',
-    rights: 'สงวนลิขสิทธิ์ทั้งหมด',
-    license: 'โอเพนซอร์สภายใต้ Apache 2.0 License'
+    copyright: 'ลิขสิทธิ์ © 2024 FTP Server Team',
+    rights: 'สงวนลิขสิทธิ์ทั้งหมด'
   },
   tray: {
     show: 'แสดงหน้าต่างหลัก',
