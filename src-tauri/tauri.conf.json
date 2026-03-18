@@ -23,8 +23,7 @@
         "transparent": true,
         "shadow": false,
         "hiddenTitle": true,
-        "titleBarStyle": "Overlay",
-        "visible": false
+        "titleBarStyle": "Overlay"
       }
     ],
     "trayIcon": {

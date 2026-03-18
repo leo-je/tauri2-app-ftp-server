@@ -45,8 +45,15 @@ static TRAY_MENU_TEXT: std::sync::LazyLock<Mutex<TrayMenuText>> = std::sync::Laz
     })
 });
 
-/// 全局运行时间菜单项引用
-static UPTIME_MENU_ITEM: std::sync::LazyLock<Mutex<Option<MenuItem<Wry>>>> =
+/// 全局菜单项引用（用于文本更新，避免重建菜单）
+struct TrayMenuItems {
+    show: MenuItem<Wry>,
+    toggle: MenuItem<Wry>,
+    quit: MenuItem<Wry>,
+    uptime: MenuItem<Wry>,
+}
+
+static TRAY_MENU_ITEMS: std::sync::LazyLock<Mutex<Option<TrayMenuItems>>> =
     std::sync::LazyLock::new(|| Mutex::new(None));
 
 fn format_uptime(server_start_time: Option<Instant>, label: &str) -> String {
@@ -108,9 +115,14 @@ pub fn update_tray_menu(
         tray.set_menu(Some(menu))?;
     }
 
-    // 存储新的运行时间菜单项引用，供定时器线程更新文字
-    if let Ok(mut item) = UPTIME_MENU_ITEM.lock() {
-        *item = Some(uptime_item);
+    // 存储所有菜单项引用，供后续文本更新（避免重建菜单）
+    if let Ok(mut items) = TRAY_MENU_ITEMS.lock() {
+        *items = Some(TrayMenuItems {
+            show: show_item,
+            toggle: toggle_item,
+            quit: quit_item,
+            uptime: uptime_item,
+        });
     }
 
     Ok(())
@@ -159,9 +171,9 @@ pub fn setup_tray_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error:
         };
 
         // 只更新运行时间菜单项的文字，不重建菜单（避免关闭已打开的菜单）
-        if let Ok(item_guard) = UPTIME_MENU_ITEM.lock() {
-            if let Some(ref item) = *item_guard {
-                let _ = item.set_text(&uptime_display);
+        if let Ok(items_guard) = TRAY_MENU_ITEMS.lock() {
+            if let Some(ref items) = *items_guard {
+                let _ = items.uptime.set_text(&uptime_display);
             }
         }
     });
@@ -189,5 +201,24 @@ pub fn update_tray_menu_language(
     text: TrayMenuText,
 ) -> Result<(), String> {
     update_tray_menu_text(text);
+
+    // 只更新现有菜单项的文本，不重建菜单（避免关闭已打开的菜单）
+    if let Ok(items_guard) = TRAY_MENU_ITEMS.lock() {
+        if let Some(ref items) = *items_guard {
+            let menu_text = TRAY_MENU_TEXT.lock().map_err(|e| e.to_string())?;
+
+            let _ = items.show.set_text(&menu_text.show);
+            let toggle_text = if is_running {
+                &menu_text.stop
+            } else {
+                &menu_text.start
+            };
+            let _ = items.toggle.set_text(toggle_text);
+            let _ = items.quit.set_text(&menu_text.quit);
+            return Ok(());
+        }
+    }
+
+    // 如果菜单项不存在（首次初始化），则完整创建菜单
     update_tray_menu(&app, is_running).map_err(|e| e.to_string())
 }
