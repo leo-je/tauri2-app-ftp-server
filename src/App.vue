@@ -112,18 +112,19 @@ const closeWindow = () => {
 
 const onSplashComplete = async () => {
   appReady.value = true
-  // 等待 splash screen 淡出动画完成（600ms）后再检查隐藏设置
-  // 避免用户在 splash 消失过程中看到主 UI 闪现
-  setTimeout(async () => {
-    try {
-      const hideOnStartup = await appStore.get('hideOnStartup')
-      if (hideOnStartup !== false) {
-        await invoke('hide_main_window')
-      }
-    } catch (e) {
-      console.warn('Failed to check hide-on-startup setting:', e)
+  // 检查启动时隐藏主界面设置
+  try {
+    const hideOnStartup = await appStore.get('hideOnStartup')
+    if (hideOnStartup === false) {
+      // 用户关闭了隐藏选项，显示窗口
+      await appWindow.show()
     }
-  }, 700)
+    // 如果为 true（默认），窗口已在 setup 中隐藏，无需操作
+  } catch (e) {
+    console.warn('Failed to check hide-on-startup setting:', e)
+    // 出错时默认显示窗口
+    await appWindow.show()
+  }
 }
 </script>
 

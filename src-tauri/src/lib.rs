@@ -65,6 +65,11 @@ pub fn run() {
             let app_handle = app.handle().clone();
             tray::setup_tray_menu(&app_handle)?;
 
+            // 立即隐藏窗口（webview 仍在后台加载，用户看不到界面）
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.hide();
+            }
+
             // 拦截窗口关闭请求，改为隐藏窗口
             if let Some(window) = app.get_webview_window("main") {
                 let app_handle_clone = app.handle().clone();
