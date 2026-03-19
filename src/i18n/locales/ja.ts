@@ -47,6 +47,28 @@ export default {
     stopped: '停止',
     runtime: '実行時間'
   },
+  log: {
+    title: '操作ログ',
+    clear: 'ログをクリア',
+    empty: 'ログ記録はまだありません',
+    clearConfirm: 'すべてのログをクリアしてもよろしいですか？',
+    clearSuccess: 'ログをクリアしました',
+    columns: {
+      time: '時間',
+      operation: '操作',
+      path: 'パス',
+      bytes: 'サイズ',
+      user: 'ユーザー'
+    },
+    operations: {
+      download: 'ダウンロード',
+      upload: 'アップロード',
+      delete: '削除',
+      mkdir: 'ディレクトリ作成',
+      rmdir: 'ディレクトリ削除',
+      rename: '名前変更'
+    }
+  },
   config: {
     title: 'サーバー設定',
     shareDir: '共有ディレクトリ',

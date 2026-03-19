@@ -5,8 +5,6 @@
 //! - 注册各种插件（日志、对话框、剪贴板等）
 //! - 设置 FTP 工作线程状态管理
 //! - 注册前端可调用的命令
-//!
-//! 了解更多关于 Tauri 命令：<https://tauri.app/develop/calling-rust/>
 
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, WindowEvent};
@@ -45,6 +43,15 @@ pub fn run() {
             // 创建 FTP 工作线程并管理其状态
             let worker = Arc::new(Mutex::new(ftp::ftpworker::FtpWorker::new()));
             app.manage(worker);
+
+            // 创建 FTP 事件日志管理器
+            let ftp_logger = Arc::new(Mutex::new(ftp::ftpevent::FtpEventLogger::new(1000)));
+            app.manage(ftp_logger.clone());
+
+            // 设置日志管理器的 Tauri 应用句柄（用于发送事件到前端）
+            if let Ok(mut logger) = ftp_logger.lock() {
+                logger.set_app_handle(app.handle().clone());
+            }
 
             // 创建应用状态
             let app_state = Arc::new(Mutex::new(tray::AppState {
@@ -100,6 +107,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::ftp::start_ftp_server,
             commands::ftp::stop_ftp_server,
+            commands::ftp::get_ftp_operation_logs,
+            commands::ftp::clear_ftp_operation_logs,
             commands::network::get_primary_ipv4,
             commands::system::get_system_info,
             commands::system::check_app_config,

@@ -47,6 +47,28 @@ export default {
     stopped: '已停止',
     runtime: '运行时间'
   },
+  log: {
+    title: '操作日志',
+    clear: '清空日志',
+    empty: '暂无日志记录',
+    clearConfirm: '确定要清空所有日志吗？',
+    clearSuccess: '日志已清空',
+    columns: {
+      time: '时间',
+      operation: '操作',
+      path: '路径',
+      bytes: '大小',
+      user: '用户'
+    },
+    operations: {
+      download: '下载',
+      upload: '上传',
+      delete: '删除',
+      mkdir: '创建目录',
+      rmdir: '删除目录',
+      rename: '重命名'
+    }
+  },
   config: {
     title: '服务器配置',
     shareDir: '共享目录',

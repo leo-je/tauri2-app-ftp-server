@@ -128,6 +128,41 @@
                     </div>
                 </div>
             </transition>
+
+            <!-- 操作日志面板 -->
+            <transition name="slide-fade">
+                <div v-if="isStart" :class="['log-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.5s;' : ''">
+                    <div class="card-header" @click="showLogs = !showLogs">
+                        <SvgIcon name="fileText" :size="20" class="card-icon" />
+                        <span>{{ $t('log.title') }}</span>
+                        <span class="log-count">({{ logs.length }})</span>
+                        <SvgIcon :name="showLogs ? 'chevronUp' : 'chevronDown'" :size="16" class="expand-icon" />
+                    </div>
+                    <transition name="expand">
+                        <div v-if="showLogs" class="log-content">
+                            <div class="log-actions">
+                                <el-button size="small" @click="clearLogs" :disabled="logs.length === 0">
+                                    {{ $t('log.clear') }}
+                                </el-button>
+                            </div>
+                            <div v-if="logs.length === 0" class="log-empty">
+                                {{ $t('log.empty') }}
+                            </div>
+                            <div v-else class="log-list">
+                                <div v-for="(log, index) in logs" :key="index" class="log-item">
+                                    <span class="log-time">{{ log.time }}</span>
+                                    <span :class="['log-operation', log.operation]">
+                                        {{ getOperationLabel(log.operation) }}
+                                    </span>
+                                    <span class="log-path" :title="log.path">{{ log.path }}</span>
+                                    <span v-if="log.bytes" class="log-bytes">{{ formatBytes(log.bytes) }}</span>
+                                    <span v-if="log.username" class="log-user">{{ log.username }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </transition>
+                </div>
+            </transition>
         </div>
     </div>
 </template>
@@ -158,6 +193,18 @@ const isFirstLoad = ref(true);
 const startTime = ref<Date | null>(null);
 const runTime = ref('00:00:00');
 let runTimer: ReturnType<typeof setInterval> | null = null;
+const showLogs = ref(true);
+const logs = ref<FtpOperationLog[]>([]);
+let unlistenLog: (() => void) | null = null;
+
+interface FtpOperationLog {
+    time: string;
+    operation: string;
+    path: string;
+    bytes?: number;
+    username?: string;
+    extra?: string;
+}
 
 async function updateTrayMenu(isRunning: boolean) {
   try {
@@ -304,6 +351,10 @@ async function stopFtpServer() {
         runtimeState.isServerRunning.value = false;
         await updateTrayMenu(false);
         stopRunTimer();
+        if (unlistenLog) {
+            unlistenLog();
+            unlistenLog = null;
+        }
     } catch (e) {
     // 更新后端状态
     await invoke('set_server_running', { running: false });
@@ -370,13 +421,57 @@ async function startFtpServer() {
         isStart.value = true;
         runtimeState.isServerRunning.value = true;
         await updateTrayMenu(true);
-        // 更新后端状态
         await invoke('set_server_running', { running: true });
         startRunTimer();
+        await loadLogs();
+        setupLogListener();
     } catch (e) {
         ElMessage({ type: "error", message: t('message.serviceStartFailed') });
     }
 }
+
+const loadLogs = async () => {
+    try {
+        const result = await invoke<FtpOperationLog[]>('get_ftp_operation_logs');
+        logs.value = result;
+    } catch (e) {
+        console.error('Failed to load logs:', e);
+    }
+};
+
+const setupLogListener = async () => {
+    if (unlistenLog) {
+        unlistenLog();
+    }
+    unlistenLog = await listen<FtpOperationLog>('ftp-operation-log', (event) => {
+        logs.value.unshift(event.payload);
+        if (logs.value.length > 100) {
+            logs.value.pop();
+        }
+    });
+};
+
+const clearLogs = async () => {
+    try {
+        await invoke('clear_ftp_operation_logs');
+        logs.value = [];
+    } catch (e) {
+        console.error('Failed to clear logs:', e);
+    }
+};
+
+const getOperationLabel = (operation: string): string => {
+    const key = `log.operations.${operation}`;
+    return t(key) || operation;
+};
+
+const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
 
 </script>
 
@@ -680,6 +775,184 @@ html.dark .run-time-section {
     .run-time-label {
         color: #b0b0b0;
     }
+}
+
+/* 日志面板 */
+.log-card {
+    margin-bottom: 20px;
+    
+    .card-header {
+        cursor: pointer;
+        user-select: none;
+        
+        .log-count {
+            font-size: 12px;
+            color: #909399;
+            margin-left: 4px;
+        }
+        
+        .expand-icon {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+    }
+}
+
+.log-content {
+    margin-top: 16px;
+}
+
+.log-actions {
+    margin-bottom: 12px;
+}
+
+.log-empty {
+    text-align: center;
+    color: #909399;
+    padding: 20px;
+}
+
+.log-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    border-radius: var(--radius-md);
+}
+
+.log-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.05);
+    
+    &:last-child {
+        border-bottom: none;
+    }
+    
+    &:hover {
+        background: rgba(102, 126, 234, 0.05);
+    }
+}
+
+.log-time {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    color: #909399;
+    flex-shrink: 0;
+}
+
+.log-operation {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+    
+    &.download {
+        background: rgba(64, 158, 255, 0.1);
+        color: #409eff;
+    }
+    
+    &.upload {
+        background: rgba(103, 194, 58, 0.1);
+        color: #67c23a;
+    }
+    
+    &.delete {
+        background: rgba(245, 108, 108, 0.1);
+        color: #f56c6c;
+    }
+    
+    &.mkdir, &.rmdir {
+        background: rgba(230, 162, 60, 0.1);
+        color: #e6a23c;
+    }
+    
+    &.rename {
+        background: rgba(144, 147, 153, 0.1);
+        color: #909399;
+    }
+}
+
+.log-path {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.log-bytes {
+    color: #909399;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.log-user {
+    color: #c0c4cc;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+html.dark {
+    .log-card {
+        .card-header .log-count {
+            color: #606266;
+        }
+    }
+    
+    .log-list {
+        border-color: rgba(102, 126, 234, 0.2);
+    }
+    
+    .log-item {
+        border-bottom-color: rgba(102, 126, 234, 0.1);
+        
+        &:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+    }
+    
+    .log-operation {
+        &.download {
+            background: rgba(64, 158, 255, 0.2);
+        }
+        
+        &.upload {
+            background: rgba(103, 194, 58, 0.2);
+        }
+        
+        &.delete {
+            background: rgba(245, 108, 108, 0.2);
+        }
+        
+        &.mkdir, &.rmdir {
+            background: rgba(230, 162, 60, 0.2);
+        }
+        
+        &.rename {
+            background: rgba(144, 147, 153, 0.2);
+        }
+    }
+}
+
+/* 展开动画 */
+.expand-enter-active,
+.expand-leave-active {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+    opacity: 0;
+    max-height: 0;
+}
+
+.expand-enter-to,
+.expand-leave-from {
+    max-height: 500px;
 }
 
 /* 过渡动画 */

@@ -47,6 +47,28 @@ export default {
     stopped: 'หยุดทำงาน',
     runtime: 'เวลาทำงาน'
   },
+  log: {
+    title: 'บันทึกการดำเนินการ',
+    clear: 'ล้างบันทึก',
+    empty: 'ยังไม่มีบันทึกการดำเนินการ',
+    clearConfirm: 'คุณแน่ใจหรือไม่ว่าต้องการล้างบันทึกทั้งหมด?',
+    clearSuccess: 'ล้างบันทึกแล้ว',
+    columns: {
+      time: 'เวลา',
+      operation: 'การดำเนินการ',
+      path: 'เส้นทาง',
+      bytes: 'ขนาด',
+      user: 'ผู้ใช้'
+    },
+    operations: {
+      download: 'ดาวน์โหลด',
+      upload: 'อัปโหลด',
+      delete: 'ลบ',
+      mkdir: 'สร้างไดเรกทอรี',
+      rmdir: 'ลบไดเรกทอรี',
+      rename: 'เปลี่ยนชื่อ'
+    }
+  },
   config: {
     title: 'การตั้งค่าเซิร์ฟเวอร์',
     shareDir: 'ไดเรกทอรีที่แชร์',

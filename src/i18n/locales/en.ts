@@ -47,6 +47,28 @@ export default {
     stopped: 'Stopped',
     runtime: 'Runtime'
   },
+  log: {
+    title: 'Operation Log',
+    clear: 'Clear Log',
+    empty: 'No log records yet',
+    clearConfirm: 'Are you sure you want to clear all logs?',
+    clearSuccess: 'Logs cleared',
+    columns: {
+      time: 'Time',
+      operation: 'Operation',
+      path: 'Path',
+      bytes: 'Size',
+      user: 'User'
+    },
+    operations: {
+      download: 'Download',
+      upload: 'Upload',
+      delete: 'Delete',
+      mkdir: 'Create Directory',
+      rmdir: 'Remove Directory',
+      rename: 'Rename'
+    }
+  },
   config: {
     title: 'Server Configuration',
     shareDir: 'Shared Directory',

@@ -5,6 +5,7 @@
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
+use crate::ftp::ftpevent::{FtpEventLogger, FtpOperationLog};
 use crate::ftp::ftpworker::{FtpWorker, FtpWorkerConfig};
 use crate::tray::AppState;
 use crate::validators::{sanitize_file_auth, sanitize_path, sanitize_port, sanitize_users_json};
@@ -47,6 +48,7 @@ pub fn start_ftp_server(
     app: tauri::AppHandle,
     app_state: tauri::State<'_, Arc<Mutex<AppState>>>,
     state: tauri::State<'_, Arc<Mutex<FtpWorker>>>,
+    logger_state: tauri::State<'_, Arc<Mutex<FtpEventLogger>>>,
     path: String,
     port: String,
     users: String,
@@ -81,6 +83,10 @@ pub fn start_ftp_server(
     if worker.is_running() {
         return Ok("服务已启动".to_string());
     }
+
+    // 设置 FTP 事件日志管理器
+    let logger = logger_state.inner().clone();
+    worker.set_logger(logger);
 
     // 设置配置并启动服务
     worker.set(FtpWorkerConfig {
@@ -151,5 +157,28 @@ pub fn stop_ftp_server(
             Ok("服务已停止".to_string())
         }
         Err(e) => Err(format!("FTP 服务停止失败: {}", e)),
+    }
+}
+
+#[tauri::command]
+pub fn get_ftp_operation_logs(
+    logger_state: tauri::State<'_, Arc<Mutex<FtpEventLogger>>>,
+) -> Vec<FtpOperationLog> {
+    if let Ok(logger) = logger_state.lock() {
+        logger.get_logs()
+    } else {
+        Vec::new()
+    }
+}
+
+#[tauri::command]
+pub fn clear_ftp_operation_logs(
+    logger_state: tauri::State<'_, Arc<Mutex<FtpEventLogger>>>,
+) -> Result<(), String> {
+    if let Ok(logger) = logger_state.lock() {
+        logger.clear_logs();
+        Ok(())
+    } else {
+        Err("Failed to acquire logger lock".to_string())
     }
 }

@@ -3,6 +3,7 @@
 //! 该模块负责管理 FTP 服务器的生命周期，包括启动和停止 FTP 服务。
 //! 使用独立的线程运行 FTP 服务器，避免阻塞主线程。
 
+use crate::ftp::ftpevent::{FtpDataListener, FtpEventLogger};
 use crate::ftp::{ftp_user_authenticator::{FtpUserAuthenticator, FtpUserDetailProvider}, ftpuser::UserInfo};
 use std::{
     net::{SocketAddr, TcpListener},
@@ -10,7 +11,7 @@ use std::{
     path::PathBuf,
     sync::{
         atomic::{AtomicBool, Ordering},
-        mpsc, Arc,
+        mpsc, Arc, Mutex,
     },
     thread,
     time::Duration,
@@ -65,10 +66,11 @@ pub struct FtpWorker {
     pub handle: Option<thread::JoinHandle<()>>,
     /// 运行状态标志（线程安全）
     running: Arc<AtomicBool>,
+    /// FTP 事件日志管理器
+    logger: Arc<Mutex<Option<std::sync::Arc<Mutex<FtpEventLogger>>>>>,
 }
 
 impl Default for FtpWorker {
-    /// 创建默认的 FTP 工作线程实例
     fn default() -> Self {
         Self::new()
     }
@@ -76,42 +78,34 @@ impl Default for FtpWorker {
 
 impl FtpWorker {
     /// 创建新的 FTP 工作线程实例
-    ///
-    /// # 返回值
-    /// 返回初始化的 FtpWorker 实例，默认配置为：
-    /// - 路径："/default/path"
-    /// - 端口："2121"
-    /// - 匿名访问：启用
-    /// - 权限：只读（"R"）
     pub fn new() -> Self {
         let running = Arc::new(AtomicBool::new(false));
         FtpWorker {
             handle: None,
             config: FtpWorkerConfig::default(),
             running,
+            logger: Arc::new(Mutex::new(None)),
         }
     }
 
     /// 设置 FTP 服务器配置
-    ///
-    /// # 参数
-    /// * `config` - FTP 服务器配置
     pub fn set(&mut self, config: FtpWorkerConfig) {
         self.config = config;
     }
 
+    /// 设置 FTP 事件日志管理器
+    pub fn set_logger(&self, logger: std::sync::Arc<Mutex<FtpEventLogger>>) {
+        if let Ok(mut guard) = self.logger.lock() {
+            *guard = Some(logger);
+        }
+    }
+}
+
+impl FtpWorker {
     /// 启动 FTP 服务器
     ///
     /// 在新线程中启动 FTP 服务器，使用 Tokio 运行时处理异步操作。
     /// 如果服务器已经在运行，则不会重复启动。
-    ///
-    /// # 返回值
-    /// * `Ok(())` - 启动成功
-    /// * `Err(...)` - 启动失败，返回错误信息
-    ///
-    /// # 注意事项
-    /// - 默认使用被动模式端口范围 50000-65535（可通过 `passive_port_range` 配置）
-    /// - 支持优雅关闭，关闭时等待 2 秒
     pub fn start(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.reap_finished_handle()?;
 
@@ -128,6 +122,7 @@ impl FtpWorker {
 
         let running_clone = Arc::clone(&self.running);
         let config = self.config.clone();
+        let logger_clone = self.logger.lock().ok().and_then(|guard| guard.clone());
 
         let handle = thread::spawn(move || {
             let rt = match Runtime::new() {
@@ -151,7 +146,7 @@ impl FtpWorker {
             };
 
             let shutdown_running = Arc::clone(&running_clone);
-            let server_builder = libunftp::ServerBuilder::with_user_detail_provider(
+            let mut server_builder = libunftp::ServerBuilder::with_user_detail_provider(
                 Box::new(move || {
                     unftp_sbe_restrict::RestrictingVfs::<Filesystem, UserInfo, Meta>::new(
                         Filesystem::new(ftp_home.clone()).unwrap(),
@@ -178,6 +173,11 @@ impl FtpWorker {
                 }
                 libunftp::options::Shutdown::new().grace_period(Duration::from_secs(2))
             });
+
+            if let Some(ref logger_arc) = logger_clone {
+                let listener = FtpDataListener::new(logger_arc.clone());
+                server_builder = server_builder.notify_data(listener);
+            }
 
             let new_server = match server_builder.build() {
                 Ok(server) => server,
