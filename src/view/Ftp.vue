@@ -147,7 +147,7 @@
                             </div>
                             <SvgIcon :name="showLogs ? 'chevronUp' : 'chevronDown'" :size="16" class="expand-icon" />
                         </div>
-                        <transition name="expand">
+                        <transition name="expand" @after-enter="handleLogPanelEntered">
                             <div v-if="showLogs" class="terminal-body">
                                 <div v-if="logs.length === 0" class="terminal-empty">
                                     <span class="terminal-prompt-label">ftp@server:~$</span>
@@ -205,7 +205,7 @@ import { SvgIcon } from '../components/icons';
 import clipboard from "tauri-plugin-clipboard-api";
 import { runtimeState } from '../store';
 import { validatePath, validatePort } from '../utils/validation';
-import { listen } from '@tauri-apps/api/event';
+import { listen, emit } from '@tauri-apps/api/event';
 
 const { t } = useI18n();
 
@@ -221,7 +221,10 @@ const showLogs = ref(false);
 const logs = ref<FtpOperationLog[]>([]);
 const logViewport = ref<HTMLElement | null>(null);
 const followLogs = ref(true);
+const isTogglingServer = ref(false);
 let unlistenLog: (() => void) | null = null;
+let unlistenGlobalStart: (() => void) | null = null;
+let unlistenGlobalStop: (() => void) | null = null;
 
 interface FtpOperationLog {
     time: string;
@@ -263,7 +266,7 @@ onBeforeMount(() => {
     init()
 })
 
-onMounted(() => {
+onMounted(async () => {
     // 首次加载后移除动画，避免切换 tabs 时重复触发
     nextTick(() => {
         setTimeout(() => {
@@ -271,26 +274,44 @@ onMounted(() => {
         }, 600); // 等待动画完成
     });
 
-  // 监听全局启动 FTP 事件
-  listen('global-start-ftp', async () => {
-    console.log('收到全局启动事件');
-    if (!isStart.value) {
-      await startFtpServer();
+    if (!unlistenGlobalStart) {
+        unlistenGlobalStart = await listen('global-start-ftp', async () => {
+            console.log('收到全局启动事件');
+            if (!isStart.value) {
+                await startFtpServer();
+            }
+        });
     }
-  });
 
-  // 监听全局停止 FTP 事件
-  listen('global-stop-ftp', async () => {
-    console.log('收到全局停止事件');
-    if (isStart.value) {
-      await stopFtpServer();
+    if (!unlistenGlobalStop) {
+        unlistenGlobalStop = await listen('global-stop-ftp', async () => {
+            console.log('收到全局停止事件');
+            if (isStart.value) {
+                await stopFtpServer();
+            }
+        });
     }
-  });})
+})
 
 onUnmounted(() => {
     if (runTimer) {
         clearInterval(runTimer);
         runTimer = null;
+    }
+
+    if (unlistenLog) {
+        unlistenLog();
+        unlistenLog = null;
+    }
+
+    if (unlistenGlobalStart) {
+        unlistenGlobalStart();
+        unlistenGlobalStart = null;
+    }
+
+    if (unlistenGlobalStop) {
+        unlistenGlobalStop();
+        unlistenGlobalStop = null;
     }
 })
 
@@ -366,13 +387,37 @@ async function selectDir() {
 }
 
 function startOrStopServer() {
+    if (isTogglingServer.value) {
+        return;
+    }
+
     isStart.value ? stopFtpServer() : startFtpServer();
 }
 
+const showMessage = (type: 'success' | 'warning' | 'info' | 'error', message: string, duration?: number) => {
+    ElMessage({
+        type,
+        message,
+        duration,
+        grouping: true,
+    });
+};
+
+const notifyToggleFinished = async () => {
+    await emit('ftp-toggle-finished', {
+        isRunning: isStart.value,
+    });
+};
+
 async function stopFtpServer() {
+    if (isTogglingServer.value || !isStart.value) {
+        return;
+    }
+
+    isTogglingServer.value = true;
     try {
         await invoke('stop_ftp_server', {});
-        ElMessage({ type: "success", message: t('message.serviceStopped') });
+        showMessage("success", t('message.serviceStopped'));
         isStart.value = false;
         runtimeState.isServerRunning.value = false;
         await updateTrayMenu(false);
@@ -384,7 +429,10 @@ async function stopFtpServer() {
     } catch (e) {
     // 更新后端状态
     await invoke('set_server_running', { running: false });
-        ElMessage({ type: "error", message: t('message.serviceStopFailed') });
+        showMessage("error", t('message.serviceStopFailed'));
+    } finally {
+        isTogglingServer.value = false;
+        await notifyToggleFinished();
     }
 }
 
@@ -401,25 +449,30 @@ const getIps = async () => {
 };
 
 async function startFtpServer() {
+    if (isTogglingServer.value || isStart.value) {
+        return;
+    }
+
+    isTogglingServer.value = true;
     try {
         await getIps()
 
         // 验证路径
         if (!dirPath.value) {
-            ElMessage({ type: "warning", message: t('message.selectPath') });
+            showMessage("warning", t('message.selectPath'));
             return;
         }
 
         const pathValidation = validatePath(dirPath.value);
         if (!pathValidation.valid) {
-            ElMessage({ type: "error", message: pathValidation.error || t('message.pathInvalid') });
+            showMessage("error", pathValidation.error || t('message.pathInvalid'));
             return;
         }
 
         // 验证端口
         const portValidation = validatePort(port.value);
         if (!portValidation.valid) {
-            ElMessage({ type: "error", message: portValidation.error || t('message.portInvalid') });
+            showMessage("error", portValidation.error || t('message.portInvalid'));
             return;
         }
 
@@ -428,7 +481,7 @@ async function startFtpServer() {
             const warningMessage = portValidation.warningParams
                 ? t(portValidation.warningKey, portValidation.warningParams)
                 : t(portValidation.warningKey);
-            ElMessage({ type: "warning", message: warningMessage, duration: 5000 });
+            showMessage("warning", warningMessage, 5000);
         }
 
         logl("invoke-'start_ftp_server'");
@@ -443,16 +496,19 @@ async function startFtpServer() {
             isAnonymous,
             fileAuth
         });
-        ElMessage({ type: "success", message: t('message.serviceStarted') });
+        showMessage("success", t('message.serviceStarted'));
         isStart.value = true;
         runtimeState.isServerRunning.value = true;
         await updateTrayMenu(true);
         await invoke('set_server_running', { running: true });
         startRunTimer();
         await loadLogs();
-        setupLogListener();
+        await setupLogListener();
     } catch (e) {
-        ElMessage({ type: "error", message: t('message.serviceStartFailed') });
+        showMessage("error", t('message.serviceStartFailed'));
+    } finally {
+        isTogglingServer.value = false;
+        await notifyToggleFinished();
     }
 }
 
@@ -531,6 +587,23 @@ const scrollLogsToBottom = (behavior: ScrollBehavior = 'auto') => {
     });
 };
 
+const ensureLogsAtBottom = async (behavior: ScrollBehavior = 'auto') => {
+    await nextTick();
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            scrollLogsToBottom(behavior);
+        });
+    });
+};
+
+const handleLogPanelEntered = () => {
+    if (!followLogs.value) {
+        return;
+    }
+
+    scrollLogsToBottom('auto');
+};
+
 const handleLogScroll = () => {
     if (!logViewport.value) {
         return;
@@ -556,8 +629,7 @@ watch(() => logs.value.length, async (length, previousLength) => {
         return;
     }
 
-    await nextTick();
-    scrollLogsToBottom(previousLength === 0 || length === 0 ? 'auto' : 'smooth');
+    await ensureLogsAtBottom(previousLength === 0 || length === 0 ? 'auto' : 'smooth');
 });
 
 watch(showLogs, async (visible) => {
@@ -566,8 +638,7 @@ watch(showLogs, async (visible) => {
     }
 
     followLogs.value = true;
-    await nextTick();
-    scrollLogsToBottom('auto');
+    await ensureLogsAtBottom('auto');
 });
 
 </script>

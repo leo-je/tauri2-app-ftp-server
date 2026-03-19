@@ -44,7 +44,7 @@ import { RouterView } from 'vue-router'
 import { ElMain, ElContainer } from 'element-plus';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { platform } from '@tauri-apps/plugin-os';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { SvgIcon } from './components/icons';
 import AppLogo from './components/AppLogo.vue';
@@ -59,6 +59,28 @@ const { t } = useI18n();
 const appWindow = getCurrentWindow();
 const isMacos = ref(false);
 const appReady = ref(false);
+const isTrayTogglePending = ref(false);
+let trayToggleTimeout: ReturnType<typeof setTimeout> | null = null;
+let unlistenTrayToggle: (() => void) | null = null;
+let unlistenToggleFinished: (() => void) | null = null;
+
+const clearTrayTogglePending = () => {
+  isTrayTogglePending.value = false;
+  if (trayToggleTimeout) {
+    clearTimeout(trayToggleTimeout);
+    trayToggleTimeout = null;
+  }
+};
+
+const scheduleTrayToggleTimeout = () => {
+  if (trayToggleTimeout) {
+    clearTimeout(trayToggleTimeout);
+  }
+
+  trayToggleTimeout = setTimeout(() => {
+    clearTrayTogglePending();
+  }, 15000);
+};
 
 const initTrayMenuLanguage = async () => {
   try {
@@ -83,18 +105,49 @@ onMounted(async () => {
   // 初始化托盘菜单语言
   await initTrayMenuLanguage();
 
-  // 监听托盘菜单事件 - 切换 FTP 服务
-  await listen('tray-toggle-ftp', async () => {
-    console.log('托盘事件：切换 FTP 服务');
-    // 从后端获取当前状态
-    const isRunning = await invoke<boolean>('get_server_running');
-    // 根据当前状态触发相应事件
-    if (isRunning) {
-      await emit('global-stop-ftp');
-    } else {
-      await emit('global-start-ftp');
-    }
-  });
+  if (!unlistenTrayToggle) {
+    unlistenTrayToggle = await listen('tray-toggle-ftp', async () => {
+      if (isTrayTogglePending.value) {
+        return;
+      }
+
+      isTrayTogglePending.value = true;
+      scheduleTrayToggleTimeout();
+
+      try {
+        console.log('托盘事件：切换 FTP 服务');
+        const isRunning = await invoke<boolean>('get_server_running');
+        if (isRunning) {
+          await emit('global-stop-ftp');
+        } else {
+          await emit('global-start-ftp');
+        }
+      } catch (e) {
+        console.warn('Failed to toggle FTP from tray:', e);
+        clearTrayTogglePending();
+      }
+    });
+  }
+
+  if (!unlistenToggleFinished) {
+    unlistenToggleFinished = await listen('ftp-toggle-finished', () => {
+      clearTrayTogglePending();
+    });
+  }
+});
+
+onUnmounted(() => {
+  clearTrayTogglePending();
+
+  if (unlistenTrayToggle) {
+    unlistenTrayToggle();
+    unlistenTrayToggle = null;
+  }
+
+  if (unlistenToggleFinished) {
+    unlistenToggleFinished();
+    unlistenToggleFinished = null;
+  }
 });
 
 function disableContextMenu() {
