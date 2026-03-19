@@ -95,6 +95,14 @@ const handleClick = (tab: TabsPaneContext, event: Event) => {
   :deep(.el-tabs__content) {
     height: calc(100% - 72px);
     overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  :deep(.el-tabs__content::-webkit-scrollbar) {
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   :deep(.el-tab-pane) {

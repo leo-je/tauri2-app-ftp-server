@@ -580,6 +580,14 @@ watch(showLogs, async (visible) => {
     align-items: flex-start;
     padding: 20px;
     overflow: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.ftp-container::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .ftp-content {
@@ -982,6 +990,14 @@ html.dark .run-time-section {
     max-height: 340px;
     overflow-y: auto;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.terminal-viewport::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .terminal-viewport::after {
