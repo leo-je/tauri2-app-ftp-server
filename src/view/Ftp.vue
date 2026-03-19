@@ -132,35 +132,59 @@
             <!-- 操作日志面板 -->
             <transition name="slide-fade">
                 <div v-if="isStart" :class="['log-card', 'ftp-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.5s;' : ''">
-                    <div class="card-header" @click="showLogs = !showLogs">
-                        <SvgIcon name="fileText" :size="20" class="card-icon" />
-                        <span>{{ $t('log.title') }}</span>
-                        <span class="log-count">({{ logs.length }})</span>
-                        <SvgIcon :name="showLogs ? 'chevronUp' : 'chevronDown'" :size="16" class="expand-icon" />
-                    </div>
-                    <transition name="expand">
-                        <div v-if="showLogs" class="log-content">
-                            <div class="log-actions">
-                                <el-button size="small" @click="clearLogs" :disabled="logs.length === 0">
+                    <div class="terminal-shell">
+                        <div class="terminal-toolbar" @click="showLogs = !showLogs">
+                            <div class="terminal-toolbar-main">
+                                <span class="terminal-title">{{ $t('log.title') }}</span>
+                                <el-button
+                                    size="small"
+                                    class="terminal-clear-button"
+                                    @click.stop="clearLogs"
+                                    :disabled="logs.length === 0"
+                                >
                                     {{ $t('log.clear') }}
                                 </el-button>
                             </div>
-                            <div v-if="logs.length === 0" class="log-empty">
-                                {{ $t('log.empty') }}
-                            </div>
-                            <div v-else class="log-list">
-                                <div v-for="(log, index) in logs" :key="index" class="log-item">
-                                    <span class="log-time">{{ log.time }}</span>
-                                    <span :class="['log-operation', log.operation]">
-                                        {{ getOperationLabel(log.operation) }}
-                                    </span>
-                                    <span class="log-path" :title="log.path">{{ log.path }}</span>
-                                    <span v-if="log.bytes" class="log-bytes">{{ formatBytes(log.bytes) }}</span>
-                                    <span v-if="log.username" class="log-user">{{ log.username }}</span>
+                            <SvgIcon :name="showLogs ? 'chevronUp' : 'chevronDown'" :size="16" class="expand-icon" />
+                        </div>
+                        <transition name="expand">
+                            <div v-if="showLogs" class="terminal-body">
+                                <div v-if="logs.length === 0" class="terminal-empty">
+                                    <span class="terminal-prompt-label">ftp@server:~$</span>
+                                    <span class="terminal-empty-text">{{ $t('log.empty') }}</span>
+                                    <span class="terminal-cursor"></span>
+                                </div>
+                                <div
+                                    v-else
+                                    ref="logViewport"
+                                    class="terminal-viewport"
+                                    @scroll="handleLogScroll"
+                                >
+                                    <div class="terminal-list">
+                                        <div
+                                            v-for="(log, index) in logs"
+                                            :key="`${log.time}-${log.operation}-${log.path}-${index}`"
+                                            :class="['terminal-line', `is-${log.operation}`]"
+                                        >
+                                            <span class="terminal-line-time">[{{ formatLogTime(log.time) }}]</span>
+                                            <span :class="['terminal-line-command', log.operation]">
+                                                {{ getOperationCommand(log.operation) }}
+                                            </span>
+                                            <span class="terminal-line-path" :title="getLogTarget(log)">
+                                                {{ getLogTarget(log) }}
+                                            </span>
+                                            <span v-if="log.bytes" class="terminal-line-bytes">
+                                                {{ formatBytes(log.bytes) }}
+                                            </span>
+                                            <span v-if="shouldShowUsername(log.username)" class="terminal-line-user">
+                                                @{{ log.username }}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </transition>
+                        </transition>
+                    </div>
                 </div>
             </transition>
         </div>
@@ -168,7 +192,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, onMounted, onUnmounted, ref, nextTick } from "vue";
+import { onBeforeMount, onMounted, onUnmounted, ref, nextTick, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { ElButton, ElMessage, ElInput } from "element-plus";
 import { invoke } from "@tauri-apps/api/core";
@@ -193,8 +217,10 @@ const isFirstLoad = ref(true);
 const startTime = ref<Date | null>(null);
 const runTime = ref('00:00:00');
 let runTimer: ReturnType<typeof setInterval> | null = null;
-const showLogs = ref(true);
+const showLogs = ref(false);
 const logs = ref<FtpOperationLog[]>([]);
+const logViewport = ref<HTMLElement | null>(null);
+const followLogs = ref(true);
 let unlistenLog: (() => void) | null = null;
 
 interface FtpOperationLog {
@@ -444,9 +470,9 @@ const setupLogListener = async () => {
         unlistenLog();
     }
     unlistenLog = await listen<FtpOperationLog>('ftp-operation-log', (event) => {
-        logs.value.unshift(event.payload);
+        logs.value.push(event.payload);
         if (logs.value.length > 100) {
-            logs.value.pop();
+            logs.value.shift();
         }
     });
 };
@@ -455,14 +481,66 @@ const clearLogs = async () => {
     try {
         await invoke('clear_ftp_operation_logs');
         logs.value = [];
+        followLogs.value = true;
     } catch (e) {
         console.error('Failed to clear logs:', e);
     }
 };
 
-const getOperationLabel = (operation: string): string => {
-    const key = `log.operations.${operation}`;
-    return t(key) || operation;
+const getOperationCommand = (operation: string): string => {
+    const commandMap: Record<string, string> = {
+        download: 'RETR',
+        upload: 'STOR',
+        delete: 'DELE',
+        mkdir: 'MKD',
+        rmdir: 'RMD',
+        rename: 'RNTO',
+    };
+    return commandMap[operation] || operation.toUpperCase();
+};
+
+const getLogTarget = (log: FtpOperationLog): string => {
+    if (log.operation === 'rename' && log.extra) {
+        return `${log.extra} -> ${log.path}`;
+    }
+
+    return log.path;
+};
+
+const formatLogTime = (time: string): string => {
+    const [, clock] = time.split(' ');
+    return clock || time;
+};
+
+const shouldShowUsername = (username?: string): boolean => {
+    if (!username) {
+        return false;
+    }
+
+    return username.trim().toLowerCase() !== 'anonymous';
+};
+
+const scrollLogsToBottom = (behavior: ScrollBehavior = 'auto') => {
+    if (!logViewport.value) {
+        return;
+    }
+
+    logViewport.value.scrollTo({
+        top: logViewport.value.scrollHeight,
+        behavior,
+    });
+};
+
+const handleLogScroll = () => {
+    if (!logViewport.value) {
+        return;
+    }
+
+    const distanceToBottom =
+        logViewport.value.scrollHeight -
+        logViewport.value.scrollTop -
+        logViewport.value.clientHeight;
+    followLogs.value = distanceToBottom < 24;
 };
 
 const formatBytes = (bytes: number): string => {
@@ -472,6 +550,25 @@ const formatBytes = (bytes: number): string => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
+
+watch(() => logs.value.length, async (length, previousLength) => {
+    if (!showLogs.value || !followLogs.value) {
+        return;
+    }
+
+    await nextTick();
+    scrollLogsToBottom(previousLength === 0 || length === 0 ? 'auto' : 'smooth');
+});
+
+watch(showLogs, async (visible) => {
+    if (!visible) {
+        return;
+    }
+
+    followLogs.value = true;
+    await nextTick();
+    scrollLogsToBottom('auto');
+});
 
 </script>
 
@@ -780,160 +877,227 @@ html.dark .run-time-section {
 /* 日志面板 */
 .log-card {
     margin-bottom: 20px;
-    
-    .card-header {
-        cursor: pointer;
-        user-select: none;
-        
-        .log-count {
-            font-size: 12px;
-            color: #909399;
-            margin-left: 4px;
-        }
-        
-        .expand-icon {
-            margin-left: auto;
-            transition: transform 0.3s;
-        }
-    }
+    padding: 0;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at top right, rgba(57, 153, 255, 0.14), transparent 30%),
+        radial-gradient(circle at left center, rgba(65, 232, 196, 0.08), transparent 38%),
+        linear-gradient(180deg, rgba(13, 18, 29, 0.98), rgba(5, 8, 14, 0.99));
+    border: 1px solid rgba(129, 241, 226, 0.12);
+    box-shadow:
+        0 24px 48px rgba(0, 7, 18, 0.36),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.log-content {
-    margin-top: 16px;
+.terminal-shell {
+    display: flex;
+    flex-direction: column;
 }
 
-.log-actions {
-    margin-bottom: 12px;
-}
-
-.log-empty {
-    text-align: center;
-    color: #909399;
-    padding: 20px;
-}
-
-.log-list {
-    max-height: 300px;
-    overflow-y: auto;
-    border: 1px solid rgba(102, 126, 234, 0.1);
-    border-radius: var(--radius-md);
-}
-
-.log-item {
+.terminal-toolbar {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
-    font-size: 13px;
-    border-bottom: 1px solid rgba(102, 126, 234, 0.05);
-    
-    &:last-child {
-        border-bottom: none;
-    }
-    
-    &:hover {
-        background: rgba(102, 126, 234, 0.05);
-    }
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: linear-gradient(180deg, rgba(28, 35, 49, 0.96), rgba(15, 19, 28, 0.96));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    user-select: none;
 }
 
-.log-time {
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    color: #909399;
+.terminal-toolbar-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.terminal-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f8fafc;
+}
+
+.expand-icon {
+    color: #94a3b8;
     flex-shrink: 0;
 }
 
-.log-operation {
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-    flex-shrink: 0;
-    
-    &.download {
-        background: rgba(64, 158, 255, 0.1);
-        color: #409eff;
-    }
-    
-    &.upload {
-        background: rgba(103, 194, 58, 0.1);
-        color: #67c23a;
-    }
-    
-    &.delete {
-        background: rgba(245, 108, 108, 0.1);
-        color: #f56c6c;
-    }
-    
-    &.mkdir, &.rmdir {
-        background: rgba(230, 162, 60, 0.1);
-        color: #e6a23c;
-    }
-    
-    &.rename {
-        background: rgba(144, 147, 153, 0.1);
-        color: #909399;
-    }
+.terminal-body {
+    padding: 16px;
 }
 
-.log-path {
-    flex: 1;
+.terminal-prompt-label {
+    color: #7cf9d0;
+    flex-shrink: 0;
+}
+
+.terminal-empty-text {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
-.log-bytes {
-    color: #909399;
-    font-size: 12px;
+.terminal-clear-button {
+    border: 1px solid rgba(125, 211, 252, 0.22);
+    background: rgba(25, 35, 52, 0.92);
+    color: #dbe7f3;
+
+    &:not(.is-disabled):hover {
+        border-color: rgba(125, 211, 252, 0.4);
+        background: rgba(36, 50, 74, 0.96);
+    }
+}
+
+.terminal-empty,
+.terminal-viewport {
+    border-radius: 14px;
+    border: 1px solid rgba(125, 211, 252, 0.14);
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0.015)),
+        linear-gradient(180deg, rgba(6, 10, 17, 0.95), rgba(3, 6, 12, 0.98));
+}
+
+.terminal-empty {
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px;
+    font-family: 'SFMono-Regular', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    color: #94a3b8;
+}
+
+.terminal-cursor {
+    width: 10px;
+    height: 18px;
+    border-radius: 2px;
+    background: #61f3a6;
+    animation: terminalBlink 1.1s steps(2, start) infinite;
+}
+
+.terminal-viewport {
+    position: relative;
+    max-height: 340px;
+    overflow-y: auto;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.terminal-viewport::after {
+    content: '';
+    position: sticky;
+    inset: 0;
+    display: block;
+    height: 0;
+    pointer-events: none;
+    box-shadow: inset 0 -24px 28px rgba(3, 6, 12, 0.32);
+}
+
+.terminal-list {
+    padding: 10px 0;
+}
+
+.terminal-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    font-family: 'SFMono-Regular', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    color: #d7e0ea;
+    border-left: 2px solid transparent;
+    transition: background 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+        background: rgba(125, 211, 252, 0.06);
+        border-left-color: rgba(125, 211, 252, 0.5);
+    }
+}
+
+.terminal-line-time {
+    color: #64748b;
     flex-shrink: 0;
 }
 
-.log-user {
-    color: #c0c4cc;
+.terminal-line-command {
+    padding: 2px 8px;
+    border-radius: 999px;
     font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+
+    &.download {
+        background: rgba(96, 165, 250, 0.14);
+        color: #7dd3fc;
+    }
+
+    &.upload {
+        background: rgba(74, 222, 128, 0.14);
+        color: #86efac;
+    }
+
+    &.delete {
+        background: rgba(248, 113, 113, 0.14);
+        color: #fca5a5;
+    }
+
+    &.mkdir,
+    &.rmdir {
+        background: rgba(250, 204, 21, 0.14);
+        color: #fde68a;
+    }
+
+    &.rename {
+        background: rgba(196, 181, 253, 0.14);
+        color: #c4b5fd;
+    }
+}
+
+.terminal-line-path {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #f8fafc;
+}
+
+.terminal-line-bytes {
+    color: #facc15;
     flex-shrink: 0;
 }
 
-html.dark {
-    .log-card {
-        .card-header .log-count {
-            color: #606266;
-        }
+.terminal-line-user {
+    color: #c4b5fd;
+    flex-shrink: 0;
+}
+
+@keyframes terminalBlink {
+    50% {
+        opacity: 0;
     }
-    
-    .log-list {
-        border-color: rgba(102, 126, 234, 0.2);
+}
+
+@media (max-width: 640px) {
+    .terminal-toolbar,
+    .terminal-line {
+        flex-wrap: wrap;
     }
-    
-    .log-item {
-        border-bottom-color: rgba(102, 126, 234, 0.1);
-        
-        &:hover {
-            background: rgba(102, 126, 234, 0.1);
-        }
+
+    .terminal-toolbar-main {
+        width: 100%;
     }
-    
-    .log-operation {
-        &.download {
-            background: rgba(64, 158, 255, 0.2);
-        }
-        
-        &.upload {
-            background: rgba(103, 194, 58, 0.2);
-        }
-        
-        &.delete {
-            background: rgba(245, 108, 108, 0.2);
-        }
-        
-        &.mkdir, &.rmdir {
-            background: rgba(230, 162, 60, 0.2);
-        }
-        
-        &.rename {
-            background: rgba(144, 147, 153, 0.2);
-        }
+
+    .terminal-line-path {
+        width: 100%;
+        flex-basis: 100%;
+    }
+
+    .terminal-viewport {
+        max-height: 300px;
     }
 }
 
