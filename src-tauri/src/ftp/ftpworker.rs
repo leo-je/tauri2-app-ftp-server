@@ -219,16 +219,12 @@ impl FtpWorker {
 
     /// 停止 FTP 服务器
     ///
-    /// 设置关闭标志并等待 FTP 服务线程结束
-    ///
-    /// # 返回值
-    /// * `Ok(())` - 停止成功
-    /// * `Err(...)` - 停止失败
+    /// 设置关闭标志并立即返回，不阻塞等待线程结束。
+    /// 线程会在后台自行退出（最多约 3 秒），句柄在下次启动或 drop 时清理。
     pub fn stop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         self.running.store(false, Ordering::Relaxed);
-        if let Some(handle) = self.handle.take() {
-            handle.join().map_err(|_| "FTP 服务线程未能正常结束")?;
-        }
+        // 不调用 handle.join()，让线程在后台自行退出
+        // 句柄保留，由 reap_finished_handle 或 drop 清理
         Ok(())
     }
 
