@@ -135,6 +135,8 @@ pub fn setup_tray_menu(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error:
     if let Some(tray) = app.tray_by_id("main") {
         tray.on_menu_event(|app, event| match event.id.as_ref() {
             "show" => {
+                #[cfg(target_os = "macos")]
+                let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.show();
                     let _ = window.set_focus();
@@ -190,6 +192,10 @@ pub fn hide_main_window(app: tauri::AppHandle) -> Result<(), String> {
             window.hide().map_err(|e| format!("隐藏窗口失败: {}", e))?;
         }
     }
+    // macOS: 隐藏 dock 栏图标
+    #[cfg(target_os = "macos")]
+    app.set_activation_policy(tauri::ActivationPolicy::Accessory)
+        .map_err(|e| format!("隐藏 dock 图标失败: {}", e))?;
     Ok(())
 }
 

@@ -140,7 +140,8 @@ pub fn run() {
         .run(|_app_handle, _event| {
             #[cfg(target_os = "macos")]
             if let RunEvent::Reopen { .. } = _event {
-                // macOS: 点击 Dock 图标时显示主窗口
+                // macOS: 点击 Dock 图标时恢复 dock 图标可见并显示主窗口
+                let _ = _app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
                 if let Some(window) = _app_handle.get_webview_window("main") {
                     let _ = window.show();
                     let _ = window.set_focus();
