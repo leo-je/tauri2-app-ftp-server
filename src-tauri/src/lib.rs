@@ -77,13 +77,13 @@ pub fn run() {
                 let _ = window.hide();
             }
 
-            // 拦截窗口关闭请求，改为隐藏窗口
+            // 拦截窗口关闭请求，改为隐藏窗口和 Dock 图标
             if let Some(window) = app.get_webview_window("main") {
                 let app_handle_clone = app.handle().clone();
                 window.on_window_event(move |event| {
                     if let WindowEvent::CloseRequested { api, .. } = event {
                         api.prevent_close();
-                        let _ = tray::hide_main_window(app_handle_clone.clone());
+                        let _ = tray::hide_main_window_and_dock(app_handle_clone.clone());
                     }
                 });
             }
@@ -119,6 +119,7 @@ pub fn run() {
             commands::system::set_server_running,
             commands::system::get_server_running,
             tray::hide_main_window,
+            tray::hide_main_window_and_dock,
             tray::update_tray_menu_language,
         ])
         // 初始化日志插件
@@ -140,8 +141,8 @@ pub fn run() {
         .run(|_app_handle, _event| {
             #[cfg(target_os = "macos")]
             if let RunEvent::Reopen { .. } = _event {
-                // macOS: 点击 Dock 图标时显示主窗口
                 if let Some(window) = _app_handle.get_webview_window("main") {
+                    let _ = _app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
                     let _ = window.show();
                     let _ = window.set_focus();
                 }
