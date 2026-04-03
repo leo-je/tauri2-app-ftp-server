@@ -36,7 +36,7 @@ pub async fn run_init_step(
 ) -> Result<InitCheckResult, String> {
     match step.as_str() {
         "system_check" => {
-            // 随机睡眠 500-800ms
+            // UI splash animation delay (simulates system check progress)
             let sleep_ms = rand::random::<u64>() % 301 + 500;
             tokio::time::sleep(tokio::time::Duration::from_millis(sleep_ms)).await;
 
@@ -54,7 +54,7 @@ pub async fn run_init_step(
             })
         }
         "config_load" => {
-            // 随机睡眠 300-500ms
+            // UI splash animation delay (simulates config loading progress)
             let sleep_ms = rand::random::<u64>() % 201 + 300;
             tokio::time::sleep(tokio::time::Duration::from_millis(sleep_ms)).await;
 
@@ -78,7 +78,7 @@ pub async fn run_init_step(
             })
         }
         "service_init" => {
-            // 随机睡眠 800-1200ms
+            // UI splash animation delay (simulates service initialization progress)
             let sleep_ms = rand::random::<u64>() % 401 + 800;
             tokio::time::sleep(tokio::time::Duration::from_millis(sleep_ms)).await;
 
@@ -98,7 +98,7 @@ pub async fn run_init_step(
             })
         }
         "ready" => {
-            // 随机睡眠 200-300ms
+            // UI splash animation delay (final splash step before app ready)
             let sleep_ms = rand::random::<u64>() % 101 + 200;
             tokio::time::sleep(tokio::time::Duration::from_millis(sleep_ms)).await;
 

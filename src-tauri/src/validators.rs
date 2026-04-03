@@ -51,6 +51,12 @@ pub fn sanitize_path(path: &str) -> Result<PathBuf, String> {
         }
     }
 
+    // 检查 URL 编码的路径遍历尝试
+    let lower = trimmed.to_lowercase();
+    if lower.contains("%2e") || lower.contains("%2f") || lower.contains("%5c") {
+        return Err("路径包含非法编码字符".to_string());
+    }
+
     // 转换为 PathBuf
     let path_buf = PathBuf::from(trimmed);
 
@@ -114,12 +120,12 @@ pub fn sanitize_port(port: &str) -> Result<u16, String> {
 
     // 警告使用标准 FTP 端口（可能需要管理员权限）
     if port_num == FTP_STANDARD_PORT {
-        eprintln!("警告: 使用标准 FTP 端口 21 可能需要管理员权限");
+        tracing::warn!("使用标准 FTP 端口 21 可能需要管理员权限");
     }
 
     // 警告使用特权端口
     if port_num < 1024 {
-        eprintln!("警告: 使用特权端口 {} 可能需要管理员权限", port_num);
+        tracing::warn!("使用特权端口 {} 可能需要管理员权限", port_num);
     }
 
     Ok(port_num)
@@ -196,13 +202,13 @@ pub fn sanitize_password(password: &str) -> Result<String, String> {
 
     // 检查密码强度（仅警告，不强制）
     if password.len() < 6 {
-        eprintln!("警告: 密码长度小于 6 位，建议使用更强的密码");
+        tracing::warn!("密码长度小于 6 位，建议使用更强的密码");
     }
 
     // 检查常见弱密码
     let weak_passwords = ["123456", "password", "admin", "root", "12345678"];
     if weak_passwords.contains(&password) {
-        eprintln!("警告: 检测到弱密码，建议使用更强的密码");
+        tracing::warn!("检测到弱密码，建议使用更强的密码");
     }
 
     Ok(password.to_string())
@@ -245,8 +251,8 @@ pub fn sanitize_users_json(users_json: &str) -> Result<String, String> {
     }
 
     // 解析 JSON
-    let users: Vec<serde_json::Value> = serde_json::from_str(users_json)
-        .map_err(|e| format!("用户列表 JSON 格式无效: {}", e))?;
+    let users: Vec<serde_json::Value> =
+        serde_json::from_str(users_json).map_err(|e| format!("用户列表 JSON 格式无效: {}", e))?;
 
     // 验证用户数量限制
     if users.len() > 100 {
@@ -262,9 +268,7 @@ pub fn sanitize_users_json(users_json: &str) -> Result<String, String> {
         let password = user["password"]
             .as_str()
             .ok_or_else(|| format!("用户 {} 缺少密码", index))?;
-        let file_auth = user["fileAuth"]
-            .as_str()
-            .unwrap_or("R");
+        let file_auth = user["fileAuth"].as_str().unwrap_or("R");
 
         // 清理各个字段
         let sanitized_username = sanitize_username(username)?;
@@ -279,8 +283,7 @@ pub fn sanitize_users_json(users_json: &str) -> Result<String, String> {
     }
 
     // 转换回 JSON
-    serde_json::to_string(&sanitized_users)
-        .map_err(|e| format!("序列化用户数据失败: {}", e))
+    serde_json::to_string(&sanitized_users).map_err(|e| format!("序列化用户数据失败: {}", e))
 }
 
 /// 检查写入权限

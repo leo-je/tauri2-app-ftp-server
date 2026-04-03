@@ -32,8 +32,6 @@ impl Authenticator for FtpUserAuthenticator {
         _username: &str,
         _creds: &Credentials,
     ) -> Result<Principal, AuthenticationError> {
-        println!("Authenticating user {}\n", _username);
-        
         // 匿名访问模式
         if self.is_anonymous {
             return Ok(Principal {
@@ -44,7 +42,6 @@ impl Authenticator for FtpUserAuthenticator {
         // 遍历用户列表进行认证
         for u in &self.users {
             if u.username == _username {
-                println!("Authenticating user: {}-[REDACTED]", u.username);
                 if let Some(password) = &_creds.password {
                     if password.as_bytes().ct_eq(u.password.as_bytes()).unwrap_u8() == 1 {
                         return Ok(Principal {
@@ -67,7 +64,8 @@ impl Authenticator for FtpUserAuthenticator {
 
 impl FtpUserAuthenticator {
     fn log_auth_failure(&self, username: &str) {
-        println!("username:{}用户不存在或者密码错误", username);
+        // 仅记录认证失败事件，不泄露密码等敏感信息
+        tracing::debug!("FTP auth failed for user: {}", username);
     }
 }
 
@@ -114,7 +112,6 @@ impl UserDetailProvider for FtpUserDetailProvider {
 }
 
 fn get_permissions(file_auth: &str) -> VfsOperations {
-    println!("file_auth:{}", file_auth);
     let all_permissions = VfsOperations::all();
     match file_auth {
         "W" => all_permissions,

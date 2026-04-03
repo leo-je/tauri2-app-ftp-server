@@ -96,37 +96,35 @@ impl FtpEventLogger {
 
     /// 添加日志条目
     pub fn add_log(&self, log: FtpOperationLog) {
-        let mut logs = self.logs.lock().unwrap();
-        
-        // 如果超过最大条数，删除最旧的条目
+        let mut logs = match self.logs.lock() {
+            Ok(guard) => guard,
+            Err(_) => return,
+        };
+
         while logs.len() >= self.max_logs {
             logs.remove(0);
         }
-        
+
         logs.push(log.clone());
-        
-        // 释放锁后再发送事件，避免死锁
         drop(logs);
-        
-        // 通过 Tauri 事件发送到前端
+
         if let Some(ref handle) = self.app_handle {
             let _ = handle.emit("ftp-operation-log", log);
         }
     }
 
-    /// 获取所有日志
     pub fn get_logs(&self) -> Vec<FtpOperationLog> {
-        self.logs.lock().unwrap().clone()
+        self.logs.lock().map(|g| g.clone()).unwrap_or_default()
     }
 
-    /// 清空所有日志
     pub fn clear_logs(&self) {
-        self.logs.lock().unwrap().clear();
+        if let Ok(mut logs) = self.logs.lock() {
+            logs.clear();
+        }
     }
 
-    /// 获取日志条数
     pub fn log_count(&self) -> usize {
-        self.logs.lock().unwrap().len()
+        self.logs.lock().map(|g| g.len()).unwrap_or(0)
     }
 }
 

@@ -1,7 +1,7 @@
 <template>
   <div class="tabs-container">
     <el-tabs v-model="activeName" class="ftp-tabs" @tab-click="handleClick">
-      <el-tab-pane name="base">
+      <el-tab-pane name="base" lazy>
         <template #label>
           <span class="tab-label">
             <SvgIcon name="folder" :size="18" class="tab-icon" />
@@ -10,7 +10,7 @@
         </template>
         <ftp></ftp>
       </el-tab-pane>
-      <el-tab-pane name="auth">
+      <el-tab-pane name="auth" lazy>
         <template #label>
           <span class="tab-label">
             <SvgIcon name="lock" :size="18" class="tab-icon" />
@@ -19,7 +19,7 @@
         </template>
         <ftpAuth></ftpAuth>
       </el-tab-pane>
-      <el-tab-pane name="about">
+      <el-tab-pane name="about" lazy>
         <template #label>
           <span class="tab-label">
             <SvgIcon name="checkCircle" :size="18" class="tab-icon" />

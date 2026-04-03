@@ -101,12 +101,10 @@ pub fn start_ftp_server(
     match worker.start() {
         Ok(_) => {
             // 更新托盘菜单和运行状态
-            if let Ok(state) = app_state.lock() {
+            if let Ok(mut state) = app_state.lock() {
                 if let Ok(mut is_running) = state.is_server_running.lock() {
                     *is_running = true;
                 }
-            }
-            if let Ok(mut state) = app_state.lock() {
                 state.server_start_time = Some(Instant::now());
             }
             let _ = crate::tray::update_tray_menu(&app, true);
@@ -145,18 +143,25 @@ pub fn stop_ftp_server(
     match worker.stop() {
         Ok(_) => {
             // 更新托盘菜单和运行状态
-            if let Ok(state) = app_state.lock() {
+            if let Ok(mut state) = app_state.lock() {
                 if let Ok(mut is_running) = state.is_server_running.lock() {
                     *is_running = false;
                 }
-            }
-            if let Ok(mut state) = app_state.lock() {
                 state.server_start_time = None;
             }
             let _ = crate::tray::update_tray_menu(&app, false);
             Ok("服务已停止".to_string())
         }
-        Err(e) => Err(format!("FTP 服务停止失败: {}", e)),
+        Err(e) => {
+            if let Ok(mut state) = app_state.lock() {
+                if let Ok(mut is_running) = state.is_server_running.lock() {
+                    *is_running = false;
+                }
+                state.server_start_time = None;
+            }
+            let _ = crate::tray::update_tray_menu(&app, false);
+            Err(format!("FTP 服务停止失败: {}", e))
+        }
     }
 }
 

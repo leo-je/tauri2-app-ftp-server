@@ -1,6 +1,6 @@
 [package]
 name = "ftp-server"
-version = "1.0.8"
+version = "1.0.9"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
@@ -30,7 +30,7 @@ unftp-core = "0.1.0"
 unftp-sbe-fs = "0.4.0"
 unftp-sbe-restrict = "0.1.5"
 async-trait = "0.1.89"
-tokio = { version = "1.50.0", features = ["full"] }
+tokio = { version = "1.51.0", features = ["full"] }
 tauri-plugin-store = "2.4.2"
 tauri-plugin-log = "2.8.0"
 subtle = "2.6.1"
@@ -39,3 +39,4 @@ get_if_addrs = "0.5.3"
 rand = "0.10.0"
 tauri-plugin-autostart = "2.5.1"
 chrono = "0.4.44"
+tracing = "0.1"

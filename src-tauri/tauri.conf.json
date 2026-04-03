@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "ftp-server",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "identifier": "com.lst.ftp-server.app",
   "build": {
     "beforeDevCommand": "yarn dev",
@@ -35,7 +35,7 @@
     "security": {
       "csp": {
         "default-src": "'self'",
-        "script-src": "'self' 'unsafe-inline' 'unsafe-eval'",
+        "script-src": "'self' 'unsafe-inline'",
         "style-src": "'self' 'unsafe-inline'",
         "img-src": "'self' data: blob:",
         "font-src": "'self' data:",

@@ -148,8 +148,11 @@ impl FtpWorker {
             let shutdown_running = Arc::clone(&running_clone);
             let mut server_builder = libunftp::ServerBuilder::with_user_detail_provider(
                 Box::new(move || {
+                    let vfs = Filesystem::new(ftp_home.clone())
+                        .map_err(|e| format!("Failed to create filesystem: {}", e))
+                        .unwrap();
                     unftp_sbe_restrict::RestrictingVfs::<Filesystem, UserInfo, Meta>::new(
-                        Filesystem::new(ftp_home.clone()).unwrap(),
+                        vfs,
                     )
                 }),
                 std::sync::Arc::new(FtpUserDetailProvider {

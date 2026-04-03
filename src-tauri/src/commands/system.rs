@@ -117,12 +117,10 @@ pub fn set_server_running(
     running: bool,
 ) -> Result<(), String> {
     // 更新状态
-    if let Ok(state) = app_state.lock() {
+    if let Ok(mut state) = app_state.lock() {
         if let Ok(mut is_running) = state.is_server_running.lock() {
             *is_running = running;
         }
-    }
-    if let Ok(mut state) = app_state.lock() {
         if running {
             if state.server_start_time.is_none() {
                 state.server_start_time = Some(Instant::now());

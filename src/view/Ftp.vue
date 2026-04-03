@@ -162,8 +162,8 @@
                                 >
                                     <div class="terminal-list">
                                         <div
-                                            v-for="(log, index) in logs"
-                                            :key="`${log.time}-${log.operation}-${log.path}-${index}`"
+                                            v-for="log in logs"
+                                            :key="log._id"
                                             :class="['terminal-line', `is-${log.operation}`]"
                                         >
                                             <span class="terminal-line-time">[{{ formatLogTime(log.time) }}]</span>
@@ -218,10 +218,11 @@ const startTime = ref<Date | null>(null);
 const runTime = ref('00:00:00');
 let runTimer: ReturnType<typeof setInterval> | null = null;
 const showLogs = ref(false);
-const logs = ref<FtpOperationLog[]>([]);
+const logs = ref<Array<FtpOperationLog & { _id: number }>>([]);
 const logViewport = ref<HTMLElement | null>(null);
 const followLogs = ref(true);
 const isTogglingServer = ref(false);
+let logIdCounter = 0;
 let unlistenLog: (() => void) | null = null;
 let unlistenGlobalStart: (() => void) | null = null;
 let unlistenGlobalStop: (() => void) | null = null;
@@ -441,8 +442,8 @@ const getIps = async () => {
     console.log('当前IP:', ipList);
     // 判断数组长度,大于2则保留2
     if (ipList.length > 2) {
-        ipList.splice(2, ipList.length - 2)
-    } else if (ipList.length == 0) {
+        ips.value = ipList.slice(0, 2);
+    } else if (ipList.length === 0) {
         ipList.push('127.0.0.1')
     }
     ips.value = ipList
@@ -515,7 +516,7 @@ async function startFtpServer() {
 const loadLogs = async () => {
     try {
         const result = await invoke<FtpOperationLog[]>('get_ftp_operation_logs');
-        logs.value = result;
+        logs.value = result.map(log => ({ ...log, _id: logIdCounter++ }));
     } catch (e) {
         console.error('Failed to load logs:', e);
     }
@@ -526,7 +527,7 @@ const setupLogListener = async () => {
         unlistenLog();
     }
     unlistenLog = await listen<FtpOperationLog>('ftp-operation-log', (event) => {
-        logs.value.push(event.payload);
+        logs.value.push({ ...event.payload, _id: logIdCounter++ });
         if (logs.value.length > 100) {
             logs.value.shift();
         }

@@ -84,8 +84,11 @@ pub fn update_tray_menu(
     let menu_text = TRAY_MENU_TEXT.lock().unwrap();
 
     let uptime_display = {
-        let state = app.state::<Arc<Mutex<AppState>>>();
-        let state = state.lock().unwrap();
+        let app_state = app.state::<Arc<Mutex<AppState>>>();
+        let state = match app_state.lock() {
+            Ok(s) => s,
+            Err(_) => return Err("Failed to lock app state".into()),
+        };
         format_uptime(state.server_start_time, &menu_text.uptime)
     };
 

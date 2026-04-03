@@ -210,11 +210,15 @@ export function validateUsers(users: Array<{ username: string; password: string;
   }
 
   // 验证每个用户
-  users.forEach((user, index) => {
-    const result = validateUser(user);
-    result.errors.forEach(err => errors.push(`用户 ${index + 1}: ${err}`));
-    result.warnings.forEach(warn => warnings.push(`用户 ${index + 1}: ${warn}`));
-  });
+  for (let index = 0; index < users.length; index++) {
+    const result = validateUser(users[index]);
+    for (const err of result.errors) {
+      errors.push(`用户 ${index + 1}: ${err}`);
+    }
+    for (const warn of result.warnings) {
+      warnings.push(`用户 ${index + 1}: ${warn}`);
+    }
+  }
 
   return {
     valid: errors.length === 0,
