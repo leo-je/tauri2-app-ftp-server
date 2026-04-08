@@ -81,7 +81,13 @@ pub fn update_tray_menu(
     app: &tauri::AppHandle,
     is_running: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let menu_text = TRAY_MENU_TEXT.lock().unwrap();
+    let menu_text = match TRAY_MENU_TEXT.lock() {
+        Ok(guard) => guard,
+        Err(poisoned) => {
+            tracing::warn!("TRAY_MENU_TEXT lock poisoned: {}", poisoned);
+            poisoned.into_inner()
+        }
+    };
 
     let uptime_display = {
         let app_state = app.state::<Arc<Mutex<AppState>>>();

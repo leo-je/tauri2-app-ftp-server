@@ -136,7 +136,7 @@ pub fn run() {
         )
         // 运行应用，处理 Dock 图标点击等事件
         .build(tauri::generate_context!())
-        .expect("Failed to build Tauri application")
+        .expect("Failed to build Tauri application - check configuration and dependencies")
         .run(|_app_handle, _event| {
             #[cfg(target_os = "macos")]
             if let RunEvent::Reopen { .. } = _event {

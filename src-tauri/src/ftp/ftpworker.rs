@@ -149,8 +149,7 @@ impl FtpWorker {
             let mut server_builder = libunftp::ServerBuilder::with_user_detail_provider(
                 Box::new(move || {
                     let vfs = Filesystem::new(ftp_home.clone())
-                        .map_err(|e| format!("Failed to create filesystem: {}", e))
-                        .unwrap();
+                        .expect("Failed to create filesystem - path should be valid and accessible");
                     unftp_sbe_restrict::RestrictingVfs::<Filesystem, UserInfo, Meta>::new(
                         vfs,
                     )
