@@ -157,10 +157,47 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </transition>
+    </div>
+    </transition>
 
-            <!-- 用户编辑抽屉 -->
+    <!-- IP黑名单设置卡片 -->
+    <div :class="['ip-blacklist-card', 'ftp-card', { 'fade-in': isFirstLoad }]">
+      <div class="card-header">
+        <SvgIcon name="lock" :size="20" class="card-icon" />
+        <span>{{ $t('auth.ipBlacklist') || 'IP黑名单' }}</span>
+        <el-button
+          type="primary"
+          class="add-user-btn"
+          @click="openAddIpDialog"
+          :disabled="isServerRunning"
+        >
+          <SvgIcon name="plus" :size="16" class="btn-icon" />
+          {{ $t('auth.addIp') || '添加IP' }}
+        </el-button>
+      </div>
+      
+      <div class="ip-list-container">
+        <div v-if="blacklistIps.length === 0" class="empty-ip-list">
+          <span class="empty-text">{{ $t('auth.noBlacklistIps') || '暂无黑名单IP' }}</span>
+        </div>
+        <div v-else class="ip-tags">
+          <el-tag
+            v-for="ip in blacklistIps"
+            :key="ip"
+            closable
+            :disable-transitions="false"
+            @close="removeIp(ip)"
+            class="ip-tag"
+            effect="dark"
+            :disabled="isServerRunning"
+          >
+            {{ ip }}
+          </el-tag>
+        </div>
+      </div>
+    </div>
+
+    <!-- 用户编辑抽屉 -->
             <el-drawer
                 v-model="drawer"
                 :title="form.index !== undefined ? $t('auth.editUser') : $t('auth.addUser')"
@@ -210,10 +247,11 @@
 <script lang="ts" setup>
 import { onBeforeMount, onMounted, reactive, ref, nextTick, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { invoke } from '@tauri-apps/api/core'
 import {
-    ElSwitch, ElTable, ElTableColumn,
-    ElButton, ElDrawer, DrawerProps, ElInput, ElMessage, ElMessageBox,
-    ElRadioGroup, ElRadioButton, ElForm, ElFormItem
+  ElSwitch, ElTable, ElTableColumn,
+  ElButton, ElDrawer, DrawerProps, ElInput, ElMessage, ElMessageBox,
+  ElRadioGroup, ElRadioButton, ElForm, ElFormItem, ElTag
 } from 'element-plus'
 import type { TableColumnCtx } from 'element-plus'
 
@@ -245,6 +283,10 @@ const isFirstLoad = ref(true)
 const autoStart = ref(true)
 const hideOnStartup = ref(true)
 
+// IP黑名单
+const blacklistIps = ref<string[]>([])
+const ipInput = ref('')
+
 // 服务运行状态
 const isServerRunning = computed(() => runtimeState.isServerRunning.value)
 
@@ -268,14 +310,17 @@ const init = async () => {
             autoStart.value = true
         }
 
-        // 加载启动时隐藏主界面设置
-        let hs = await store.get('hideOnStartup')
-        hideOnStartup.value = hs !== null ? !!hs : true
-    } catch (e) {
-        console.error(e)
-        tableData.value = []
-        store.set('tableData', []);
-    }
+    // 加载启动时隐藏主界面设置
+    let hs = await store.get('hideOnStartup')
+    hideOnStartup.value = hs !== null ? !!hs : true
+
+    // 加载IP黑名单
+    await loadBlacklistIps()
+  } catch (e) {
+    console.error(e)
+    tableData.value = []
+    store.set('tableData', []);
+  }
 }
 
 const onAutoStartChange = async () => {
@@ -345,6 +390,58 @@ const deleteRow = (scope: TableScope) => {
 
 const getRowClassName = ({ row }: { row: TableDataItem }) => {
     return row.fileAuth === 'W' ? 'write-row' : 'read-row'
+}
+
+// IP黑名单相关函数
+const loadBlacklistIps = async () => {
+  try {
+    const ips = await invoke<string[]>('get_blacklist_ips')
+    blacklistIps.value = ips || []
+  } catch (e) {
+    console.error('Failed to load blacklist:', e)
+    blacklistIps.value = []
+  }
+}
+
+const openAddIpDialog = () => {
+  ipInput.value = ''
+  ElMessageBox.prompt(
+    t('auth.ipInputPlaceholder') || '请输入IP地址或CIDR范围（如 192.168.1.1 或 10.0.0.0/24）',
+    t('auth.addIp') || '添加IP到黑名单',
+    {
+      confirmButtonText: t('auth.confirm') || '确认',
+      cancelButtonText: t('auth.cancel') || '取消',
+      inputValue: ipInput.value,
+      inputValidator: (value: string) => {
+        if (!value.trim()) {
+          return t('auth.ipRequired') || 'IP地址不能为空'
+        }
+        return true
+      }
+    }
+  ).then(async ({ value }) => {
+    try {
+      await invoke('add_ip_to_blacklist', { ip: value.trim() })
+      await loadBlacklistIps()
+      ElMessage.success(t('auth.ipAdded') || 'IP已添加到黑名单')
+    } catch (e) {
+      console.error('Failed to add IP:', e)
+      ElMessage.error(String(e))
+    }
+  }).catch(() => {
+    // 用户取消
+  })
+}
+
+const removeIp = async (ip: string) => {
+  try {
+    await invoke('remove_ip_from_blacklist', { ip })
+    await loadBlacklistIps()
+    ElMessage.success(t('auth.ipRemoved') || 'IP已从黑名单移除')
+  } catch (e) {
+    console.error('Failed to remove IP:', e)
+    ElMessage.error(String(e))
+  }
 }
 
 const saveForm = () => {
@@ -733,6 +830,38 @@ html.dark .empty-state {
     .empty-icon {
         color: #4a4a4a;
     }
+}
+
+/* IP黑名单卡片样式 */
+.ip-blacklist-card {
+  .ip-list-container {
+    min-height: 60px;
+  }
+
+  .empty-ip-list {
+    text-align: center;
+    padding: 24px;
+    color: #909399;
+    font-size: 14px;
+  }
+
+  .ip-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 0;
+
+    .ip-tag {
+      font-family: 'SFMono-Regular', monospace;
+      font-size: 13px;
+    }
+  }
+}
+
+html.dark .ip-blacklist-card {
+  .empty-ip-list {
+    color: #a0a0a0;
+  }
 }
 
 /* 抽屉样式 */

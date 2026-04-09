@@ -150,7 +150,14 @@ export default {
     userDeleted: 'ユーザーを削除しました',
     userUpdated: 'ユーザーを更新しました',
     userAdded: 'ユーザーを追加しました',
-    saveFailed: 'データの保存に失敗しました'
+    saveFailed: 'データの保存に失敗しました',
+    ipBlacklist: 'IPブラックリスト',
+    addIp: 'IPを追加',
+    noBlacklistIps: 'ブラックリストにIPがありません',
+    ipInputPlaceholder: 'IPアドレスまたはCIDR範囲を入力してください（例: 192.168.1.1 または 10.0.0.0/24）',
+    ipRequired: 'IPアドレスが必要です',
+    ipAdded: 'IPをブラックリストに追加しました',
+    ipRemoved: 'IPをブラックリストから削除しました'
   },
   about: {
     appName: 'FTP サーバー',

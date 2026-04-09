@@ -150,7 +150,14 @@ export default {
     userDeleted: '用户已删除',
     userUpdated: '用户已更新',
     userAdded: '用户已添加',
-    saveFailed: '保存数据失败'
+    saveFailed: '保存数据失败',
+    ipBlacklist: 'IP黑名单',
+    addIp: '添加IP',
+    noBlacklistIps: '暂无黑名单IP',
+    ipInputPlaceholder: '请输入IP地址或CIDR范围（如 192.168.1.1 或 10.0.0.0/24）',
+    ipRequired: 'IP地址不能为空',
+    ipAdded: 'IP已添加到黑名单',
+    ipRemoved: 'IP已从黑名单移除'
   },
   about: {
     appName: 'FTP 服务器',

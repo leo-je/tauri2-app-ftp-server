@@ -150,7 +150,14 @@ export default {
     userDeleted: 'ลบผู้ใช้แล้ว',
     userUpdated: 'อัปเดตผู้ใช้แล้ว',
     userAdded: 'เพิ่มผู้ใช้แล้ว',
-    saveFailed: 'บันทึกข้อมูลล้มเหลว'
+    saveFailed: 'บันทึกข้อมูลล้มเหลว',
+    ipBlacklist: 'รายการ IP ต้องห้าม',
+    addIp: 'เพิ่ม IP',
+    noBlacklistIps: 'ไม่มี IP ในรายการต้องห้าม',
+    ipInputPlaceholder: 'กรุณาใส่ที่อยู่ IP หรือช่วง CIDR (เช่น 192.168.1.1 หรือ 10.0.0.0/24)',
+    ipRequired: 'ต้องระบุที่อยู่ IP',
+    ipAdded: 'เพิ่ม IP ในรายการต้องห้ามแล้ว',
+    ipRemoved: 'ลบ IP ออกจากรายการต้องห้ามแล้ว'
   },
   about: {
     appName: 'FTP เซิร์ฟเวอร์',

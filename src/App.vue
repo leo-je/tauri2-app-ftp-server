@@ -151,7 +151,7 @@ onUnmounted(() => {
 });
 
 function disableContextMenu(event: Event) {
-    event.preventDefault();
+    // event.preventDefault();
 }
 
 const minimizeWindow = () => {

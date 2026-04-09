@@ -150,7 +150,14 @@ export default {
     userDeleted: 'User deleted',
     userUpdated: 'User updated',
     userAdded: 'User added',
-    saveFailed: 'Failed to save data'
+    saveFailed: 'Failed to save data',
+    ipBlacklist: 'IP Blacklist',
+    addIp: 'Add IP',
+    noBlacklistIps: 'No blacklisted IPs',
+    ipInputPlaceholder: 'Enter IP address or CIDR range (e.g. 192.168.1.1 or 10.0.0.0/24)',
+    ipRequired: 'IP address is required',
+    ipAdded: 'IP added to blacklist',
+    ipRemoved: 'IP removed from blacklist'
   },
   about: {
     appName: 'FTP Server',

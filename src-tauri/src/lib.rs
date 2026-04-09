@@ -44,9 +44,13 @@ pub fn run() {
             let worker = Arc::new(Mutex::new(ftp::ftpworker::FtpWorker::new()));
             app.manage(worker);
 
-            // 创建 FTP 事件日志管理器
-            let ftp_logger = Arc::new(Mutex::new(ftp::ftpevent::FtpEventLogger::new(1000)));
-            app.manage(ftp_logger.clone());
+      // 创建 FTP 事件日志管理器
+      let ftp_logger = Arc::new(Mutex::new(ftp::ftpevent::FtpEventLogger::new(1000)));
+      app.manage(ftp_logger.clone());
+
+      // 创建 IP 黑名单管理器
+      let ip_blacklist = Arc::new(Mutex::new(ftp::ip_blacklist::IpBlacklist::new()));
+      app.manage(ip_blacklist.clone());
 
             // 设置日志管理器的 Tauri 应用句柄（用于发送事件到前端）
             if let Ok(mut logger) = ftp_logger.lock() {
@@ -103,24 +107,30 @@ pub fn run() {
             MacosLauncher::LaunchAgent,
             Some(vec!["--minimized"]),
         ))
-        // 注册前端可调用的命令
-        .invoke_handler(tauri::generate_handler![
-            commands::ftp::start_ftp_server,
-            commands::ftp::stop_ftp_server,
-            commands::ftp::get_ftp_operation_logs,
-            commands::ftp::clear_ftp_operation_logs,
-            commands::network::get_primary_ipv4,
-            commands::system::get_system_info,
-            commands::system::check_app_config,
-            commands::system::check_permissions,
-            commands::network::get_network_interfaces,
-            commands::init::run_init_step,
-            commands::init::get_init_status,
-            commands::system::set_server_running,
-            commands::system::get_server_running,
-            tray::hide_main_window,
-            tray::update_tray_menu_language,
-        ])
+  // 注册前端可调用的命令
+  .invoke_handler(tauri::generate_handler![
+    commands::ftp::start_ftp_server,
+    commands::ftp::stop_ftp_server,
+    commands::ftp::get_ftp_operation_logs,
+    commands::ftp::clear_ftp_operation_logs,
+    commands::network::get_primary_ipv4,
+    commands::system::get_system_info,
+    commands::system::check_app_config,
+    commands::system::check_permissions,
+    commands::network::get_network_interfaces,
+    commands::init::run_init_step,
+    commands::init::get_init_status,
+    commands::system::set_server_running,
+    commands::system::get_server_running,
+    commands::ip_blacklist::add_ip_to_blacklist,
+    commands::ip_blacklist::remove_ip_from_blacklist,
+    commands::ip_blacklist::get_blacklist_ips,
+    commands::ip_blacklist::is_ip_blacklisted,
+    commands::ip_blacklist::clear_blacklist,
+    commands::ip_blacklist::load_blacklist,
+    tray::hide_main_window,
+    tray::update_tray_menu_language,
+  ])
         // 初始化日志插件
         .plugin(
             tauri_plugin_log::Builder::new()
