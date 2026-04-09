@@ -87,7 +87,7 @@
                     :class="{ 'is-running': isStart }"
                 >
                     <SvgIcon :name="isStart ? 'stop' : 'play'" :size="20" class="button-icon" />
-                    {{ isStart ? '停止服务' : '启动服务' }}
+                    {{ isStart ? $t('control.stop') : $t('control.start') }}
                 </el-button>
             </div>
 
@@ -200,7 +200,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { Command } from 'tauri-plugin-shellx-api';
 import { platform } from '@tauri-apps/plugin-os';
 import store, { runtimeState } from '../store';
-import { info, error, attachConsole } from '@tauri-apps/plugin-log';
+import { info, warn, error, attachConsole } from '@tauri-apps/plugin-log';
 import { SvgIcon } from '../components/icons';
 import clipboard from "tauri-plugin-clipboard-api";
 import { validatePath, validatePort } from '../utils/validation';
@@ -254,7 +254,7 @@ async function updateTrayMenu(isRunning: boolean) {
       }
     });
   } catch (e) {
-    console.warn('Failed to update tray menu:', e);
+    warn(`Failed to update tray menu: ${e instanceof Error ? e.message : String(e)}`);
   }
 }
 
@@ -529,9 +529,9 @@ const loadLogs = async () => {
     try {
         const result = await invoke<FtpOperationLog[]>('get_ftp_operation_logs');
         logs.value = result.map(log => ({ ...log, _id: logIdCounter++ }));
-    } catch (e) {
-        console.error('Failed to load logs:', e);
-    }
+  } catch (e) {
+    error(`Failed to load logs: ${e instanceof Error ? e.message : String(e)}`);
+  }
 };
 
 const setupLogListener = async () => {
@@ -551,9 +551,9 @@ const clearLogs = async () => {
         await invoke('clear_ftp_operation_logs');
         logs.value = [];
         followLogs.value = true;
-    } catch (e) {
-        console.error('Failed to clear logs:', e);
-    }
+  } catch (e) {
+    error(`Failed to clear logs: ${e instanceof Error ? e.message : String(e)}`);
+  }
 };
 
 const getOperationCommand = (operation: string): string => {
