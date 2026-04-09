@@ -557,15 +557,17 @@ const clearLogs = async () => {
 };
 
 const getOperationCommand = (operation: string): string => {
-    const commandMap: Record<string, string> = {
-        download: 'RETR',
-        upload: 'STOR',
-        delete: 'DELE',
-        mkdir: 'MKD',
-        rmdir: 'RMD',
-        rename: 'RNTO',
-    };
-    return commandMap[operation] || operation.toUpperCase();
+  const commandMap: Record<string, string> = {
+    download: 'RETR',
+    upload: 'STOR',
+    delete: 'DELE',
+    mkdir: 'MKD',
+    rmdir: 'RMD',
+    rename: 'RNTO',
+    list: 'LIST',
+    cwd: 'CWD',
+  };
+  return commandMap[operation] || operation.toUpperCase();
 };
 
 const getLogTarget = (log: FtpOperationLog): string => {
@@ -1169,9 +1171,10 @@ html.dark .run-time-section {
     color: #fde68a;
   }
 
-  &.rename {
-    background: rgba(196, 181, 253, 0.12);
-    color: #c4b5fd;
+  &.list,
+  &.cwd {
+    background: rgba(148, 163, 184, 0.12);
+    color: #94a3b8;
   }
 }
 

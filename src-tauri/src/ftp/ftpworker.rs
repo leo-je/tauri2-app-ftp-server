@@ -145,20 +145,29 @@ impl FtpWorker {
                 }
             };
 
-            let shutdown_running = Arc::clone(&running_clone);
-            let mut server_builder = libunftp::ServerBuilder::with_user_detail_provider(
-                Box::new(move || {
-                    let vfs = Filesystem::new(ftp_home.clone())
-                        .expect("Failed to create filesystem - path should be valid and accessible");
-                    unftp_sbe_restrict::RestrictingVfs::<Filesystem, UserInfo, Meta>::new(
-                        vfs,
-                    )
-                }),
-                std::sync::Arc::new(FtpUserDetailProvider {
-                    users: users.clone(),
-                    file_auth: config.file_auth.clone(),
-                }),
-            )
+      let shutdown_running = Arc::clone(&running_clone);
+      let logger_clone_inner = logger_clone.clone();
+      
+      let mut server_builder = libunftp::ServerBuilder::with_user_detail_provider(
+        Box::new(move || {
+          let vfs = Filesystem::new(ftp_home.clone())
+            .expect("Failed to create filesystem - path should be valid and accessible");
+          let restrict_vfs = unftp_sbe_restrict::RestrictingVfs::<Filesystem, UserInfo, Meta>::new(
+            vfs,
+          );
+          
+      // 包装 LoggingVfs 以记录所有文件操作
+      let logging_vfs = crate::ftp::vfs_logger::create_logging_vfs(
+        restrict_vfs,
+        logger_clone_inner.clone()
+      );
+      logging_vfs
+        }),
+        std::sync::Arc::new(FtpUserDetailProvider {
+          users: users.clone(),
+          file_auth: config.file_auth.clone(),
+        }),
+      )
             .authenticator(std::sync::Arc::new(FtpUserAuthenticator {
                 is_anonymous: config.is_anonymous,
                 users: users.clone(),
