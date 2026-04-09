@@ -9,8 +9,10 @@ use async_trait::async_trait;
 use unftp_core::auth::{AuthenticationError, Authenticator, Credentials, Principal, UserDetailProvider, UserDetailError};
 use subtle::ConstantTimeEq;
 use unftp_sbe_restrict::VfsOperations;
+use std::sync::{Arc, Mutex};
 
 use crate::ftp::ftpuser::UserInfo;
+use crate::ftp::ftpevent::FtpEventLogger;
 
 /// FTP 用户认证器
 ///
@@ -23,6 +25,8 @@ pub struct FtpUserAuthenticator {
     pub users: Vec<UserInfo>,
     /// 默认文件权限
     pub file_auth: String,
+    /// 日志管理器
+    pub logger: Option<Arc<Mutex<FtpEventLogger>>>,
 }
 
 #[async_trait]
@@ -34,6 +38,7 @@ impl Authenticator for FtpUserAuthenticator {
     ) -> Result<Principal, AuthenticationError> {
         // 匿名访问模式
         if self.is_anonymous {
+            self.log_login(_username, true);
             return Ok(Principal {
                 username: _username.to_string(),
             });
@@ -44,20 +49,24 @@ impl Authenticator for FtpUserAuthenticator {
             if u.username == _username {
                 if let Some(password) = &_creds.password {
                     if password.as_bytes().ct_eq(u.password.as_bytes()).unwrap_u8() == 1 {
+                        self.log_login(_username, true);
                         return Ok(Principal {
                             username: _username.to_string(),
                         });
                     } else {
                         self.log_auth_failure(_username);
+                        self.log_login(_username, false);
                         return Err(AuthenticationError::BadPassword);
                     }
                 } else {
                     self.log_auth_failure(_username);
+                    self.log_login(_username, false);
                     return Err(AuthenticationError::BadPassword);
                 }
             }
         }
         self.log_auth_failure(_username);
+        self.log_login(_username, false);
         Err(AuthenticationError::BadPassword)
     }
 }
@@ -66,6 +75,22 @@ impl FtpUserAuthenticator {
     fn log_auth_failure(&self, username: &str) {
         // 仅记录认证失败事件，不泄露密码等敏感信息
         tracing::debug!("FTP auth failed for user: {}", username);
+    }
+
+    fn log_login(&self, username: &str, success: bool) {
+        if let Some(ref logger) = self.logger {
+            if let Ok(logger_guard) = logger.lock() {
+                let status = if success { "success" } else { "failed" };
+                let log = crate::ftp::ftpevent::FtpOperationLog::new(
+                    "login",
+                    &format!("User: {}", username),
+                    None,
+                    Some(username.to_string()),
+                    Some(format!("Status: {}", status)),
+                );
+                logger_guard.add_log(log);
+            }
+        }
     }
 }
 

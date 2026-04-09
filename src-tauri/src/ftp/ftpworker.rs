@@ -146,7 +146,8 @@ impl FtpWorker {
             };
 
       let shutdown_running = Arc::clone(&running_clone);
-      let logger_clone_inner = logger_clone.clone();
+      let logger_for_vfs = logger_clone.clone();
+      let logger_for_auth = logger_clone.clone();
       
       let mut server_builder = libunftp::ServerBuilder::with_user_detail_provider(
         Box::new(move || {
@@ -159,7 +160,7 @@ impl FtpWorker {
       // 包装 LoggingVfs 以记录所有文件操作
       let logging_vfs = crate::ftp::vfs_logger::create_logging_vfs(
         restrict_vfs,
-        logger_clone_inner.clone()
+        logger_for_vfs.clone()
       );
       logging_vfs
         }),
@@ -168,11 +169,12 @@ impl FtpWorker {
           file_auth: config.file_auth.clone(),
         }),
       )
-            .authenticator(std::sync::Arc::new(FtpUserAuthenticator {
-                is_anonymous: config.is_anonymous,
-                users: users.clone(),
-                file_auth: config.file_auth.clone(),
-            }))
+      .authenticator(std::sync::Arc::new(FtpUserAuthenticator {
+        is_anonymous: config.is_anonymous,
+        users: users.clone(),
+        file_auth: config.file_auth.clone(),
+        logger: logger_for_auth.clone(),
+      }))
             .greeting("Welcome to my FTP server")
             .passive_ports(config.passive_port_range.clone())
             .shutdown_indicator(async move {
