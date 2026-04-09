@@ -1207,20 +1207,6 @@ html.dark .run-time-section {
 }
 
 @media (max-width: 640px) {
-    .terminal-toolbar,
-    .terminal-line {
-        flex-wrap: wrap;
-    }
-
-    .terminal-toolbar-main {
-        width: 100%;
-    }
-
-    .terminal-line-path {
-        width: 100%;
-        flex-basis: 100%;
-    }
-
   .terminal-viewport {
     max-height: 520px;
   }
