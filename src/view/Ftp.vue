@@ -1070,18 +1070,31 @@ html.dark .run-time-section {
 }
 
 .terminal-viewport {
-    position: relative;
-    max-height: 340px;
-    overflow-y: auto;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
+  position: relative;
+  max-height: 340px;
+  overflow-y: auto;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 
-.terminal-viewport::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
+  /* 自定义滚动条样式 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(125, 211, 252, 0.3) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(125, 211, 252, 0.3);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(125, 211, 252, 0.5);
+    }
+  }
 }
 
 .terminal-viewport::after {
@@ -1095,84 +1108,93 @@ html.dark .run-time-section {
 }
 
 .terminal-list {
-    padding: 10px 0;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .terminal-line {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 14px;
-    font-size: 13px;
-    line-height: 1.6;
-    font-family: 'SFMono-Regular', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    color: #d7e0ea;
-    border-left: 2px solid transparent;
-    transition: background 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  font-family: 'SFMono-Regular', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: #d7e0ea;
+  border-left: 2px solid transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.15s ease, border-color 0.15s ease;
 
-    &:hover {
-        background: rgba(125, 211, 252, 0.06);
-        border-left-color: rgba(125, 211, 252, 0.5);
-    }
+  &:hover {
+    background: rgba(125, 211, 252, 0.04);
+    border-left-color: rgba(125, 211, 252, 0.3);
+  }
 }
 
 .terminal-line-time {
-    color: #64748b;
-    flex-shrink: 0;
+  color: #64748b;
+  flex-shrink: 0;
+  font-size: 10px;
 }
 
 .terminal-line-command {
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
 
-    &.download {
-        background: rgba(96, 165, 250, 0.14);
-        color: #7dd3fc;
-    }
+  &.download {
+    background: rgba(96, 165, 250, 0.12);
+    color: #7dd3fc;
+  }
 
-    &.upload {
-        background: rgba(74, 222, 128, 0.14);
-        color: #86efac;
-    }
+  &.upload {
+    background: rgba(74, 222, 128, 0.12);
+    color: #86efac;
+  }
 
-    &.delete {
-        background: rgba(248, 113, 113, 0.14);
-        color: #fca5a5;
-    }
+  &.delete {
+    background: rgba(248, 113, 113, 0.12);
+    color: #fca5a5;
+  }
 
-    &.mkdir,
-    &.rmdir {
-        background: rgba(250, 204, 21, 0.14);
-        color: #fde68a;
-    }
+  &.mkdir,
+  &.rmdir {
+    background: rgba(250, 204, 21, 0.12);
+    color: #fde68a;
+  }
 
-    &.rename {
-        background: rgba(196, 181, 253, 0.14);
-        color: #c4b5fd;
-    }
+  &.rename {
+    background: rgba(196, 181, 253, 0.12);
+    color: #c4b5fd;
+  }
 }
 
 .terminal-line-path {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: #f8fafc;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #f8fafc;
+  font-size: 11px;
 }
 
 .terminal-line-bytes {
-    color: #facc15;
-    flex-shrink: 0;
+  color: #facc15;
+  flex-shrink: 0;
+  font-size: 10px;
 }
 
 .terminal-line-user {
-    color: #c4b5fd;
-    flex-shrink: 0;
+  color: #c4b5fd;
+  flex-shrink: 0;
+  font-size: 10px;
 }
 
 @keyframes terminalBlink {
@@ -1196,9 +1218,9 @@ html.dark .run-time-section {
         flex-basis: 100%;
     }
 
-    .terminal-viewport {
-        max-height: 300px;
-    }
+  .terminal-viewport {
+    max-height: 520px;
+  }
 }
 
 /* 展开动画 */
