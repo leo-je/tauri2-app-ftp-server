@@ -10,7 +10,14 @@ export function useFtpConnection(port: () => number) {
 
   const getIps = async () => {
     const ipList = await invoke<string[]>('get_primary_ipv4');
-    ips.value = ipList.length > 2 ? ipList.slice(0, 2) : ipList.length === 0 ? ['127.0.0.1'] : ipList;
+    // 处理IP列表：空列表使用本地回环，超过2个只保留前2个
+    if (ipList.length === 0) {
+      ips.value = ['127.0.0.1'];
+    } else if (ipList.length > 2) {
+      ips.value = ipList.slice(0, 2);
+    } else {
+      ips.value = ipList;
+    }
   };
 
   const copy = async (ip: string) => {
@@ -19,11 +26,15 @@ export function useFtpConnection(port: () => number) {
     ElMessage({ type: 'success', message: 'connection.copied' });
   };
 
-  const openDir = async (dirPath: string) => {
-    if (!dirPath) return;
-    const osType = await platform();
-    new Command(osType === 'windows' ? 'explorer' : 'open', [dirPath]).execute();
-  };
+const openDir = async (dirPath: string) => {
+  if (!dirPath) return;
+  const osType = await platform();
+  try {
+    await new Command(osType === 'windows' ? 'explorer' : 'open', [dirPath]).execute();
+  } catch (e) {
+    console.error('Failed to open directory:', e);
+  }
+};
 
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 B';

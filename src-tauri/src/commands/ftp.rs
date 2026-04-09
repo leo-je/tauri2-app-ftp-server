@@ -69,13 +69,11 @@ pub fn start_ftp_server(
     // 清理和验证文件权限
     let sanitized_file_auth = sanitize_file_auth(&file_auth)?;
 
-    // 获取锁，如果锁中毒则尝试恢复
+    // 获取锁，如果锁中毒则返回错误
     let mut worker = match state.lock() {
         Ok(guard) => guard,
-        Err(poisoned) => {
-            // 锁中毒时，记录警告并使用毒锁中的数据
-            eprintln!("警告: Mutex 锁中毒，尝试恢复: {}", poisoned);
-            poisoned.into_inner()
+        Err(_) => {
+            return Err("服务器状态异常，请重启应用".to_string());
         }
     };
 
@@ -130,13 +128,11 @@ pub fn stop_ftp_server(
     app_state: tauri::State<'_, Arc<Mutex<AppState>>>,
     state: tauri::State<'_, Arc<Mutex<FtpWorker>>>,
 ) -> Result<String, String> {
-    // 获取锁，如果锁中毒则尝试恢复
+    // 获取锁，如果锁中毒则返回错误
     let mut worker = match state.lock() {
         Ok(guard) => guard,
-        Err(poisoned) => {
-            // 锁中毒时，记录警告并使用毒锁中的数据
-            eprintln!("警告: Mutex 锁中毒，尝试恢复: {}", poisoned);
-            poisoned.into_inner()
+        Err(_) => {
+            return Err("服务器状态异常，请重启应用".to_string());
         }
     };
 

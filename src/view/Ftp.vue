@@ -199,15 +199,20 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from '@tauri-apps/plugin-dialog';
 import { Command } from 'tauri-plugin-shellx-api';
 import { platform } from '@tauri-apps/plugin-os';
-import store from '../store';
+import store, { runtimeState } from '../store';
 import { info, error, attachConsole } from '@tauri-apps/plugin-log';
 import { SvgIcon } from '../components/icons';
 import clipboard from "tauri-plugin-clipboard-api";
-import { runtimeState } from '../store';
 import { validatePath, validatePort } from '../utils/validation';
 import { listen, emit } from '@tauri-apps/api/event';
 
 const { t } = useI18n();
+
+// 常量定义
+const ANIMATION_DURATION = 600; // 首次加载动画持续时间(ms)
+const MESSAGE_DURATION_DEFAULT = 5000; // 消息提示默认持续时间(ms)
+const MAX_LOG_ENTRIES = 100; // 日志最大条目数
+const SCROLL_BOTTOM_THRESHOLD = 24; // 日志滚动底部阈值(px)
 
 const dirPath = ref('');
 const ips = ref(['127.0.0.1']);
@@ -272,7 +277,7 @@ onMounted(async () => {
     nextTick(() => {
         setTimeout(() => {
             isFirstLoad.value = false;
-        }, 600); // 等待动画完成
+        }, ANIMATION_DURATION);
     });
 
     if (!unlistenGlobalStart) {
@@ -366,12 +371,17 @@ const copy = async (ip: string) => {
 };
 
 async function openDir() {
-    if (!dirPath.value) {
-        ElMessage({ type: "warning", message: t('message.noDir') });
-        return;
-    }
-    const osType = checkPlatform();
-    new Command(osType === 'windows' ? 'explorer' : 'open', [dirPath.value]).execute();
+  if (!dirPath.value) {
+    ElMessage({ type: "warning", message: t('message.noDir') });
+    return;
+  }
+  const osType = checkPlatform();
+  try {
+    await new Command(osType === 'windows' ? 'explorer' : 'open', [dirPath.value]).execute();
+  } catch (e) {
+    error(e instanceof Error ? e.message : 'Failed to open directory');
+    ElMessage({ type: "error", message: t('message.openDirFailed') });
+  }
 }
 
 async function selectDir() {
@@ -381,10 +391,11 @@ async function selectDir() {
             dirPath.value = selected;
             await store.set('selected', selected);
         }
-    } catch (e) {
-        error(e ? e.toString() : '读取目录失败');
-        ElMessage(e ? e.toString() : '读取目录失败');
-    }
+  } catch (e) {
+    const errorMsg = e instanceof Error ? e.message : t('message.selectDirFailed');
+    error(errorMsg);
+    ElMessage({ type: "error", message: errorMsg });
+  }
 }
 
 function startOrStopServer() {
@@ -438,15 +449,16 @@ async function stopFtpServer() {
 }
 
 const getIps = async () => {
-    const ipList = await invoke<string[]>('get_primary_ipv4');
-    console.log('当前IP:', ipList);
-    // 判断数组长度,大于2则保留2
-    if (ipList.length > 2) {
-        ips.value = ipList.slice(0, 2);
-    } else if (ipList.length === 0) {
-        ipList.push('127.0.0.1')
-    }
-    ips.value = ipList
+  const ipList = await invoke<string[]>('get_primary_ipv4');
+  console.log('当前IP:', ipList);
+  // 处理IP列表：空列表使用本地回环，超过2个只保留前2个
+  if (ipList.length === 0) {
+    ips.value = ['127.0.0.1'];
+  } else if (ipList.length > 2) {
+    ips.value = ipList.slice(0, 2);
+  } else {
+    ips.value = ipList;
+  }
 };
 
 async function startFtpServer() {
@@ -482,7 +494,7 @@ async function startFtpServer() {
             const warningMessage = portValidation.warningParams
                 ? t(portValidation.warningKey, portValidation.warningParams)
                 : t(portValidation.warningKey);
-            showMessage("warning", warningMessage, 5000);
+            showMessage("warning", warningMessage, MESSAGE_DURATION_DEFAULT);
         }
 
         logl("invoke-'start_ftp_server'");
@@ -526,12 +538,12 @@ const setupLogListener = async () => {
     if (unlistenLog) {
         unlistenLog();
     }
-    unlistenLog = await listen<FtpOperationLog>('ftp-operation-log', (event) => {
-        logs.value.push({ ...event.payload, _id: logIdCounter++ });
-        if (logs.value.length > 100) {
-            logs.value.shift();
-        }
-    });
+  unlistenLog = await listen<FtpOperationLog>('ftp-operation-log', (event) => {
+    logs.value.push({ ...event.payload, _id: logIdCounter++ });
+    if (logs.value.length > MAX_LOG_ENTRIES) {
+      logs.value.shift();
+    }
+  });
 };
 
 const clearLogs = async () => {
@@ -614,7 +626,7 @@ const handleLogScroll = () => {
         logViewport.value.scrollHeight -
         logViewport.value.scrollTop -
         logViewport.value.clientHeight;
-    followLogs.value = distanceToBottom < 24;
+    followLogs.value = distanceToBottom < SCROLL_BOTTOM_THRESHOLD;
 };
 
 const formatBytes = (bytes: number): string => {
