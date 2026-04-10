@@ -13,6 +13,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::ftp::ftpuser::UserInfo;
 use crate::ftp::ftpevent::FtpEventLogger;
+use crate::ftp::ip_blacklist::IpBlacklist;
 
 /// FTP 用户认证器
 ///
@@ -27,6 +28,8 @@ pub struct FtpUserAuthenticator {
     pub file_auth: String,
     /// 日志管理器
     pub logger: Option<Arc<Mutex<FtpEventLogger>>>,
+    /// IP黑名单
+    pub ip_blacklist: Option<IpBlacklist>,
 }
 
 #[async_trait]
@@ -36,6 +39,16 @@ impl Authenticator for FtpUserAuthenticator {
         _username: &str,
         _creds: &Credentials,
     ) -> Result<Principal, AuthenticationError> {
+        // 检查IP黑名单
+        if let Some(ref blacklist) = self.ip_blacklist {
+            let source_ip = _creds.source_ip.to_string();
+            if blacklist.is_blocked(&source_ip) {
+                tracing::warn!("Blocked IP attempted to connect: {}", source_ip);
+                self.log_blocked_ip(&source_ip);
+                return Err(AuthenticationError::IpDisallowed);
+            }
+        }
+
         // 匿名访问模式
         if self.is_anonymous {
             self.log_login(_username, true);
@@ -72,6 +85,21 @@ impl Authenticator for FtpUserAuthenticator {
 }
 
 impl FtpUserAuthenticator {
+    fn log_blocked_ip(&self, ip: &str) {
+        if let Some(ref logger) = self.logger {
+            if let Ok(logger_guard) = logger.lock() {
+                let log = crate::ftp::ftpevent::FtpOperationLog::new(
+                    "blocked",
+                    &format!("Blocked IP: {}", ip),
+                    None,
+                    None,
+                    Some("IP blacklisted".to_string()),
+                );
+                logger_guard.add_log(log);
+            }
+        }
+    }
+
     fn log_auth_failure(&self, username: &str) {
         // 仅记录认证失败事件，不泄露密码等敏感信息
         tracing::debug!("FTP auth failed for user: {}", username);

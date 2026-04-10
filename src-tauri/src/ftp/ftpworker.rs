@@ -4,6 +4,7 @@
 //! 使用独立的线程运行 FTP 服务器，避免阻塞主线程。
 
 use crate::ftp::ftpevent::{FtpDataListener, FtpEventLogger};
+use crate::ftp::ip_blacklist::IpBlacklist;
 use crate::ftp::{ftp_user_authenticator::{FtpUserAuthenticator, FtpUserDetailProvider}, ftpuser::UserInfo};
 use std::{
     net::{SocketAddr, TcpListener},
@@ -68,6 +69,8 @@ pub struct FtpWorker {
     running: Arc<AtomicBool>,
     /// FTP 事件日志管理器
     logger: Arc<Mutex<Option<std::sync::Arc<Mutex<FtpEventLogger>>>>>,
+    /// IP黑名单
+    ip_blacklist: Option<IpBlacklist>,
 }
 
 impl Default for FtpWorker {
@@ -85,6 +88,7 @@ impl FtpWorker {
             config: FtpWorkerConfig::default(),
             running,
             logger: Arc::new(Mutex::new(None)),
+            ip_blacklist: None,
         }
     }
 
@@ -98,6 +102,11 @@ impl FtpWorker {
         if let Ok(mut guard) = self.logger.lock() {
             *guard = Some(logger);
         }
+    }
+
+    /// 设置 IP 黑名单
+    pub fn set_ip_blacklist(&mut self, blacklist: IpBlacklist) {
+        self.ip_blacklist = Some(blacklist);
     }
 }
 
@@ -123,6 +132,7 @@ impl FtpWorker {
         let running_clone = Arc::clone(&self.running);
         let config = self.config.clone();
         let logger_clone = self.logger.lock().ok().and_then(|guard| guard.clone());
+        let blacklist_clone = self.ip_blacklist.clone();
 
         let handle = thread::spawn(move || {
             let rt = match Runtime::new() {
@@ -174,6 +184,7 @@ impl FtpWorker {
         users: users.clone(),
         file_auth: config.file_auth.clone(),
         logger: logger_for_auth.clone(),
+        ip_blacklist: blacklist_clone,
       }))
             .greeting("Welcome to my FTP server")
             .passive_ports(config.passive_port_range.clone())

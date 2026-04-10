@@ -7,6 +7,7 @@ use std::time::Instant;
 
 use crate::ftp::ftpevent::{FtpEventLogger, FtpOperationLog};
 use crate::ftp::ftpworker::{FtpWorker, FtpWorkerConfig};
+use crate::ftp::ip_blacklist::IpBlacklist;
 use crate::tray::AppState;
 use crate::validators::{sanitize_file_auth, sanitize_path, sanitize_port, sanitize_users_json};
 
@@ -49,6 +50,7 @@ pub fn start_ftp_server(
     app_state: tauri::State<'_, Arc<Mutex<AppState>>>,
     state: tauri::State<'_, Arc<Mutex<FtpWorker>>>,
     logger_state: tauri::State<'_, Arc<Mutex<FtpEventLogger>>>,
+    ip_blacklist_state: tauri::State<'_, Arc<Mutex<IpBlacklist>>>,
     path: String,
     port: String,
     users: String,
@@ -85,6 +87,16 @@ pub fn start_ftp_server(
     // 设置 FTP 事件日志管理器
     let logger = logger_state.inner().clone();
     worker.set_logger(logger);
+
+    // 获取当前黑名单并传递给 worker
+    let blacklist = ip_blacklist_state
+        .inner()
+        .lock()
+        .map(|guard| guard.clone())
+        .ok();
+    if let Some(blacklist) = blacklist {
+        worker.set_ip_blacklist(blacklist);
+    }
 
     // 设置配置并启动服务
     worker.set(FtpWorkerConfig {
