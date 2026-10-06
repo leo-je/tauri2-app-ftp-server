@@ -11,6 +11,7 @@ use tauri::{Manager, WindowEvent};
 #[cfg(target_os = "macos")]
 use tauri::RunEvent;
 use tauri_plugin_log::{Target, TargetKind};
+#[cfg(target_os = "macos")]
 use tauri_plugin_autostart::MacosLauncher;
 
 pub mod ftp;
@@ -103,10 +104,19 @@ pub fn run() {
         // 初始化文件打开插件
         .plugin(tauri_plugin_opener::init())
         // 初始化自启动插件
-        .plugin(tauri_plugin_autostart::init(
-            MacosLauncher::LaunchAgent,
-            Some(vec!["--minimized"]),
-        ))
+        // dev 构建使用独立的登录项名，避免和正式版的登录项互相覆盖（写的是 current_exe()）
+        .plugin({
+            let builder = tauri_plugin_autostart::Builder::new().args(["--minimized"]);
+            #[cfg(target_os = "macos")]
+            let builder = builder.macos_launcher(MacosLauncher::LaunchAgent);
+            // 该名字需与 tauri.dev.conf.json 中的 productName 保持一致
+            let builder = if cfg!(dev) {
+                builder.app_name("ftp-server-debug")
+            } else {
+                builder
+            };
+            builder.build()
+        })
   // 注册前端可调用的命令
   .invoke_handler(tauri::generate_handler![
     commands::ftp::start_ftp_server,

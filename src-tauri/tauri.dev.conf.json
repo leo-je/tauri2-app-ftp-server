@@ -1,0 +1,5 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "ftp-server-debug",
+  "identifier": "com.lst.ftp-server.app.debug"
+}
