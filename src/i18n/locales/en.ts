@@ -3,6 +3,16 @@ export default {
     title: 'FTP Server',
     name: 'FTP Server'
   },
+  theme: {
+    title: 'Appearance',
+    light: 'Light',
+    system: 'System',
+    dark: 'Dark'
+  },
+  window: {
+    close: 'Close',
+    minimize: 'Minimize'
+  },
   splash: {
     welcome: 'Welcome to FTP Server',
     loading: 'Loading',
@@ -75,6 +85,7 @@ export default {
     port: 'Service Port',
     select: 'Select',
     open: 'Open',
+    locked: 'Locked',
     placeholder: {
       dir: 'Please select shared directory',
       port: '21'
@@ -82,7 +93,9 @@ export default {
   },
   connection: {
     title: 'Connection Address',
-    copied: 'Copied to clipboard'
+    copied: 'Copied to clipboard',
+    copyHint: 'Click to copy',
+    copyFailed: 'Failed to copy',
   },
   control: {
     start: 'Start Service',
@@ -98,7 +111,9 @@ export default {
     serviceStarted: 'Service started',
     serviceStopped: 'Service stopped',
     serviceStartFailed: 'Failed to start service',
-    serviceStopFailed: 'Failed to stop service'
+    serviceStopFailed: 'Failed to stop service',
+    openDirFailed: 'Failed to open directory',
+    selectDirFailed: 'Failed to select directory',
   },
   validation: {
     portWarning: {
@@ -121,12 +136,15 @@ export default {
   auth: {
     serverRunning: 'Server is running, settings are locked',
     settings: 'General Settings',
+    accessControl: 'Access Control',
     autoStart: 'Auto Start',
     autoStartDesc: 'Launch application automatically on system startup',
     hideOnStartup: 'Hide Window on Startup',
     hideOnStartupDesc: 'Hide main window on startup, show tray icon only',
     anonymous: 'Anonymous Access',
     anonymousDesc: 'Access without authentication',
+    filePermission: 'File Permission',
+    filePermissionDesc: 'Permission granted to anonymous visitors',
     readOnly: 'Read Only',
     readWrite: 'Read & Write',
     userList: 'User List',
@@ -156,6 +174,8 @@ export default {
     noBlacklistIps: 'No blacklisted IPs',
     ipInputPlaceholder: 'Enter IP address or CIDR range (e.g. 192.168.1.1 or 10.0.0.0/24)',
     ipRequired: 'IP address is required',
+    ipInvalidFormat: 'Not a valid IP address',
+    ipPrefixRange: 'Prefix length must be between 0 and {max}',
     ipAdded: 'IP added to blacklist',
     ipRemoved: 'IP removed from blacklist'
   },
@@ -167,6 +187,9 @@ export default {
     developer: 'Developer',
     developerName: 'FTP Server Team',
     description: 'A lightweight, cross-platform FTP server management tool built with Tauri 2.0. Featuring a modern user interface for quick deployment and secure file transfer services.',
+    systemInfo: 'System Information',
+    platform: 'Platform',
+    arch: 'Architecture',
     techStack: 'Tech Stack',
     features: 'Key Features',
     featuresList: {

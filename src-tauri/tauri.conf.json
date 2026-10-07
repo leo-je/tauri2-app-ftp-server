@@ -14,10 +14,12 @@
     "windows": [
       {
         "fullscreen": false,
-        "resizable": false,
+        "resizable": true,
         "title": "FTP Server",
-        "width": 480,
+        "width": 720,
         "height": 820,
+        "minWidth": 640,
+        "minHeight": 560,
         "maximizable": false,
         "decorations": false,
         "transparent": true,

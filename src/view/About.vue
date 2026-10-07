@@ -1,589 +1,335 @@
 <template>
-  <div class="about-container">
-    <div class="about-content">
-      <!-- Hero Section -->
-      <div :class="['hero-section', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.1s;' : ''">
-        <div class="logo-wrapper">
-          <AppLogo :size="96" />
-        </div>
-        <h1 class="app-name">{{ $t('about.appName') }}</h1>
-        <div
-          class="version-badge"
-          @click="copyVersion"
+  <div class="about-page">
+    <!-- ── 标识 ──────────────────────────────────────────────────── -->
+    <section class="hero">
+      <div class="logo-wrap">
+        <AppLogo :size="56" />
+      </div>
+      <h1 class="app-name">{{ $t('about.appName') }}</h1>
+      <p class="developer">
+        <SvgIcon name="user" :size="13" class="developer-icon" />
+        <span>{{ $t('about.developer') }} · {{ $t('about.developerName') }}</span>
+      </p>
+    </section>
+
+    <!-- ── 系统信息 ──────────────────────────────────────────────── -->
+    <section class="card">
+      <div class="card-head">
+        <SvgIcon name="monitor" :size="16" class="card-head-icon" />
+        <span class="card-title">{{ $t('about.systemInfo') }}</span>
+      </div>
+      <div class="card-body info-list">
+        <button
+          type="button"
+          class="info-row is-action"
           :title="$t('about.clickToCopy')"
+          @click="copyVersion"
         >
-          <SvgIcon name="copy" :size="16" class="version-icon" />
-          <span class="version-text">{{ $t('about.version') }} {{ version }}</span>
-          <SvgIcon name="copy" :size="14" class="copy-icon" />
+          <span class="info-label">{{ $t('about.version') }}</span>
+          <span class="info-value mono selectable">{{ version }}</span>
+          <SvgIcon
+            :name="versionCopied ? 'checkCircle' : 'copy'"
+            :size="13"
+            class="info-copy"
+            :class="{ 'is-copied': versionCopied }"
+          />
+        </button>
+        <div class="info-row">
+          <span class="info-label">{{ $t('about.platform') }}</span>
+          <span class="info-value mono">{{ platformName }}</span>
         </div>
-        <p class="developer-info">
-          <SvgIcon name="user" :size="16" class="developer-icon" />
-          <span>{{ $t('about.developer') }}: {{ $t('about.developerName') }}</span>
-        </p>
+        <div class="info-row">
+          <span class="info-label">{{ $t('about.arch') }}</span>
+          <span class="info-value mono">{{ archName }}</span>
+        </div>
       </div>
+    </section>
 
-      <!-- Tech Stack Section -->
-      <div :class="['tech-stack-card', 'about-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.2s;' : ''">
-        <div class="card-header">
-          <SvgIcon name="terminal" :size="20" class="card-icon" />
-          <span>{{ $t('about.techStack') }}</span>
-        </div>
-        <div class="tech-grid">
-          <div
-            v-for="tech in techStack"
-            :key="tech.name"
-            class="tech-item"
-          >
-            <div class="tech-icon-wrapper" :style="{ background: tech.gradient }">
-              <SvgIcon :name="tech.icon" :size="24" class="tech-icon" />
-            </div>
+    <!-- ── 技术栈 ────────────────────────────────────────────────── -->
+    <section class="card">
+      <div class="card-head">
+        <SvgIcon name="terminal" :size="16" class="card-head-icon" />
+        <span class="card-title">{{ $t('about.techStack') }}</span>
+      </div>
+      <div class="card-body tech-grid">
+        <div v-for="tech in techStack" :key="tech.name" class="tech-item">
+          <span class="tech-mark" :style="{ color: tech.color }">
+            <SvgIcon :name="tech.icon" :size="17" />
+          </span>
+          <span class="tech-text">
             <span class="tech-name">{{ tech.name }}</span>
-            <span class="tech-version">{{ tech.version }}</span>
-          </div>
+            <span class="tech-version mono">{{ tech.version }}</span>
+          </span>
         </div>
       </div>
+    </section>
 
-      <!-- Features Section - Hidden temporarily -->
-      <!-- <div :class="['features-card', 'about-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.3s;' : ''">
-        <div class="card-header">
-          <SvgIcon name="checkCircle" :size="20" class="card-icon" />
-          <span>{{ $t('about.features') }}</span>
-        </div>
-        <div class="features-list">
-          <div
-            v-for="(feature, key) in featuresData"
-            :key="key"
-            class="feature-item"
-          >
-            <div class="feature-icon-wrapper">
-              <SvgIcon :name="feature.icon" :size="20" class="feature-icon" />
-            </div>
-            <div class="feature-content">
-              <h3 class="feature-title">{{ $t(`about.featuresList.${key}.title`) }}</h3>
-              <p class="feature-desc">{{ $t(`about.featuresList.${key}.desc`) }}</p>
-            </div>
-          </div>
-        </div>
-      </div> -->
-
-      <!-- Links Section - Hidden temporarily -->
-      <!-- <div :class="['links-card', 'about-card', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.4s;' : ''">
-        <div class="card-header">
-          <SvgIcon name="link" :size="20" class="card-icon" />
-          <span>{{ $t('about.linksSection') }}</span>
-        </div>
-        <div class="links-grid">
-          <div
-            v-for="link in links"
-            :key="link.name"
-            class="link-item"
-            @click="openLink(link.url)"
-          >
-            <SvgIcon :name="link.icon" :size="20" class="link-icon" />
-            <span class="link-text">{{ $t(`about.links.${link.name}`) }}</span>
-            <SvgIcon name="arrowDown" :size="16" class="link-arrow" />
-          </div>
-        </div>
-      </div> -->
-
-      <!-- Copyright Footer -->
-      <div :class="['copyright-section', { 'fade-in': isFirstLoad }]" :style="isFirstLoad ? 'animation-delay: 0.5s;' : ''">
-        <p class="copyright-text">{{ $t('about.copyright') }}</p>
-        <p class="rights-text">{{ $t('about.rights') }}</p>
-      </div>
-    </div>
+    <footer class="copyright">
+      <p>{{ $t('about.copyright') }}</p>
+      <p>{{ $t('about.rights') }}</p>
+    </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ElMessage } from 'element-plus';
 import { getVersion } from '@tauri-apps/api/app';
+import { platform, arch } from '@tauri-apps/plugin-os';
 import AppLogo from '../components/AppLogo.vue';
 import { SvgIcon, type IconName } from '../components/icons';
 import clipboard from 'tauri-plugin-clipboard-api';
 
 const { t } = useI18n();
-const version = ref('0.1.0');
-const isFirstLoad = ref(true);
+const version = ref('—');
+const versionCopied = ref(false);
 
-// Tech stack data
-const techStack = ref<Array<{ name: string; version: string; icon: IconName; gradient: string }>>([
-  {
-    name: 'Tauri',
-    version: 'v2.10.1',
-    icon: 'tauri',
-    gradient: 'linear-gradient(135deg, #24C8DB 0%, #14B8A6 100%)'
-  },
-  {
-    name: 'Vue',
-    version: 'v3.5.30',
-    icon: 'vue',
-    gradient: 'linear-gradient(135deg, #42B883 0%, #35495E 100%)'
-  },
-  {
-    name: 'Element Plus',
-    version: 'v2.13.5',
-    icon: 'elementPlus',
-    gradient: 'linear-gradient(135deg, #409EFF 0%, #66B1FF 100%)'
-  },
-  {
-    name: 'TypeScript',
-    version: 'v5.9.3',
-    icon: 'typescript',
-    gradient: 'linear-gradient(135deg, #3178C6 0%, #235A97 100%)'
-  }
-]);
+let copyTimer: ReturnType<typeof setTimeout> | null = null;
 
-// Copy version to clipboard
+/** 平台名是专有名词，不做翻译；架构代号同理 */
+const PLATFORM_NAMES: Record<string, string> = {
+  macos: 'macOS',
+  windows: 'Windows',
+  linux: 'Linux',
+  ios: 'iOS',
+  android: 'Android'
+};
+
+const platformName = PLATFORM_NAMES[platform()] ?? platform();
+const archName = arch();
+
+const techStack: Array<{ name: string; version: string; icon: IconName; color: string }> = [
+  { name: 'Tauri', version: 'v2.10.1', icon: 'tauri', color: '#26b8c9' },
+  { name: 'Vue', version: 'v3.5.30', icon: 'vue', color: '#3fa678' },
+  { name: 'Element Plus', version: 'v2.13.5', icon: 'elementPlus', color: '#3f8fd6' },
+  { name: 'TypeScript', version: 'v5.9.3', icon: 'typescript', color: '#3178c6' }
+];
+
 const copyVersion = async () => {
   try {
     await clipboard.writeText(version.value);
-    ElMessage({
-      type: 'success',
-      message: t('about.versionCopied'),
-      duration: 2000
-    });
+    versionCopied.value = true;
+    if (copyTimer) {
+      clearTimeout(copyTimer);
+    }
+    copyTimer = setTimeout(() => {
+      versionCopied.value = false;
+    }, 1400);
+    ElMessage({ type: 'success', message: t('about.versionCopied'), duration: 2000, grouping: true });
   } catch (error) {
     console.error('Failed to copy version:', error);
   }
 };
 
 onMounted(async () => {
-  // Get app version
   try {
     version.value = await getVersion();
   } catch (error) {
     console.error('Failed to get version:', error);
-    version.value = '0.1.0';
+    version.value = '—';
   }
+});
 
-  // Remove first load animation after completion
-  nextTick(() => {
-    setTimeout(() => {
-      isFirstLoad.value = false;
-    }, 600);
-  });
+onUnmounted(() => {
+  if (copyTimer) {
+    clearTimeout(copyTimer);
+    copyTimer = null;
+  }
 });
 </script>
 
-<style lang="scss" scoped>
-.about-container {
-  height: 100%;
+<style scoped lang="scss">
+.about-page {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 20px;
-  overflow: auto;
+  flex-direction: column;
+  gap: var(--s-4);
 }
 
-.about-content {
-  width: 100%;
-  max-width: 600px;
-}
-
-/* Hero Section */
-.hero-section {
+/* ── 标识 ──────────────────────────────────────────────────── */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  padding: 32px 0;
-  margin-bottom: 24px;
+  padding: var(--s-6) var(--s-5) var(--s-5);
+  gap: 2px;
+}
 
-  .logo-wrapper {
-    width: 96px;
-    height: 96px;
-    margin: 0 auto 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 20px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+.logo-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  margin-bottom: var(--s-4);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-2);
+
+  /* 商标背后一盏暖光，给这页一个视觉落点 */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -18px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--glow-a) 0%, transparent 70%);
+    filter: blur(10px);
+    z-index: -1;
+  }
+}
+
+.app-name {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+
+.developer {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+}
+
+.developer-icon {
+  color: var(--text-3);
+}
+
+/* ── 键值列表 ──────────────────────────────────────────────── */
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-2) var(--s-5);
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 40px;
+  padding: var(--s-2) 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+
+  & + .info-row {
+    border-top: 1px solid var(--border);
   }
 
-  .app-name {
-    font-size: 28px;
-    font-weight: 700;
-    color: #303133;
-    margin: 0 0 16px;
-    letter-spacing: 0.5px;
-  }
-
-  .version-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    border: 2px solid rgba(102, 126, 234, 0.2);
-    border-radius: 24px;
+  &.is-action {
     cursor: pointer;
-    transition: all 0.3s ease;
-    margin-bottom: 12px;
+    border-radius: var(--r-sm);
+    transition: background var(--dur-1) var(--ease-standard);
 
     &:hover {
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-      border-color: rgba(102, 126, 234, 0.4);
-      transform: scale(1.05);
-
-      .copy-icon {
-        opacity: 1;
-      }
+      background: var(--surface-2);
     }
 
-    .version-icon,
-    .copy-icon {
-      width: 16px;
-      height: 16px;
-      color: var(--primary-color);
-    }
-
-    .copy-icon {
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .version-text {
-      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-      font-size: 14px;
-      font-weight: 600;
-      color: #606266;
-    }
-  }
-
-  .developer-info {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 14px;
-    color: #909399;
-    margin: 0;
-
-    .developer-icon {
-      width: 16px;
-      height: 16px;
-      color: var(--primary-color);
+    &:hover .info-copy {
+      opacity: 1;
     }
   }
 }
 
-html.dark .hero-section {
-  .app-name {
-    color: #e0e0e0;
-  }
+.info-label {
+  flex: 1;
+  font-size: var(--fs-md);
+  color: var(--text-2);
+}
 
-  .version-badge {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-    border-color: rgba(102, 126, 234, 0.3);
+.info-value {
+  font-size: var(--fs-md);
+  color: var(--text);
+}
 
-    .version-text {
-      color: #b0b0b0;
-    }
-  }
+.info-copy {
+  color: var(--text-3);
+  opacity: 0.4;
+  transition: opacity var(--dur-1) var(--ease-standard),
+    color var(--dur-1) var(--ease-standard);
 
-  .developer-info {
-    color: #909399;
+  &.is-copied {
+    color: var(--success);
+    opacity: 1;
   }
 }
 
-/* Card Styles */
-.about-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(102, 126, 234, 0.1);
-  transition: all 0.3s ease;
-
-  &:hover {
-    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
-    transform: translateY(-2px);
-  }
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #303133;
-
-    .card-icon {
-      width: 20px;
-      height: 20px;
-      color: var(--primary-color);
-    }
-  }
-}
-
-html.dark .about-card {
-  background: rgba(30, 30, 40, 0.95);
-  border-color: rgba(102, 126, 234, 0.2);
-
-  .card-header {
-    color: #e0e0e0;
-  }
-}
-
-/* Tech Stack Grid */
+/* ── 技术栈 ────────────────────────────────────────────────── */
 .tech-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s-2);
+  padding: var(--s-3);
 }
 
 .tech-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(102, 126, 234, 0.1);
-  transition: all 0.3s ease;
+  gap: var(--s-3);
+  padding: var(--s-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  transition: border-color var(--dur-1) var(--ease-standard),
+    background var(--dur-1) var(--ease-standard);
 
   &:hover {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    border-color: rgba(102, 126, 234, 0.3);
-    transform: translateY(-4px);
-  }
-
-  .tech-icon-wrapper {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-
-    .tech-icon {
-      width: 24px;
-      height: 24px;
-      color: white;
-    }
-  }
-
-  .tech-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: #303133;
-  }
-
-  .tech-version {
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    font-size: 11px;
-    color: #909399;
+    background: var(--surface-3);
+    border-color: var(--border-2);
   }
 }
 
-html.dark .tech-item {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border-color: rgba(102, 126, 234, 0.2);
-
-  .tech-name {
-    color: #e0e0e0;
-  }
-
-  .tech-version {
-    color: #909399;
-  }
-}
-
-/* Features List */
-.features-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(102, 126, 234, 0.1);
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    border-color: rgba(102, 126, 234, 0.3);
-    transform: translateX(4px);
-  }
-
-  .feature-icon-wrapper {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: var(--gradient-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-
-    .feature-icon {
-      width: 20px;
-      height: 20px;
-      color: white;
-    }
-  }
-
-  .feature-content {
-    flex: 1;
-
-    .feature-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: #303133;
-      margin: 0 0 4px;
-    }
-
-    .feature-desc {
-      font-size: 13px;
-      color: #606266;
-      margin: 0;
-      line-height: 1.5;
-    }
-  }
-}
-
-html.dark .feature-item {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border-color: rgba(102, 126, 234, 0.2);
-
-  .feature-title {
-    color: #e0e0e0;
-  }
-
-  .feature-desc {
-    color: #b0b0b0;
-  }
-}
-
-/* Links Grid */
-.links-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-.link-item {
+.tech-mark {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(102, 126, 234, 0.1);
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-    border-color: rgba(102, 126, 234, 0.3);
-    transform: translateY(-2px);
-
-    .link-arrow {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  .link-icon {
-    width: 20px;
-    height: 20px;
-    color: var(--primary-color);
-    flex-shrink: 0;
-  }
-
-  .link-text {
-    flex: 1;
-    font-size: 14px;
-    font-weight: 500;
-    color: #303133;
-  }
-
-  .link-arrow {
-    width: 16px;
-    height: 16px;
-    color: var(--primary-color);
-    opacity: 0;
-    transform: translateX(-4px);
-    transition: all 0.3s ease;
-  }
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
 
-html.dark .link-item {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border-color: rgba(102, 126, 234, 0.2);
-
-  .link-text {
-    color: #e0e0e0;
-  }
+.tech-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-/* Copyright Section */
-.copyright-section {
+.tech-name {
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tech-version {
+  font-size: var(--fs-2xs);
+  color: var(--text-3);
+}
+
+/* ── 版权 ──────────────────────────────────────────────────── */
+.copyright {
+  padding: var(--s-4) 0 0;
   text-align: center;
-  padding: 24px 0;
-  margin-top: 20px;
-
-  .copyright-text {
-    font-size: 13px;
-    color: #909399;
-    margin: 0 0 4px;
-  }
-
-  .rights-text {
-    font-size: 12px;
-    color: #C0C4CC;
-    margin: 0;
-  }
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  line-height: 1.6;
 }
 
-html.dark .copyright-section {
-  .copyright-text {
-    color: #909399;
-  }
-
-  .rights-text {
-    color: #6C6C6C;
-  }
-}
-
-/* Fade-in Animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-in {
-  animation: fadeIn 0.6s ease forwards;
-  opacity: 0;
-}
-
-/* Responsive */
 @media (max-width: 480px) {
   .tech-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .links-grid {
     grid-template-columns: 1fr;
   }
 }

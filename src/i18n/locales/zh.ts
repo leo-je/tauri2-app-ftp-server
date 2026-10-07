@@ -3,6 +3,16 @@ export default {
     title: 'FTP Server',
     name: 'FTP 服务器'
   },
+  theme: {
+    title: '外观',
+    light: '浅色',
+    system: '跟随系统',
+    dark: '深色'
+  },
+  window: {
+    close: '关闭',
+    minimize: '最小化'
+  },
   splash: {
     welcome: '欢迎使用 FTP Server',
     loading: '正在启动',
@@ -75,6 +85,7 @@ export default {
     port: '服务端口',
     select: '选择',
     open: '打开',
+    locked: '已锁定',
     placeholder: {
       dir: '请选择共享目录',
       port: '21'
@@ -82,7 +93,9 @@ export default {
   },
   connection: {
     title: '连接地址',
-    copied: '已复制到剪贴板'
+    copied: '已复制到剪贴板',
+    copyHint: '点击复制',
+    copyFailed: '复制失败',
   },
   control: {
     start: '启动服务',
@@ -98,7 +111,9 @@ export default {
     serviceStarted: '服务已启动',
     serviceStopped: '服务已停止',
     serviceStartFailed: '服务启动失败',
-    serviceStopFailed: '服务停止失败'
+    serviceStopFailed: '服务停止失败',
+    openDirFailed: '打开目录失败',
+    selectDirFailed: '选择目录失败',
   },
   validation: {
     portWarning: {
@@ -121,12 +136,15 @@ export default {
   auth: {
     serverRunning: '服务运行中，权限设置已锁定',
     settings: '常规设置',
+    accessControl: '访问控制',
     autoStart: '是否自动启动',
     autoStartDesc: '开机时自动启动应用程序',
     hideOnStartup: '启动时是否隐藏主界面',
     hideOnStartupDesc: '启动时隐藏主窗口，仅显示托盘图标',
     anonymous: '匿名访问',
     anonymousDesc: '无需认证即可访问',
+    filePermission: '文件权限',
+    filePermissionDesc: '匿名访问者可执行的操作',
     readOnly: '只读',
     readWrite: '读写',
     userList: '用户列表',
@@ -156,6 +174,8 @@ export default {
     noBlacklistIps: '暂无黑名单IP',
     ipInputPlaceholder: '请输入IP地址或CIDR范围（如 192.168.1.1 或 10.0.0.0/24）',
     ipRequired: 'IP地址不能为空',
+    ipInvalidFormat: '该输入不是合法的 IP 地址',
+    ipPrefixRange: '前缀长度必须在 0-{max} 之间',
     ipAdded: 'IP已添加到黑名单',
     ipRemoved: 'IP已从黑名单移除'
   },
@@ -167,6 +187,9 @@ export default {
     developer: '开发者',
     developerName: 'FTP Server Team',
     description: '一款基于 Tauri 2.0 构建的轻量级、跨平台 FTP 服务器管理工具。提供现代化的用户界面，支持快速部署和安全文件传输服务。',
+    systemInfo: '系统信息',
+    platform: '平台',
+    arch: '架构',
     techStack: '技术栈',
     features: '主要特性',
     featuresList: {

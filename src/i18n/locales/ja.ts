@@ -3,6 +3,16 @@ export default {
     title: 'FTP Server',
     name: 'FTP サーバー'
   },
+  theme: {
+    title: '外観',
+    light: 'ライト',
+    system: 'システム',
+    dark: 'ダーク'
+  },
+  window: {
+    close: '閉じる',
+    minimize: '最小化'
+  },
   splash: {
     welcome: 'FTP Server へようこそ',
     loading: '起動中',
@@ -75,6 +85,7 @@ export default {
     port: 'サービスポート',
     select: '選択',
     open: '開く',
+    locked: 'ロック中',
     placeholder: {
       dir: '共有ディレクトリを選択してください',
       port: '21'
@@ -82,7 +93,9 @@ export default {
   },
   connection: {
     title: '接続アドレス',
-    copied: 'クリップボードにコピーしました'
+    copied: 'クリップボードにコピーしました',
+    copyHint: 'クリックしてコピー',
+    copyFailed: 'コピーに失敗しました',
   },
   control: {
     start: 'サービス開始',
@@ -98,7 +111,9 @@ export default {
     serviceStarted: 'サービスが開始されました',
     serviceStopped: 'サービスが停止しました',
     serviceStartFailed: 'サービスの開始に失敗しました',
-    serviceStopFailed: 'サービスの停止に失敗しました'
+    serviceStopFailed: 'サービスの停止に失敗しました',
+    openDirFailed: 'ディレクトリを開けませんでした',
+    selectDirFailed: 'ディレクトリの選択に失敗しました',
   },
   validation: {
     portWarning: {
@@ -121,12 +136,15 @@ export default {
   auth: {
     serverRunning: 'サービス実行中、権限設定はロックされています',
     settings: '一般設定',
+    accessControl: 'アクセス制御',
     autoStart: '自動起動',
     autoStartDesc: 'システム起動時にアプリケーションを自動起動',
     hideOnStartup: '起動時にメインウィンドウを非表示',
     hideOnStartupDesc: '起動時にメインウィンドウを非表示にし、トレイアイコンのみ表示',
     anonymous: '匿名アクセス',
     anonymousDesc: '認証なしでアクセス可能',
+    filePermission: 'ファイル権限',
+    filePermissionDesc: '匿名アクセスに許可する操作',
     readOnly: '読み取り専用',
     readWrite: '読み書き',
     userList: 'ユーザーリスト',
@@ -156,12 +174,22 @@ export default {
     noBlacklistIps: 'ブラックリストにIPがありません',
     ipInputPlaceholder: 'IPアドレスまたはCIDR範囲を入力してください（例: 192.168.1.1 または 10.0.0.0/24）',
     ipRequired: 'IPアドレスが必要です',
+    ipInvalidFormat: '有効なIPアドレスではありません',
+    ipPrefixRange: 'プレフィックス長は 0〜{max} で指定してください',
     ipAdded: 'IPをブラックリストに追加しました',
     ipRemoved: 'IPをブラックリストから削除しました'
   },
   about: {
     appName: 'FTP サーバー',
+    version: 'バージョン',
+    clickToCopy: 'クリックしてバージョンをコピー',
+    versionCopied: 'バージョンをコピーしました',
+    developer: '開発者',
+    developerName: 'FTP Server Team',
     description: 'Tauri 2.0 で構築された軽量でクロスプラットフォームな FTP サーバー管理ツール。モダンなユーザーインターフェースを備え、迅速なデプロイと安全なファイル転送サービスを提供します。',
+    systemInfo: 'システム情報',
+    platform: 'プラットフォーム',
+    arch: 'アーキテクチャ',
     techStack: '技術スタック',
     features: '主な機能',
     featureList: {

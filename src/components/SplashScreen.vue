@@ -1,55 +1,71 @@
 <template>
-  <Transition name="splash-fade" @after-leave="onTransitionComplete">
+  <Transition name="splash">
     <div v-if="visible" class="splash-screen">
-      <!-- 粒子动画背景 -->
-      <canvas
-        v-if="!isReducedMotion"
-        ref="particleCanvas"
-        class="particle-canvas"
-      ></canvas>
+      <AppBackground />
 
-      <!-- 渐变背景覆盖层 -->
-      <div class="gradient-overlay"></div>
-
-      <!-- 中央内容 -->
-      <div class="splash-content" :class="{ 'content-ready': isReady }">
-        <!-- Logo -->
-        <SplashLogo :size="72" :ready="isReady" />
-
-        <!-- 欢迎语 -->
-        <h1 class="splash-title" :class="{ 'title-ready': isReady }">
-          {{ $t('splash.welcome') }}
-        </h1>
-
-        <!-- 版本号 -->
-        <span class="splash-version" :class="{ 'version-ready': isReady }">
-          v{{ version }}
-        </span>
-
-        <!-- 初始化步骤 -->
-        <div class="steps-wrapper" :class="{ 'steps-ready': isReady }">
-          <InitSteps
-            :steps="initSteps"
-            :current-index="currentStepIndex"
-            :progress="overallProgress"
-          />
-          <ProgressBar :progress="overallProgress" />
+      <div class="splash-content" :class="{ 'is-ready': isReady }">
+        <div class="logo-tile">
+          <AppLogo :size="52" />
         </div>
-      </div>
 
-      <!-- 错误提示 -->
-      <ErrorMessage
-        :title="errorTitle"
-        :message="errorMessage"
-        :visible="hasError"
-        @retry="retryInitialization"
-        @skip="skipInitialization"
-      />
+        <div class="identity">
+          <h1 class="splash-title">{{ $t('app.name') }}</h1>
+          <span class="splash-version mono">v{{ version }}</span>
+        </div>
 
-      <!-- 键盘快捷键提示 -->
-      <div v-if="hasError" class="keyboard-hints">
-        <span class="hint">{{ $t('splash.error.retry') }}: R</span>
-        <span class="hint">{{ $t('splash.error.skip') }}: ESC</span>
+        <ol class="steps">
+          <li
+            v-for="(step, index) in initSteps"
+            :key="step.id"
+            class="step"
+            :class="`is-${step.status}`"
+          >
+            <span class="step-indicator" :title="$t(`splash.status.${step.status}`)">
+              <SvgIcon v-if="step.status === 'completed'" name="check" :size="11" />
+              <SvgIcon v-else-if="step.status === 'error'" name="close" :size="11" />
+            </span>
+
+            <span class="step-text">
+              <span class="step-name">{{ step.name }}</span>
+              <span class="step-detail">
+                {{ step.message || step.description }}
+              </span>
+            </span>
+
+            <span v-if="step.status === 'completed'" class="step-index mono">
+              {{ String(index + 1).padStart(2, '0') }}
+            </span>
+          </li>
+        </ol>
+
+        <div class="progress">
+          <div class="progress-track">
+            <div
+              class="progress-fill"
+              :class="{ 'is-error': hasError }"
+              :style="{ width: `${overallProgress}%` }"
+            ></div>
+          </div>
+          <span class="progress-value mono">{{ overallProgress }}%</span>
+        </div>
+
+        <div v-if="hasError" class="error-panel">
+          <div class="error-head">
+            <SvgIcon name="info" :size="14" class="error-icon" />
+            <span class="error-title">{{ errorTitle }}</span>
+          </div>
+          <p class="error-message">{{ errorMessage }}</p>
+          <div class="error-actions">
+            <button type="button" class="error-btn is-primary" @click="retryInitialization">
+              {{ $t('splash.error.retry') }}
+              <kbd>R</kbd>
+            </button>
+            <button type="button" class="error-btn" @click="skipInitialization">
+              {{ $t('splash.error.skip') }}
+              <kbd>ESC</kbd>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </Transition>
@@ -59,29 +75,23 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { getVersion } from '@tauri-apps/api/app';
-
-// 子组件
-import SplashLogo from './splash/components/SplashLogo.vue';
-import InitSteps from './splash/components/InitSteps.vue';
-import ProgressBar from './splash/components/ProgressBar.vue';
-import ErrorMessage from './splash/components/ErrorMessage.vue';
-
-// Composables
+import AppLogo from './AppLogo.vue';
+import AppBackground from './AppBackground.vue';
+import { SvgIcon } from './icons';
 import { useInitialization } from './splash/composables/useInitialization';
-import { useParticleAnimation } from './splash/composables/useParticleAnimation';
+
+const REVEAL_DELAY = 100; // 入场动画起始延迟(ms)
+const INIT_DELAY = 600; // 开始跑初始化之前的等待(ms)
+const CLOSE_DELAY = 800; // 全部完成后停留多久再淡出(ms)
 
 const { t } = useI18n();
 
-// 可见性状态
 const visible = ref(true);
 const isReady = ref(false);
-const version = ref('0.1.0');
-const particleCanvas = ref<HTMLCanvasElement | null>(null);
+const version = ref('—');
 
-// 使用初始化 composable
 const {
   initSteps,
-  currentStepIndex,
   hasError,
   errorMessage,
   overallProgress,
@@ -91,42 +101,22 @@ const {
 } = useInitialization({
   t,
   onComplete: () => {
-    // 初始化完成，延迟后关闭启动页面
     setTimeout(() => {
       emit('complete');
       visible.value = false;
-    }, 800);
+    }, CLOSE_DELAY);
   },
   onError: (message) => {
     console.error('Initialization error:', message);
   }
 });
 
-// 使用粒子动画 composable
-const { isReducedMotion, start: startParticles, stop: stopParticles } = useParticleAnimation(
-  particleCanvas,
-  {
-    maxParticles: 80,
-    connectionDistance: 120,
-    enableMouseInteraction: true
-  }
-);
-
-// 计算错误标题
 const errorTitle = computed(() => t('splash.error.title'));
 
-// 事件
 const emit = defineEmits<{
   complete: [];
 }>();
 
-// 过渡完成回调
-const onTransitionComplete = () => {
-  // 清理工作
-  stopParticles();
-};
-
-// 键盘事件处理
 const handleKeydown = (e: KeyboardEvent) => {
   if (!hasError.value) return;
 
@@ -143,215 +133,317 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 };
 
-// 生命周期
 onMounted(async () => {
-  // 获取应用版本
   try {
     version.value = await getVersion();
   } catch {
-    version.value = '0.1.0';
+    version.value = '—';
   }
 
-  // 启动粒子动画
-  startParticles();
-
-  // 触发动画
   setTimeout(() => {
     isReady.value = true;
-  }, 100);
+  }, REVEAL_DELAY);
 
-  // 开始初始化流程
   setTimeout(() => {
     runInitialization();
-  }, 600);
+  }, INIT_DELAY);
 
-  // 注册键盘事件
   window.addEventListener('keydown', handleKeydown);
 });
 
 onUnmounted(() => {
-  // 清理
-  stopParticles();
   window.removeEventListener('keydown', handleKeydown);
 });
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 .splash-screen {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
+  inset: 0;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
   overflow: hidden;
+  background: var(--bg);
   border-radius: 12px;
 }
 
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* 粒子动画背景 */
-.particle-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-}
-
-/* 渐变覆盖层 - 浮动光效 */
-.gradient-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-  z-index: 1;
-  pointer-events: none;
-  animation: float 6s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px) scale(1);
-  }
-  50% {
-    transform: translateY(-20px) scale(1.05);
-  }
-}
-
-/* 中央内容 */
 .splash-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 380px;
+  padding: var(--s-6);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity var(--dur-3) var(--ease-out), transform var(--dur-3) var(--ease-out);
+
+  &.is-ready {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── 标识 ──────────────────────────────────────────────────── */
+.logo-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto var(--s-4);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-2);
+}
+
+.identity {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  z-index: 2;
-  padding: 40px;
-  max-width: 480px;
-  width: 90%;
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  &.content-ready {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  gap: 3px;
+  margin-bottom: var(--s-6);
 }
 
-/* 标题 */
 .splash-title {
-  font-size: 26px;
-  font-weight: 700;
-  color: white;
-  letter-spacing: 1px;
-  margin: 0;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  opacity: 0;
-  transform: translateY(15px);
-  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s;
-
-  &.title-ready {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
 }
 
-/* 版本号 */
 .splash-version {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-  letter-spacing: 1px;
-  padding: 6px 14px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s;
-
-  &.version-ready {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  font-size: var(--fs-xs);
+  color: var(--text-3);
 }
 
-/* 步骤容器 */
-.steps-wrapper {
-  width: 100%;
-  opacity: 0;
-  transform: translateY(20px) scale(0.95);
-  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s;
-
-  &.steps-ready {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* 键盘快捷键提示 */
-.keyboard-hints {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+/* ── 初始化步骤 ────────────────────────────────────────────── */
+.steps {
   display: flex;
-  gap: 20px;
-  z-index: 101;
+  flex-direction: column;
+  gap: 2px;
+  list-style: none;
+}
 
-  .hint {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.7);
-    padding: 4px 10px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  transition: background var(--dur-2) var(--ease-standard);
+
+  &.is-running {
+    background: var(--surface-2);
   }
 }
 
-/* 离开过渡动画 */
-.splash-fade-leave-active {
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+/* 状态标记：空心点 / 转圈 / 对勾 / 叉 */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border-2);
+  color: var(--text-inverse);
+  transition: background var(--dur-2) var(--ease-standard),
+    border-color var(--dur-2) var(--ease-standard);
+
+  .step.is-completed & {
+    background: var(--success);
+    border-color: var(--success);
+  }
+
+  .step.is-error & {
+    background: var(--danger);
+    border-color: var(--danger);
+  }
+
+  .step.is-running & {
+    border: 2px solid var(--accent-line);
+    border-top-color: var(--accent);
+    animation: spin 0.7s linear infinite;
+  }
 }
 
-.splash-fade-leave-to {
+.step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.step-name {
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--text-3);
+  transition: color var(--dur-2) var(--ease-standard);
+
+  .step.is-running &,
+  .step.is-completed & {
+    color: var(--text);
+  }
+
+  .step.is-error & {
+    color: var(--danger);
+  }
+}
+
+.step-detail {
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.step-index {
+  flex-shrink: 0;
+  font-size: var(--fs-2xs);
+  color: var(--text-3);
+  opacity: 0.6;
+}
+
+/* ── 进度 ──────────────────────────────────────────────────── */
+.progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-5);
+}
+
+.progress-track {
+  flex: 1;
+  height: 2px;
+  border-radius: var(--r-full);
+  background: var(--border);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  transition: width var(--dur-3) var(--ease-out), background var(--dur-2) var(--ease-standard);
+
+  &.is-error {
+    background: var(--danger);
+  }
+}
+
+.progress-value {
+  flex-shrink: 0;
+  min-width: 34px;
+  text-align: right;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+
+/* ── 错误 ──────────────────────────────────────────────────── */
+.error-panel {
+  margin-top: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--danger-line);
+  border-radius: var(--r-md);
+  background: var(--danger-soft);
+}
+
+.error-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--danger);
+}
+
+.error-icon {
+  flex-shrink: 0;
+}
+
+.error-title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.error-message {
+  margin: var(--s-1) 0 var(--s-3);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: var(--text-2);
+  word-break: break-word;
+}
+
+.error-actions {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.error-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--dur-1) var(--ease-standard),
+    border-color var(--dur-1) var(--ease-standard);
+
+  &:hover {
+    background: var(--surface-3);
+    border-color: var(--border-strong);
+  }
+
+  &.is-primary {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
+
+    &:hover {
+      filter: brightness(1.08);
+    }
+  }
+
+  kbd {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    padding: 1px 4px;
+    border-radius: var(--r-xs);
+    background: rgba(255, 255, 255, 0.18);
+    color: inherit;
+  }
+
+  &:not(.is-primary) kbd {
+    background: var(--surface-3);
+    color: var(--text-3);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── 淡出 ──────────────────────────────────────────────────── */
+.splash-leave-active {
+  transition: opacity var(--dur-3) var(--ease-standard);
+}
+
+.splash-leave-to {
   opacity: 0;
-  transform: scale(1.05);
-  filter: blur(10px);
-}
-
-/* 响应式设计 */
-@media (max-width: 480px) {
-  .splash-content {
-    padding: 24px;
-  }
-
-  .splash-title {
-    font-size: 22px;
-  }
-
-  .keyboard-hints {
-    display: none;
-  }
 }
 </style>

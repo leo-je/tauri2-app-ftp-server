@@ -3,6 +3,16 @@ export default {
     title: 'FTP Server',
     name: 'FTP เซิร์ฟเวอร์'
   },
+  theme: {
+    title: 'ธีม',
+    light: 'สว่าง',
+    system: 'ตามระบบ',
+    dark: 'มืด'
+  },
+  window: {
+    close: 'ปิด',
+    minimize: 'ย่อเล็กสุด'
+  },
   splash: {
     welcome: 'ยินดีต้อนรับสู่ FTP Server',
     loading: 'กำลังเริ่มต้น',
@@ -75,6 +85,7 @@ export default {
     port: 'พอร์ตบริการ',
     select: 'เลือก',
     open: 'เปิด',
+    locked: 'ล็อกอยู่',
     placeholder: {
       dir: 'กรุณาเลือกไดเรกทอรีที่แชร์',
       port: '21'
@@ -82,7 +93,9 @@ export default {
   },
   connection: {
     title: 'ที่อยู่การเชื่อมต่อ',
-    copied: 'คัดลอกไปยังคลิปบอร์ดแล้ว'
+    copied: 'คัดลอกไปยังคลิปบอร์ดแล้ว',
+    copyHint: 'คลิกเพื่อคัดลอก',
+    copyFailed: 'คัดลอกไม่สำเร็จ',
   },
   control: {
     start: 'เริ่มบริการ',
@@ -98,7 +111,9 @@ export default {
     serviceStarted: 'บริการเริ่มแล้ว',
     serviceStopped: 'บริการหยุดแล้ว',
     serviceStartFailed: 'การเริ่มต้นบริการล้มเหลว',
-    serviceStopFailed: 'การหยุดบริการล้มเหลว'
+    serviceStopFailed: 'การหยุดบริการล้มเหลว',
+    openDirFailed: 'เปิดไดเรกทอรีไม่สำเร็จ',
+    selectDirFailed: 'เลือกไดเรกทอรีไม่สำเร็จ',
   },
   validation: {
     portWarning: {
@@ -121,12 +136,15 @@ export default {
   auth: {
     serverRunning: 'บริการกำลังทำงาน การตั้งค่าสิทธิ์ถูกล็อก',
     settings: 'การตั้งค่าทั่วไป',
+    accessControl: 'การควบคุมการเข้าถึง',
     autoStart: 'เริ่มอัตโนมัติ',
     autoStartDesc: 'เปิดแอปพลิเคชันโดยอัตโนมัติเมื่อเริ่มระบบ',
     hideOnStartup: 'ซ่อนหน้าต่างหลักเมื่อเริ่มต้น',
     hideOnStartupDesc: 'ซ่อนหน้าต่างหลักเมื่อเริ่มต้น แสดงเฉพาะไอคอนในถาด',
     anonymous: 'การเข้าถึงแบบไม่ระบุตัวตน',
     anonymousDesc: 'เข้าถึงได้โดยไม่ต้องยืนยันตัวตน',
+    filePermission: 'สิทธิ์ไฟล์',
+    filePermissionDesc: 'การดำเนินการที่อนุญาตสำหรับผู้เข้าชมแบบไม่ระบุตัวตน',
     readOnly: 'อ่านอย่างเดียว',
     readWrite: 'อ่านและเขียน',
     userList: 'รายชื่อผู้ใช้',
@@ -156,6 +174,8 @@ export default {
     noBlacklistIps: 'ไม่มี IP ในรายการต้องห้าม',
     ipInputPlaceholder: 'กรุณาใส่ที่อยู่ IP หรือช่วง CIDR (เช่น 192.168.1.1 หรือ 10.0.0.0/24)',
     ipRequired: 'ต้องระบุที่อยู่ IP',
+    ipInvalidFormat: 'ไม่ใช่ที่อยู่ IP ที่ถูกต้อง',
+    ipPrefixRange: 'ความยาวพรีฟิกซ์ต้องอยู่ระหว่าง 0-{max}',
     ipAdded: 'เพิ่ม IP ในรายการต้องห้ามแล้ว',
     ipRemoved: 'ลบ IP ออกจากรายการต้องห้ามแล้ว'
   },
@@ -167,6 +187,9 @@ export default {
     developer: 'ผู้พัฒนา',
     developerName: 'FTP Server Team',
     description: 'เครื่องมือจัดการเซิร์ฟเวอร์ FTP ข้ามแพลตฟอร์มที่เบาและสร้างด้วย Tauri 2.0 มีอินเทอร์เฟซผู้ใช้ที่ทันสมัยสำหรับการปรับใช้ที่รวดเร็วและบริการถ่ายโอนไฟล์ที่ปลอดภัย',
+    systemInfo: 'ข้อมูลระบบ',
+    platform: 'แพลตฟอร์ม',
+    arch: 'สถาปัตยกรรม',
     techStack: 'เทคโนโลยีที่ใช้',
     features: 'คุณสมบัติหลัก',
     featuresList: {

@@ -1,0 +1,202 @@
+/**
+ * 设计令牌 —— 「工程仪表」体系
+ *
+ * 基调：暖中性（不是冷灰）+ 单一橙色强调色。
+ * 语义色只保留三种：运行中（绿）、需要小心（红）、提示（蓝）。
+ * 强调色只表示「可交互 / 当前所在位置」，不表示状态，避免和运行状态混淆。
+ *
+ * 表面层次（两套主题用同一套逻辑）：
+ *   chrome（外壳：标题栏 / 侧边栏）    比页面更暗，像设备边框
+ *   bg（内容页面）                      中间层
+ *   surface（卡片）                     比页面更亮，浮在页面之上
+ *   surface-2/3/inset（卡片内部）       越往后越「凹陷」
+ */
+
+:root {
+  color-scheme: light;
+
+  /* ---------- 字体 ---------- */
+  --font-ui: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Hiragino Sans GB', 'Noto Sans Thai', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  --fs-2xs: 10px;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 13px;
+  --fs-base: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 20px;
+  --fs-2xl: 26px;
+  --fs-display: 34px;
+
+  --lh-tight: 1.25;
+  --lh-normal: 1.5;
+
+  --tracking-wide: 0.06em;
+  --tracking-wider: 0.12em;
+
+  /* ---------- 间距 ---------- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+
+  /* ---------- 圆角 ---------- */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 9px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-full: 999px;
+
+  /* ---------- 骨架尺寸 ---------- */
+  --titlebar-h: 40px;
+  --rail-w: 172px;
+  /* ---------- 动效 ---------- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+
+  /* ---------- 表面 ---------- */
+  --chrome: #edeae4;
+  --chrome-inset: #e3dfd7;
+  --chrome-raised: #ffffff;
+  --chrome-hover: rgba(35, 27, 18, 0.055);
+
+  --bg: #f7f5f2;
+  --bg-deep: #efece6;
+
+  --surface: #ffffff;
+  --surface-2: #f7f5f2;
+  --surface-3: #efece6;
+  --surface-inset: #e9e5de;
+
+  --border: #e5e0d8;
+  --border-2: #d3cbc0;
+  --border-strong: #b3a99c;
+
+  --text: #1b1917;
+  --text-2: #6d665d;
+  --text-3: #9b9389;
+  --text-inverse: #ffffff;
+
+  /* 强调色：橙。只用于可交互元素与当前焦点 */
+  --accent: #c2410c;
+  --accent-hover: #9a3412;
+  --accent-soft: rgba(194, 65, 12, 0.09);
+  --accent-line: rgba(194, 65, 12, 0.28);
+  --accent-contrast: #ffffff;
+
+  /* 语义色 */
+  --success: #0f7a54;
+  --success-soft: rgba(15, 122, 84, 0.1);
+  --success-line: rgba(15, 122, 84, 0.26);
+
+  --danger: #b3261e;
+  --danger-soft: rgba(179, 38, 30, 0.09);
+  --danger-line: rgba(179, 38, 30, 0.24);
+
+  --info: #2f6fb5;
+  --info-soft: rgba(47, 111, 181, 0.1);
+
+  /* 中性：用于「已停止」这类无状态信息 */
+  --muted: #8a8177;
+  --muted-soft: rgba(138, 129, 119, 0.12);
+
+  /* 阴影：带暖色偏移，像纸上的投影而不是纯黑 */
+  --shadow-1: 0 1px 2px rgba(35, 27, 18, 0.06), 0 1px 1px rgba(35, 27, 18, 0.04);
+  --shadow-2: 0 4px 12px rgba(35, 27, 18, 0.07), 0 1px 3px rgba(35, 27, 18, 0.05);
+  --shadow-3: 0 14px 36px rgba(35, 27, 18, 0.13), 0 3px 10px rgba(35, 27, 18, 0.06);
+  --shadow-pop: 0 18px 48px rgba(35, 27, 18, 0.18);
+
+  /* 背景装饰 */
+  --grid-line: rgba(35, 27, 18, 0.05);
+  --glow-a: rgba(194, 65, 12, 0.1);
+  --glow-b: rgba(47, 111, 181, 0.07);
+  --vignette: rgba(35, 27, 18, 0.05);
+
+  /* 日志控制台 */
+  --console-bg: #f8f6f3;
+  --console-bg-2: #f2efe9;
+  --console-border: #e2ddd4;
+  --console-text: #2a2621;
+  --console-text-dim: #8b8377;
+  --console-hover: rgba(35, 27, 18, 0.04);
+}
+
+html.dark {
+  color-scheme: dark;
+
+  --chrome: #0f0d0c;
+  --chrome-inset: #090807;
+  --chrome-raised: #2a2621;
+  --chrome-hover: rgba(255, 255, 255, 0.055);
+
+  --bg: #171512;
+  --bg-deep: #12100e;
+
+  --surface: #211e1a;
+  --surface-2: #1a1815;
+  --surface-3: #2a2621;
+  --surface-inset: #141210;
+
+  --border: #302b25;
+  --border-2: #453d34;
+  --border-strong: #5d5347;
+
+  --text: #f2eee8;
+  --text-2: #a89f93;
+  --text-3: #7b7268;
+  --text-inverse: #141210;
+
+  --accent: #fb8c3c;
+  --accent-hover: #fdba74;
+  --accent-soft: rgba(251, 140, 60, 0.14);
+  --accent-line: rgba(251, 140, 60, 0.34);
+  --accent-contrast: #1a0f06;
+
+  --success: #3ecf99;
+  --success-soft: rgba(62, 207, 153, 0.13);
+  --success-line: rgba(62, 207, 153, 0.3);
+
+  --danger: #f27a72;
+  --danger-soft: rgba(242, 122, 114, 0.13);
+  --danger-line: rgba(242, 122, 114, 0.3);
+
+  --info: #7fb4e8;
+  --info-soft: rgba(127, 180, 232, 0.13);
+
+  --muted: #8c8377;
+  --muted-soft: rgba(140, 131, 119, 0.16);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 16px 40px rgba(0, 0, 0, 0.55);
+  --shadow-pop: 0 20px 52px rgba(0, 0, 0, 0.62);
+
+  --grid-line: rgba(255, 255, 255, 0.03);
+  --glow-a: rgba(251, 140, 60, 0.12);
+  --glow-b: rgba(127, 180, 232, 0.07);
+  --vignette: rgba(0, 0, 0, 0.42);
+
+  --console-bg: #141210;
+  --console-bg-2: #100e0d;
+  --console-border: #2b2620;
+  --console-text: #ded7cd;
+  --console-text-dim: #6f675d;
+  --console-hover: rgba(255, 255, 255, 0.04);
+}
+
+/* 窗口收窄时侧边栏跟着退一点，把宽度让给内容 */
+@media (max-width: 700px) {
+  :root {
+    --rail-w: 150px;
+  }
+}

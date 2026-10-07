@@ -23,15 +23,14 @@ interface Props {
   name: IconName;
   /** 图标尺寸 */
   size?: number | string;
-  /** 自定义类名 */
-  class?: string;
   /** 是否填充模式 */
   fill?: boolean;
 }
 
+// class 不再声明为 prop：交给 Vue 的属性透传，
+// 这样对象、数组形式的动态 class（:class="{ 'is-x': bool }"）也能原样落到根 svg 上。
 const props = withDefaults(defineProps<Props>(), {
   size: 24,
-  class: '',
   fill: false
 });
 
@@ -56,9 +55,7 @@ const pathAttrs = computed(() => {
 
 const viewBox = computed(() => '0 0 24 24');
 
-const iconClass = computed(() => {
-  return ['svg-icon', props.class].filter(Boolean).join(' ');
-});
+const iconClass = computed(() => 'svg-icon');
 
 const iconStyle = computed(() => {
   const size = typeof props.size === 'number' ? `${props.size}px` : props.size;

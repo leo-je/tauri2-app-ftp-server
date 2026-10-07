@@ -1,65 +1,65 @@
 <template>
-  <SplashScreen v-if="!appReady" @complete="onSplashComplete" />
-  <el-container class="app-container">
+  <div class="app-shell">
+    <!-- 启动页自带一份同样的背景，这里等它退场后再挂载，避免两套网格和辉光同时合成 -->
     <AppBackground v-if="appReady" />
-    <!-- 自定义标题栏 -->
-    <div class="title-bar" data-tauri-drag-region :class="{ 'is-macos': isMacos }">
-      <!-- macOS 风格控制按钮 -->
-      <div v-if="isMacos" class="window-controls macos-controls">
-        <div class="macos-btn close" @click="closeWindow" title="关闭"></div>
-        <div class="macos-btn minimize" @click="minimizeWindow" title="最小化"></div>
-      </div>
 
-      <div class="title-bar-content" data-tauri-drag-region>
-        <div class="app-logo" data-tauri-drag-region>
-          <AppLogo :size="20" />
-        </div>
-        <span class="app-title" data-tauri-drag-region>{{ $t('app.name') }}</span>
-      </div>
+    <AppTitleBar />
 
-      <!-- 语言切换按钮 - 悬浮于标题栏下方 -->
-      <div class="floating-lang-switcher" v-if="appReady">
-        <LanguageSwitcher />
-      </div>
+    <div class="app-body">
+      <AppSidebar />
 
-      <!-- Windows/Linux 风格控制按钮 -->
-      <div v-if="!isMacos" class="window-controls">
-        <div class="control-btn minimize" @click="minimizeWindow" title="最小化">
-          <SvgIcon name="minimize" :size="16" />
-        </div>
-        <div class="control-btn close" @click="closeWindow" title="关闭">
-          <SvgIcon name="close" :size="16" />
-        </div>
-      </div>
+      <main class="app-content" @contextmenu="disableContextMenu">
+        <RouterView v-slot="{ Component, route }">
+          <KeepAlive>
+            <component :is="Component" :class="['page', isFirstVisit(route.name) ? 'stagger' : '']" />
+          </KeepAlive>
+        </RouterView>
+      </main>
     </div>
+  </div>
 
-    <el-main class="index-main" @contextmenu="disableContextMenu">
-      <RouterView />
-    </el-main>
-  </el-container>
+  <SplashScreen v-if="!appReady" @complete="onSplashComplete" />
 </template>
 
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
-import { ElMain, ElContainer } from 'element-plus';
-import { getCurrentWindow } from '@tauri-apps/api/window';
-import { platform } from '@tauri-apps/plugin-os';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { RouterView, useRoute } from 'vue-router';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { SvgIcon } from './components/icons';
-import AppLogo from './components/AppLogo.vue';
-import SplashScreen from './components/SplashScreen.vue';
-import LanguageSwitcher from './components/LanguageSwitcher.vue';
-import AppBackground from './components/AppBackground.vue';
 import { listen, emit } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import appStore from './store';
+import AppTitleBar from './components/AppTitleBar.vue';
+import AppSidebar from './components/AppSidebar.vue';
+import AppBackground from './components/AppBackground.vue';
+import SplashScreen from './components/SplashScreen.vue';
 
 const { t } = useI18n();
 const appWindow = getCurrentWindow();
-const isMacos = ref(false);
 const appReady = ref(false);
+const route = useRoute();
+
+/**
+ * 入场动画只在每页「第一次看到」时播一次。
+ * 页面被 KeepAlive 缓存，切回来时 DOM 会被重新插入，CSS 动画会跟着重播——
+ * 每次切页都抖一下并不是想要的效果，所以这里记录已经看过哪些页。
+ */
+const visitedRoutes = ref(new Set<string>());
+
+watch(
+  () => route.name,
+  (_to, from) => {
+    if (typeof from === 'string') {
+      visitedRoutes.value.add(from);
+    }
+  }
+);
+
+const isFirstVisit = (name: unknown) => typeof name === 'string' && !visitedRoutes.value.has(name);
+
+/* 托盘菜单的启停是「一次点击、异步完成」，用一个待处理标记防止连点重复触发 */
 const isTrayTogglePending = ref(false);
+const TRAY_TOGGLE_TIMEOUT = 15000;
 let trayToggleTimeout: ReturnType<typeof setTimeout> | null = null;
 let unlistenTrayToggle: (() => void) | null = null;
 let unlistenToggleFinished: (() => void) | null = null;
@@ -79,7 +79,7 @@ const scheduleTrayToggleTimeout = () => {
 
   trayToggleTimeout = setTimeout(() => {
     clearTrayTogglePending();
-  }, 15000);
+  }, TRAY_TOGGLE_TIMEOUT);
 };
 
 const initTrayMenuLanguage = async () => {
@@ -100,40 +100,32 @@ const initTrayMenuLanguage = async () => {
 };
 
 onMounted(async () => {
-  isMacos.value = await platform() === 'macos';
-
-  // 初始化托盘菜单语言
   await initTrayMenuLanguage();
 
-  if (!unlistenTrayToggle) {
-    unlistenTrayToggle = await listen('tray-toggle-ftp', async () => {
-      if (isTrayTogglePending.value) {
-        return;
+  unlistenTrayToggle = await listen('tray-toggle-ftp', async () => {
+    if (isTrayTogglePending.value) {
+      return;
+    }
+
+    isTrayTogglePending.value = true;
+    scheduleTrayToggleTimeout();
+
+    try {
+      const isRunning = await invoke<boolean>('get_server_running');
+      if (isRunning) {
+        await emit('global-stop-ftp');
+      } else {
+        await emit('global-start-ftp');
       }
-
-      isTrayTogglePending.value = true;
-      scheduleTrayToggleTimeout();
-
-      try {
-        console.log('托盘事件：切换 FTP 服务');
-        const isRunning = await invoke<boolean>('get_server_running');
-        if (isRunning) {
-          await emit('global-stop-ftp');
-        } else {
-          await emit('global-start-ftp');
-        }
-      } catch (e) {
-        console.warn('Failed to toggle FTP from tray:', e);
-        clearTrayTogglePending();
-      }
-    });
-  }
-
-  if (!unlistenToggleFinished) {
-    unlistenToggleFinished = await listen('ftp-toggle-finished', () => {
+    } catch (e) {
+      console.warn('Failed to toggle FTP from tray:', e);
       clearTrayTogglePending();
-    });
-  }
+    }
+  });
+
+  unlistenToggleFinished = await listen('ftp-toggle-finished', () => {
+    clearTrayTogglePending();
+  });
 });
 
 onUnmounted(() => {
@@ -151,235 +143,65 @@ onUnmounted(() => {
 });
 
 function disableContextMenu(event: Event) {
-    event.preventDefault();
-}
-
-const minimizeWindow = () => {
-  appWindow.minimize();
-}
-
-const closeWindow = () => {
-  // 隐藏窗口，保留 Dock 图标（macOS 标准行为）
-  invoke('hide_main_window');
+  event.preventDefault();
 }
 
 const onSplashComplete = async () => {
-  appReady.value = true
-  // 检查启动时隐藏主界面设置
+  appReady.value = true;
   try {
-    const hideOnStartup = await appStore.get('hideOnStartup')
+    const hideOnStartup = await appStore.get('hideOnStartup');
+    // 只有用户明确关掉了「启动时隐藏」才主动显示窗口
     if (hideOnStartup === false) {
-      // 用户关闭了隐藏选项，显示窗口
-      await appWindow.show()
+      await appWindow.show();
     }
-    // 如果为 true（默认），窗口已在 setup 中隐藏，无需操作
   } catch (e) {
-    console.warn('Failed to check hide-on-startup setting:', e)
-    // 出错时默认显示窗口
-    await appWindow.show()
+    console.warn('Failed to check hide-on-startup setting:', e);
+    await appWindow.show();
   }
-}
+};
 </script>
 
-<style lang="scss" scoped>
-.app-container {
-  height: 100%;
-  width: 100%;
-  background: var(--gradient-bg);
-  background-size: 180% 180%;
-  animation: gradientShift 22s ease infinite;
+<style scoped lang="scss">
+.app-shell {
   position: relative;
-  overflow: hidden;
-  isolation: isolate;
   display: flex;
   flex-direction: column;
-  border-radius: 12px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
-/* 自定义标题栏 */
-.title-bar {
-  height: 40px;
-  background: linear-gradient(135deg, rgba(24, 39, 78, 0.7) 0%, rgba(69, 46, 116, 0.66) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 10px 0 14px;
-  flex-shrink: 0;
-  z-index: 3;
-  backdrop-filter: blur(18px) saturate(120%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 6px 18px rgba(6, 10, 24, 0.14);
-
-  /* macOS 风格 */
-  &.is-macos {
-    padding: 0 14px;
-
-    .title-bar-content {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-  }
-}
-
-.title-bar-content {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.app-logo {
-  width: 20px;
-  height: 20px;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border-radius: 4px;
-
-  :deep(.app-logo-img) {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-}
-
-.app-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: white;
-  letter-spacing: 0.5px;
-}
-
-/* macOS 风格控制按钮 */
-.macos-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 10;
-}
-
-.macos-btn {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  position: relative;
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    transition: opacity 0.15s ease;
-  }
-
-  &.close {
-    background: #ff5f57;
-    border: 1px solid #e0443e;
-
-    &:hover::after {
-      content: '×';
-      font-size: 12px;
-      font-weight: bold;
-      color: #4d0000;
-      opacity: 1;
-    }
-  }
-
-  &.minimize {
-    background: #febc2e;
-    border: 1px solid #dea123;
-
-    &:hover::after {
-      content: '−';
-      font-size: 12px;
-      font-weight: bold;
-      color: #995700;
-      opacity: 1;
-    }
-  }
-}
-
-/* Windows/Linux 风格控制按钮 */
-.window-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* 悬浮语言切换按钮 */
-.floating-lang-switcher {
-  position: fixed;
-  top: 48px;
-  right: 16px;
-  z-index: 4;
-}
-
-.control-btn {
-  width: 40px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: rgba(255, 255, 255, 0.9);
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.15);
-  }
-
-  &.close:hover {
-    background: rgba(245, 101, 101, 0.9);
-  }
-}
-
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.index-main {
-  color: var(--el-text-color-primary);
-  flex: 1;
+  height: 100%;
   width: 100%;
-  padding: 0;
-  overflow: auto;
+  overflow: hidden;
+  background: var(--bg);
+  /* 透明窗口：圆角 + 一圈发丝边，让窗口在桌面上有实体感 */
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.app-body {
   position: relative;
-  z-index: 2;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  min-height: 0;
 }
 
-* {
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+.app-content {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
-</style>
 
-<style lang="scss">
-/* 全局样式 - 拖拽区域 */
-*[data-tauri-drag-region] {
-  -webkit-app-region: drag;
-  app-region: drag;
+/* 页面容器由外壳统一给出，视图里不再各自处理宽度和内边距 */
+.app-content :deep(.page) {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: var(--s-5) var(--s-5) var(--s-7);
+}
+
+@media (max-width: 700px) {
+  .app-content :deep(.page) {
+    padding: var(--s-4) var(--s-4) var(--s-6);
+  }
 }
 </style>

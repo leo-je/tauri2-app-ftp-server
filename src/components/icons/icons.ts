@@ -67,10 +67,10 @@ export const svgIcons = {
     attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
   },
 
-  // 停止
+  // 停止（实心圆角方块）
   stop: {
-    paths: ['M6 6H18M6 12H18M6 18H18'],
-    attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' }
+    paths: ['M7 7H17V17H7Z'],
+    attrs: { fill: 'currentColor', stroke: 'currentColor', strokeWidth: 2, strokeLinejoin: 'round' }
   },
 
   // 飞机/发送
@@ -87,12 +87,13 @@ export const svgIcons = {
     attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
   },
 
-  // 复制
+  // 复制（此前误画成了播放三角）
   copy: {
     paths: [
-      'M8 5V19L19 12L8 5Z'
+      'M9 9.5C9 8.67157 9.67157 8 10.5 8H17.5C18.3284 8 19 8.67157 19 9.5V17.5C19 18.3284 18.3284 19 17.5 19H10.5C9.67157 19 9 18.3284 9 17.5V9.5Z',
+      'M15 8V6.5C15 5.67157 14.3284 5 13.5 5H6.5C5.67157 5 5 5.67157 5 6.5V13.5C5 14.3284 5.67157 15 6.5 15H9'
     ],
-    attrs: { fill: 'currentColor' }
+    attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
   },
 
   // 复制轮廓版
@@ -222,6 +223,12 @@ export const svgIcons = {
     attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
   },
 
+  // 勾选
+  check: {
+    paths: ['M5 13L9 17L19 7'],
+    attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 3, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  },
+
   // 向上箭头
   chevronUp: {
     paths: ['M18 15L12 9L6 15'],
@@ -231,6 +238,70 @@ export const svgIcons = {
   // 向下箭头
   chevronDown: {
     paths: ['M6 9L12 15L18 9'],
+    attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  },
+
+  // 向右箭头
+  chevronRight: {
+    paths: ['M9 18L15 12L9 6'],
+    attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  },
+
+  // 主题：浅色
+  sun: {
+    paths: [
+      'M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0',
+      'M12 2V4M12 20V22M2 12H4M20 12H22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93'
+    ],
+    attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' }
+  },
+
+  // 主题：深色
+  moon: {
+    paths: ['M20 14.5A8.5 8.5 0 0 1 9.5 4A8.5 8.5 0 1 0 20 14.5Z'],
+    attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  },
+
+  // 主题：跟随系统
+  monitor: {
+    paths: [
+      'M4 5H20C20.5523 5 21 5.44772 21 6V15C21 15.5523 20.5523 16 20 16H4C3.44772 16 3 15.5523 3 15V6C3 5.44772 3.44772 5 4 5Z',
+      'M9 20H15M12 16V20'
+    ],
+    attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  },
+
+  // 关于 / 信息
+  info: {
+    paths: [
+      'M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z',
+      'M12 11V16M12 8H12.01'
+    ],
+    attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  },
+
+  // 权限 / 安全
+  shield: {
+    paths: [
+      'M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z',
+      'M9 12L11 14L15 10'
+    ],
+    attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  },
+
+  // 活动 / 心跳
+  activity: {
+    paths: ['M3 12H7L10 4L14 20L17 12H21'],
+    attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  },
+
+  // 在外部打开
+  externalLink: {
+    paths: [
+      'M14 4H20V10',
+      'M20 4L11 13',
+      'M18 14V19C18 19.5523 17.5523 20 17 20H5C4.44772 20 4 19.5523 4 19V7C4 6.44772 4.44772 6 5 6H10'
+    ],
     attrs: { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }
   }
 } as const;

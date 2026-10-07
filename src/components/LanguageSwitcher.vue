@@ -1,23 +1,23 @@
 <template>
-  <div class="language-switcher">
-    <el-dropdown trigger="click" @command="handleLanguageChange">
-      <div class="lang-btn" :title="$t('language.title')">
-        <SvgIcon name="global" :size="18" />
-      </div>
-      <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item
-            v-for="lang in languages"
-            :key="lang.value"
-            :command="lang.value"
-            :class="{ 'is-active': currentLanguage === lang.value }"
-          >
-            <span class="lang-option">{{ lang.label }}</span>
-          </el-dropdown-item>
-        </el-dropdown-menu>
-      </template>
-    </el-dropdown>
-  </div>
+  <el-dropdown trigger="click" placement="top-start" @command="handleLanguageChange">
+    <button type="button" class="lang-row" :title="$t('language.title')">
+      <SvgIcon name="global" :size="15" class="lang-globe" />
+      <span class="lang-current">{{ currentLabel }}</span>
+      <SvgIcon name="chevronUp" :size="14" class="lang-caret" />
+    </button>
+    <template #dropdown>
+      <el-dropdown-menu>
+        <el-dropdown-item
+          v-for="lang in languages"
+          :key="lang.value"
+          :command="lang.value"
+          :class="{ 'is-active': currentLanguage === lang.value }"
+        >
+          <span class="lang-option">{{ lang.label }}</span>
+        </el-dropdown-item>
+      </el-dropdown-menu>
+    </template>
+  </el-dropdown>
 </template>
 
 <script setup lang="ts">
@@ -27,17 +27,23 @@ import { ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus'
 import { SvgIcon } from './icons'
 import { invoke } from '@tauri-apps/api/core'
 import appStore from '../store'
+import { applyDocumentLang } from '../i18n'
 
 const { locale, t } = useI18n()
 
-const languages = [
+/** 语言名一律用该语言自己的写法，所以与当前 locale 无关 */
+const languages = computed(() => [
   { value: 'zh', label: t('language.zh') },
   { value: 'en', label: t('language.en') },
   { value: 'ja', label: t('language.ja') },
   { value: 'th', label: t('language.th') }
-]
+])
 
 const currentLanguage = computed(() => locale.value)
+
+const currentLabel = computed(
+  () => languages.value.find((item) => item.value === currentLanguage.value)?.label ?? ''
+)
 
 const updateTrayMenu = async () => {
   try {
@@ -58,71 +64,61 @@ const updateTrayMenu = async () => {
 
 const handleLanguageChange = async (lang: string) => {
   locale.value = lang
+  applyDocumentLang(lang)
   localStorage.setItem('app-language', lang)
   await updateTrayMenu()
 }
 </script>
 
-<style lang="scss" scoped>
-.language-switcher {
+<style scoped lang="scss">
+.lang-row {
   display: flex;
   align-items: center;
-}
-
-.lang-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  gap: var(--s-2);
+  width: 100%;
+  height: 30px;
+  padding: 0 var(--s-2);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-2);
   cursor: pointer;
-  transition: all 0.2s ease;
-  color: rgba(255, 255, 255, 0.95);
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
+  transition: background var(--dur-1) var(--ease-standard),
+    color var(--dur-1) var(--ease-standard);
 
   &:hover {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 1) 0%, rgba(118, 75, 162, 1) 100%);
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4), 0 2px 4px rgba(0, 0, 0, 0.15);
-    transform: translateY(-1px) scale(1.05);
-  }
-
-  &:active {
-    transform: translateY(0) scale(1);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-  }
-
-  svg {
-    width: 18px;
-    height: 18px;
+    background: var(--surface-3);
+    color: var(--text);
   }
 }
 
-:deep(.el-dropdown-menu) {
-  min-width: 120px;
+.lang-globe {
+  flex-shrink: 0;
+  color: var(--text-3);
+}
 
-  .el-dropdown-item {
-    padding: 8px 16px;
-    font-size: 13px;
+.lang-current {
+  flex: 1;
+  text-align: left;
+  font-size: var(--fs-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-    &.is-active {
-      color: var(--el-color-primary);
-      font-weight: 600;
-      background: rgba(102, 126, 234, 0.1);
-    }
+.lang-caret {
+  flex-shrink: 0;
+  color: var(--text-3);
+  opacity: 0;
+  transition: opacity var(--dur-1) var(--ease-standard);
+}
 
-    &:hover {
-      background: rgba(102, 126, 234, 0.05);
-    }
-  }
+.lang-row:hover .lang-caret {
+  opacity: 1;
 }
 
 .lang-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: block;
+  min-width: 96px;
 }
 </style>

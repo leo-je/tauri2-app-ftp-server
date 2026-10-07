@@ -13,6 +13,12 @@ export interface StoreValue {
   fileauth?: string;
   tableData?: UserItem[];
   hideOnStartup?: boolean;
+  /**
+   * IP 黑名单的持久化副本。
+   * 后端那份是内存态（进程重启即空），启动时由前端把它推回去，
+   * 这样黑名单才真的能跨重启生效。
+   */
+  blacklistIps?: string[];
 }
 
 let store: Store;

@@ -1,0 +1,493 @@
+/**
+ * Element Plus 接线层
+ *
+ * 把 Element 的 CSS 变量接到本项目的令牌上，组件本身不再需要逐页 :deep 覆写。
+ * 组件级的少量调整（输入框、表格、抽屉…）集中在这里，改一处全局生效。
+ */
+
+@mixin el-theme-map {
+  --el-color-primary: var(--accent);
+  --el-color-primary-light-3: var(--accent-line);
+  --el-color-primary-light-5: var(--accent-line);
+  --el-color-primary-light-7: var(--accent-soft);
+  --el-color-primary-light-8: var(--accent-soft);
+  --el-color-primary-light-9: var(--accent-soft);
+  --el-color-primary-dark-2: var(--accent-hover);
+
+  --el-color-success: var(--success);
+  --el-color-success-light-3: var(--success-line);
+  --el-color-success-light-5: var(--success-line);
+  --el-color-success-light-9: var(--success-soft);
+
+  --el-color-danger: var(--danger);
+  --el-color-danger-light-3: var(--danger-line);
+  --el-color-danger-light-5: var(--danger-line);
+  --el-color-danger-light-9: var(--danger-soft);
+
+  --el-color-error: var(--danger);
+  --el-color-error-light-9: var(--danger-soft);
+
+  --el-color-warning: var(--accent);
+  --el-color-warning-light-9: var(--accent-soft);
+
+  --el-color-info: var(--info);
+  --el-color-info-light-9: var(--info-soft);
+
+  --el-bg-color: var(--surface);
+  --el-bg-color-page: var(--bg);
+  --el-bg-color-overlay: var(--surface);
+
+  --el-text-color-primary: var(--text);
+  --el-text-color-regular: var(--text-2);
+  --el-text-color-secondary: var(--text-3);
+  --el-text-color-placeholder: var(--text-3);
+  --el-text-color-disabled: var(--text-3);
+
+  --el-border-color: var(--border);
+  --el-border-color-light: var(--border);
+  --el-border-color-lighter: var(--border);
+  --el-border-color-extra-light: var(--border);
+  --el-border-color-dark: var(--border-2);
+  --el-border-color-darker: var(--border-2);
+
+  --el-fill-color: var(--surface-3);
+  --el-fill-color-light: var(--surface-3);
+  --el-fill-color-lighter: var(--surface-2);
+  --el-fill-color-extra-light: var(--surface-2);
+  --el-fill-color-dark: var(--surface-inset);
+  --el-fill-color-darker: var(--surface-inset);
+  --el-fill-color-blank: var(--surface);
+
+  --el-border-radius-base: var(--r-md);
+  --el-border-radius-small: var(--r-sm);
+  --el-border-radius-round: var(--r-full);
+
+  --el-font-family: var(--font-ui);
+  --el-font-size-base: var(--fs-md);
+
+  --el-box-shadow: var(--shadow-2);
+  --el-box-shadow-light: var(--shadow-1);
+  --el-box-shadow-lighter: var(--shadow-1);
+  --el-box-shadow-dark: var(--shadow-3);
+
+  --el-disabled-bg-color: var(--surface-3);
+  --el-disabled-text-color: var(--text-3);
+  --el-disabled-border-color: var(--border);
+
+  --el-overlay-color-lighter: rgba(20, 14, 8, 0.45);
+  --el-mask-color: rgba(20, 14, 8, 0.45);
+}
+
+/* 映射必须同时落在 :root 和 html.dark 上：
+   Element 自带的 dark/css-vars.css 也声明在 html.dark，
+   只写在 :root 会被它按层叠顺序盖掉。 */
+:root {
+  @include el-theme-map;
+}
+
+html.dark {
+  @include el-theme-map;
+  --el-mask-color: rgba(0, 0, 0, 0.66);
+  --el-overlay-color-lighter: rgba(0, 0, 0, 0.62);
+}
+
+/* ---------- 按钮 ---------- */
+.el-button {
+  --el-button-font-weight: 500;
+  border-radius: var(--r-md);
+  transition: background var(--dur-1) var(--ease-standard),
+    border-color var(--dur-1) var(--ease-standard),
+    color var(--dur-1) var(--ease-standard),
+    box-shadow var(--dur-1) var(--ease-standard);
+}
+
+/* 不再用位移做 hover 反馈——那会让整页在鼠标划过时抖动 */
+.el-button:not(.is-disabled):hover,
+.el-button:not(.is-disabled):active {
+  transform: none;
+}
+
+.el-button + .el-button {
+  margin-left: 0;
+}
+
+/* 实心按钮的文字色必须跟着底色走。
+   Element 默认把 hover / active / disabled 的文字色钉在 --el-color-white，
+   深色主题下浅橙底 + 白字只有 ~1.7:1，等于看不见。 */
+.el-button--primary {
+  --el-button-text-color: var(--accent-contrast);
+  --el-button-hover-text-color: var(--accent-contrast);
+  --el-button-active-text-color: var(--accent-contrast);
+  --el-button-bg-color: var(--accent);
+  --el-button-border-color: var(--accent);
+  --el-button-hover-bg-color: var(--accent-hover);
+  --el-button-hover-border-color: var(--accent-hover);
+  --el-button-active-bg-color: var(--accent-hover);
+  --el-button-active-border-color: var(--accent-hover);
+  /* 禁用态改用中性配色：浅色主题下白字压在浅橙底上同样读不出来 */
+  --el-button-disabled-bg-color: var(--surface-3);
+  --el-button-disabled-border-color: var(--border);
+  --el-button-disabled-text-color: var(--text-3);
+}
+
+.el-button--danger {
+  --el-button-text-color: var(--text-inverse);
+  --el-button-hover-text-color: var(--text-inverse);
+  --el-button-active-text-color: var(--text-inverse);
+}
+
+.el-button--primary.is-plain {
+  --el-button-bg-color: var(--accent-soft);
+  --el-button-text-color: var(--accent);
+  --el-button-border-color: var(--accent-line);
+}
+
+.el-button--danger.is-plain {
+  --el-button-bg-color: var(--danger-soft);
+  --el-button-text-color: var(--danger);
+  --el-button-border-color: var(--danger-line);
+  --el-button-hover-bg-color: var(--danger);
+  --el-button-hover-border-color: var(--danger);
+  --el-button-hover-text-color: var(--text-inverse);
+  --el-button-active-bg-color: var(--danger);
+  --el-button-active-border-color: var(--danger);
+  --el-button-active-text-color: var(--text-inverse);
+}
+
+/* Element 的深色包用 `html.dark .el-button`（特异性 0,2,1）单独钉了禁用态文字色，
+   单类选择器盖不回去，必须用同特异性的写法，
+   否则禁用态在浅色下用我们的令牌、深色下用 Element 的白色半透明，两套主题不一致。 */
+html.dark .el-button {
+  --el-button-disabled-text-color: var(--text-3);
+}
+
+/* 默认按钮：中性描边，hover 才抬亮 */
+.el-button--default:not(.is-link):not(.is-text) {
+  --el-button-bg-color: var(--surface);
+  --el-button-border-color: var(--border-2);
+  --el-button-text-color: var(--text);
+  --el-button-hover-bg-color: var(--surface-3);
+  --el-button-hover-border-color: var(--border-strong);
+  --el-button-hover-text-color: var(--text);
+  --el-button-active-bg-color: var(--surface-3);
+  --el-button-active-border-color: var(--border-strong);
+}
+
+.el-button.is-link,
+.el-button.is-text {
+  height: auto;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  font-weight: 500;
+}
+
+.el-button.is-link:hover,
+.el-button.is-text:hover {
+  background: var(--surface-3);
+}
+
+.el-button.is-link.el-button--danger:hover,
+.el-button.is-text.el-button--danger:hover {
+  background: var(--danger-soft);
+}
+
+/* ---------- 输入框 ---------- */
+.el-input {
+  --el-input-border-color: transparent;
+  --el-input-hover-border-color: transparent;
+  --el-input-focus-border-color: transparent;
+  --el-input-text-color: var(--text);
+  --el-input-bg-color: var(--surface-2);
+}
+
+.el-input__wrapper {
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  box-shadow: inset 0 0 0 1px var(--border);
+  transition: box-shadow var(--dur-1) var(--ease-standard);
+}
+
+.el-input__wrapper:hover {
+  box-shadow: inset 0 0 0 1px var(--border-2);
+}
+
+.el-input__wrapper.is-focus,
+.el-input__wrapper:focus-within {
+  box-shadow: inset 0 0 0 1px var(--accent), 0 0 0 3px var(--accent-soft);
+}
+
+.el-input.is-disabled .el-input__wrapper {
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.el-input.is-disabled .el-input__inner {
+  color: var(--text-2);
+  -webkit-text-fill-color: var(--text-2);
+}
+
+.el-input__inner::placeholder {
+  color: var(--text-3);
+}
+
+.el-input__prefix,
+.el-input__suffix {
+  color: var(--text-3);
+}
+
+/* 等宽输入：路径、端口 */
+.el-input.is-mono .el-input__inner {
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+  letter-spacing: -0.01em;
+}
+
+/* el-input 没有 controls 属性（那是 el-input-number 的），
+   所以 type=number 的原生步进箭头用 CSS 收掉，
+   否则会在 132px 宽的端口输入框里露出来 */
+.el-input__inner[type='number']::-webkit-outer-spin-button,
+.el-input__inner[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.el-input__inner[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ---------- 开关 ---------- */
+.el-switch {
+  --el-switch-on-color: var(--accent);
+  --el-switch-off-color: var(--border-2);
+}
+
+/* ---------- 分段选择（只读 / 读写）---------- */
+.el-radio-group {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 这几个变量 Element 是定义在 .el-radio-button 上的，
+   写在 .el-radio-group 上会被更近的定义盖掉，必须同层覆盖。 */
+.el-radio-button {
+  --el-radio-button-checked-bg-color: var(--accent-soft);
+  --el-radio-button-checked-text-color: var(--accent);
+  --el-radio-button-checked-border-color: var(--accent-line);
+}
+
+/* 相邻按钮用负边距叠掉重复边框，只留一条缝 */
+.el-radio-button__inner {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+  font-weight: 500;
+  box-shadow: none !important;
+  transition: background var(--dur-1) var(--ease-standard),
+    border-color var(--dur-1) var(--ease-standard),
+    color var(--dur-1) var(--ease-standard);
+}
+
+.el-radio-button:not(:first-child) .el-radio-button__inner {
+  margin-left: -1px;
+}
+
+.el-radio-button:first-child .el-radio-button__inner {
+  border-radius: var(--r-sm) 0 0 var(--r-sm);
+}
+
+.el-radio-button:last-child .el-radio-button__inner {
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+
+.el-radio-button__inner:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+/* 选中态的颜色由上面的变量决定；
+   这里只负责让选中项压在相邻按钮的负边距之上 */
+.el-radio-button__original-radio:checked + .el-radio-button__inner {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- 表格 ---------- */
+.el-table {
+  --el-table-border-color: var(--border);
+  --el-table-border: 1px solid var(--border);
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+  --el-table-header-bg-color: var(--surface-3);
+  --el-table-header-text-color: var(--text-3);
+  --el-table-text-color: var(--text);
+  --el-table-row-hover-bg-color: var(--surface-3);
+  background: transparent;
+}
+
+.el-table th.el-table__cell {
+  background: var(--surface-3);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  padding: 7px 0;
+}
+
+.el-table td.el-table__cell {
+  padding: 9px 0;
+}
+
+.el-table::before,
+.el-table__inner-wrapper::before {
+  display: none;
+}
+
+.el-table__empty-block {
+  background: transparent;
+}
+
+.el-table__empty-text {
+  color: var(--text-3);
+  font-size: var(--fs-md);
+}
+
+/* ---------- 遮罩 ---------- */
+/* 无边框圆角窗口：遮罩也要跟着圆，否则四角会露出方角 */
+.el-overlay {
+  border-radius: 12px;
+}
+
+/* ---------- 抽屉 ---------- */
+.el-drawer {
+  --el-drawer-bg-color: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+
+.el-drawer__header {
+  margin-bottom: 0;
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.el-drawer__title {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.el-drawer__close-btn {
+  color: var(--text-3);
+}
+
+.el-drawer__body {
+  padding: var(--s-5);
+}
+
+/* ---------- 标签 ---------- */
+.el-tag {
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  border-color: var(--border-2);
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.el-tag--dark {
+  background: var(--surface-3);
+  border-color: var(--border-2);
+  color: var(--text);
+}
+
+.el-tag .el-tag__close {
+  color: var(--text-3);
+}
+
+.el-tag .el-tag__close:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* ---------- 提示与弹窗 ---------- */
+.el-message {
+  --el-message-bg-color: var(--surface);
+  --el-message-border-color: var(--border);
+  --el-message-text-color: var(--text);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-2);
+  border-width: 1px;
+}
+
+.el-message-box {
+  --el-messagebox-title-color: var(--text);
+  --el-messagebox-content-color: var(--text-2);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-pop);
+  padding: var(--s-5);
+}
+
+.el-message-box__title {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+.el-message-box__content {
+  padding: var(--s-3) 0 var(--s-4);
+}
+
+.el-message-box__btns {
+  gap: var(--s-2);
+}
+
+.el-message-box__btns .el-button + .el-button {
+  margin-left: 0;
+}
+
+/* ---------- 下拉菜单 ---------- */
+.el-dropdown__popper.el-popper,
+.el-popper.is-light {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-3);
+}
+
+.el-dropdown-menu {
+  background: transparent;
+  padding: var(--s-1);
+}
+
+.el-dropdown-menu__item {
+  border-radius: var(--r-sm);
+  font-size: var(--fs-md);
+  color: var(--text-2);
+  padding: 7px var(--s-3);
+}
+
+.el-dropdown-menu__item:not(.is-disabled):hover,
+.el-dropdown-menu__item:not(.is-disabled):focus {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.el-dropdown-menu__item.is-active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.el-popper__arrow::before {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+/* ---------- 表单 ---------- */
+.el-form-item__label {
+  color: var(--text-2);
+  font-weight: 500;
+}

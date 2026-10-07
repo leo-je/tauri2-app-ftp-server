@@ -1,3 +1,13 @@
+//! 存储层操作日志
+//!
+//! 这里只记录 **CWD**（切换目录）——libunftp 的 `DataEvent` 没有对应的事件，
+//! 只有包在存储层上才能看到。
+//!
+//! 其余六种操作（download / upload / delete / mkdir / rmdir / rename）
+//! 统一交给 `FtpDataListener` 记录：那边带得到字节数和真实用户名，
+//! 而本层拿不到字节数。两边都记的话，每一次传输都会在日志里出现两行
+//! （一行没有大小、一行有），计数器也跟着翻倍。
+
 use async_trait::async_trait;
 use std::fmt::Debug;
 use std::path::{Path, PathBuf};
@@ -77,7 +87,6 @@ where
         user: &UserInfo,
         path: P,
     ) -> StorageResult<Self::Metadata> {
-        self.set_current_user(Some(user.username.clone()));
         self.inner.metadata(user, path).await
     }
 
@@ -86,7 +95,6 @@ where
         user: &UserInfo,
         path: P,
     ) -> StorageResult<Vec<Fileinfo<PathBuf, Self::Metadata>>> {
-        self.set_current_user(Some(user.username.clone()));
         self.inner.list(user, path).await
     }
 
@@ -96,11 +104,6 @@ where
         path: P,
         start_pos: u64,
     ) -> StorageResult<Box<dyn AsyncRead + Send + Sync + Unpin>> {
-        self.set_current_user(Some(user.username.clone()));
-        
-        let path_for_log = path.as_ref().to_path_buf();
-        self.log_operation("download", &path_for_log, None);
-        
         self.inner.get(user, path, start_pos).await
     }
 
@@ -111,20 +114,7 @@ where
         path: P,
         start_pos: u64,
     ) -> StorageResult<u64> {
-        self.set_current_user(Some(user.username.clone()));
-        
-        let path_for_log = path.as_ref().to_path_buf();
-        
-        let result = self.inner.put(user, input, path, start_pos).await;
-        
-        if let Ok(bytes) = &result {
-            let extra = Some(format!("{} bytes", bytes));
-            self.log_operation("upload", &path_for_log, extra);
-        } else {
-            self.log_operation("upload", &path_for_log, None);
-        }
-        
-        result
+        self.inner.put(user, input, path, start_pos).await
     }
 
     async fn del<P: AsRef<Path> + Send + Debug>(
@@ -132,11 +122,6 @@ where
         user: &UserInfo,
         path: P,
     ) -> StorageResult<()> {
-        self.set_current_user(Some(user.username.clone()));
-        
-        let path_for_log = path.as_ref().to_path_buf();
-        self.log_operation("delete", &path_for_log, None);
-        
         self.inner.del(user, path).await
     }
 
@@ -145,11 +130,6 @@ where
         user: &UserInfo,
         path: P,
     ) -> StorageResult<()> {
-        self.set_current_user(Some(user.username.clone()));
-        
-        let path_for_log = path.as_ref().to_path_buf();
-        self.log_operation("mkdir", &path_for_log, None);
-        
         self.inner.mkd(user, path).await
     }
 
@@ -158,11 +138,6 @@ where
         user: &UserInfo,
         path: P,
     ) -> StorageResult<()> {
-        self.set_current_user(Some(user.username.clone()));
-        
-        let path_for_log = path.as_ref().to_path_buf();
-        self.log_operation("rmdir", &path_for_log, None);
-        
         self.inner.rmd(user, path).await
     }
 
@@ -171,11 +146,12 @@ where
         user: &UserInfo,
         path: P,
     ) -> StorageResult<()> {
+        // 只有这一处需要自己记：DataEvent 里没有「切换目录」事件
         self.set_current_user(Some(user.username.clone()));
-        
+
         let path_for_log = path.as_ref().to_path_buf();
         self.log_operation("cwd", &path_for_log, None);
-        
+
         self.inner.cwd(user, path).await
     }
 
@@ -185,11 +161,6 @@ where
         from: P,
         to: P,
     ) -> StorageResult<()> {
-        self.set_current_user(Some(user.username.clone()));
-        
-        let to_path = to.as_ref().to_path_buf();
-        self.log_operation("rename", &to_path, None);
-        
         self.inner.rename(user, from, to).await
     }
 }

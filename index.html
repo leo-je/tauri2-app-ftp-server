@@ -1,10 +1,29 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri + Vue + Typescript App</title>
+    <title>FTP Server</title>
+
+    <!--
+      在样式和数据之前落定主题，避免首帧先画出浅色再跳到深色。
+      注意：这里刻意不给 html/body 设背景色——根元素的背景会铺满整个画布，
+      把那 12px 的透明圆角填成方的（窗口是 transparent + 无边框，靠 .app-shell
+      的圆角透出桌面）。窗口在启动页结束前一直是隐藏的，所以也不存在首帧闪白。
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('app-theme') || 'system';
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var dark = stored === 'dark' || (stored === 'system' && prefersDark);
+          document.documentElement.classList.toggle('dark', dark);
+        } catch (e) {
+          /* localStorage 不可用时保持浅色 */
+        }
+      })();
+    </script>
   </head>
 
   <body>
